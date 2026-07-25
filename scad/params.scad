@@ -128,6 +128,53 @@ switch_cutout    = true;
 switch_w         = 13.5;
 switch_h         = 19.5;
 
+/* ------------- "matched" series: original-model dimensions -------- */
+// Measured from the original Energy Ring STLs (uploads analyzed with
+// cross-section slicing). The original base = tapered shell slipped
+// over a chassis cup (gravity fit - the part that stays on the desk).
+// The matched series keeps every outside dimension but threads the
+// shell onto the chassis with the same clocked thread as series A.
+m_shell_h        = 50;     // shell height (rim to top face)
+m_shell_od_top   = 86.6;   // outer diameter at the closed top (in use)
+m_shell_od_rim   = 95.0;   // outer diameter at the open rim (desk end)
+m_shell_wall     = 3.0;
+m_shell_top_t    = 3.0;
+m_stem_hole_d    = 28.2;   // ring stem hole in the shell top
+m_collar_d       = 37;     // reinforcing collar under the top face
+m_collar_h       = 10;     // grip depth for the ring stem
+m_crush_rib      = 0.35;   // crush ribs in the collar bore (stem grip)
+m_usb_w          = 11;     // USB hole in the shell wall at notch_angle
+m_usb_h          = 7.5;
+m_usb_z          = 2.0;    // above the shell rim
+
+m_skirt_od       = 96.0;   // chassis skirt (visible ring at the desk)
+m_skirt_h        = 9.5;
+m_barrel_h       = 9.0;    // threaded barrel above the skirt (was a
+                           // 25.5mm slip barrel in the original)
+m_floor_t        = 3.0;    // chassis floor carrying the ESP32 rails
+
+// double-sided ring (matched to original ring envelope)
+m_ring_od        = 180;    // r 90
+m_ring_t         = 40;     // front face to back face
+m_rim_wall       = 2.0;    // inner + outer rim wall thickness
+m_ring_id        = 116;    // inner rim bore (r 58), as original
+m_stem_d         = 27.8;   // stem OD - fits original shell hole too
+m_stem_bore      = 20.0;   // wire passage
+m_stem_len       = 16.0;
+m_boss_d         = 70;     // dome boss between ring and stem
+m_boss_len       = 17.5;
+m_spoke_n        = 3;      // thin mid-depth spokes tying the rims
+m_spoke_w        = 3.0;
+m_spoke_t        = 3.0;
+
+// snap-in diffuser tray (original interface, one per face)
+m_dif_face_t     = 1.0;
+m_dif_skirt_h    = 10.0;
+m_dif_in_w       = [60.0, 62.0];   // inner skirt radii (over inner rim)
+m_dif_out_w      = [85.9, 87.9];   // outer skirt radii (inside outer rim)
+m_dif_bead       = 0.45;   // snap bead proudness (bite ~0.2-0.3 after clearance)
+m_dif_bead_z     = [3.5, 8.5];     // bead positions down the skirt
+
 /* --------------------------- helpers ------------------------------ */
 // 2D slot: full width w, open-ended at the bottom (extends to y=-h),
 // rounded top corners at y=+h

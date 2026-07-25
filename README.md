@@ -5,27 +5,56 @@ A fully parametric OpenSCAD rebuild of the
 desk lamp by DSL Design, with three revisions for use as a fleet of
 email/notification lights:
 
-1. **The bottom plate screws onto the base** (coarse single-start thread,
-   ~1.4 turns) — no more leaving the bottom plate behind on the desk. The
-   cable notches in the plate and base line up when fully tightened, and
-   the ESP32 rides on the plate itself, so unscrewing it brings the board
-   out for easy access.
-2. **Battery base options**: screw-on tubs sized for common purchased AA
-   battery boxes — 4×AA as a "cube" (two 2×AA boxes stacked), 4×AA flat
-   (four in a row), and an 8×AA double-layer for powering 12 V strips.
-   Batteries load through a screwed door on the underside, so the tub
-   never has to come off (and no wires get twisted) for a battery change.
+1. **The base screws together** (coarse single-start thread, ~1.4 turns)
+   — no more leaving the bottom on the desk. The single-start thread
+   stops at a deterministic rotation, so the USB opening lands aligned
+   with the ESP32's USB port every time.
+2. **Battery base options**: 4×AA as a "cube" (two 2×AA boxes stacked),
+   4×AA flat (four in a row), and an 8×AA double-layer for 12 V strips.
+   Batteries load through a screwed door on the underside, so nothing
+   unscrews (and no wires twist) for a battery change.
 3. **Double-sided ring**: the LED strip mounts around the inside of the
    outer rim firing inward, and translucent diffusers on BOTH the front
    and back faces glow with the light color.
 
-> **Note on the original model:** the MakerWorld files can't be fetched
-> programmatically (login + bot protection), so this is a ground-up
-> parametric remix rather than an edit of the original meshes. Everything
-> is driven from `scad/params.scad` — if you drop the original STL/3MF
-> into this repo, dimensions can be re-matched to it exactly.
+There are **two part series**:
 
-## What to print
+- **Series M ("matched")** — `scad/matched/`, dimensioned from the
+  original model's STLs. Same outside dimensions and look as the
+  original (Ø96 skirt, tapered Ø95→86.6 shell, Ø180×40 ring, identical
+  Ø27.8 stem + snap-diffuser interfaces), but the shell **threads onto
+  the chassis** instead of resting on it. Cross-compatible: the new
+  double-sided ring fits an original base, and the original ring fits
+  the new threaded base. **Print this series to extend your fleet.**
+- **Series A ("generic")** — a self-consistent standalone design
+  (Ø150 two-half ring in a slotted Ø92 base) built before the original
+  files were available. Kept as an alternative aesthetic.
+
+## The original's problem, measured
+
+Slicing the original STLs shows the base is a tapered shell that simply
+*rests* on the chassis cup (Ø82.5 barrel in a Ø82.9 mouth, held by
+gravity) — that's the part that stays behind on the desk. Series M
+replaces that slip joint with the clocked thread.
+
+## What to print — Series M (matched, recommended)
+
+| Configuration | Parts |
+|---|---|
+| USB powered | `shell.stl`, `chassis.stl`, `ring_double_sided.stl`, 2× `ring_ds_diffuser.stl` |
+| 4×AA battery (cube boxes) | `shell.stl`, `chassis_bat_cube.stl`, `battery_door_cube.stl`, + ring parts |
+| 4×AA battery (flat holder) | `shell.stl`, `chassis_bat_flat4.stl`, `battery_door_flat.stl`, + ring parts |
+| 8×AA / 12 V | `shell.stl`, `chassis_bat_flat8.stl`, `battery_door_flat.stl`, + ring parts |
+| Thread calibration | `thread_test_collar.stl` + any chassis (same thread as Series A) |
+
+Ring: print `ring_double_sided.stl` in your body color (the rims are
+opaque; white bounces the most light) and the two `ring_ds_diffuser.stl`
+trays in translucent/natural. The trays snap in with double beads
+exactly like the original diffuser. Print one tray opaque for a
+single-sided ring. The stem gets gripped by three crush ribs in the
+shell's 10 mm collar (the original had only a 3 mm floor to hang onto).
+
+## What to print — Series A (generic)
 
 | Configuration | Parts |
 |---|---|
@@ -50,41 +79,43 @@ All STLs are exported print-ready (no supports needed):
 
 **Suggested settings:** 0.2 mm layers, 3 walls, 15 % infill. PETG or PLA.
 
-## Screw-on plate: how the notch alignment works
+## How the USB alignment works (both series)
 
-The thread is single-start, so the fully-tightened plate always stops at
-the same rotation. In CAD, the notches align exactly at seat; first-layer
+The thread is single-start, so the fully-tightened joint always stops at
+the same rotation. In Series M the USB hole lives in the shell wall and
+the ESP32's port lives in the chassis; the clocked thread stops the hole
+right in front of the port (the barrel passage is 5 mm wider than the
+hole for slack). In CAD the alignment is exact at seat; first-layer
 squish on a real printer can rotate the seat point slightly, so:
 
-1. Print `thread_test_collar.stl` (cheap, fast) and your plate.
-2. Screw the plate in until snug. If the plate notch lands rotated from
-   the collar notch, estimate the offset in degrees (the plate notch is
-   6 mm wider than the base notch, so ±10° already works).
+1. Print `thread_test_collar.stl` (cheap, fast) and a chassis (or plate).
+2. Screw together until snug. If the notch lands rotated, estimate the
+   offset in degrees (±10° already works).
 3. Set `plate_clock_adjust` in `scad/params.scad` to that offset (flip
-   the sign if it gets worse), re-render, reprint the plate only.
+   the sign if it gets worse), re-render, reprint the male part only.
 
-The value is per printer+profile — calibrate once and every plate and
-battery tub you print after that will clock correctly. If you'd rather
-skip the whole game, use `base_wallhole.stl` + `bottom_plate_plain.stl`:
-the cable window sits entirely in the base wall above the plate, so
-nothing needs to align.
+The value is per printer+profile — calibrate once and every chassis,
+plate and battery tub you print after that will clock correctly. In
+Series A you can skip the game entirely with `base_wallhole.stl` +
+`bottom_plate_plain.stl` (window fully in the wall, nothing to align).
 
 Threads are 45° flanks, 5 mm pitch, 0.3 mm radial clearance
 (`thr_clr`) — loosen to 0.4 if your printer runs tight.
 
 ## Electronics
 
-- ESP32 DevKit (30-pin) snaps between the rails on the plate/tub, USB
-  end toward the cable notch. Feed the USB cable through the notch
-  *before* plugging it in; leave a service loop.
-- COB WS2812B strip (10 mm wide), ~455 mm around the inside of the outer
-  rim. Stick it centered, LEDs facing the ring center; wires exit through
-  the joint-plane channel in the tab, down into the base, to the board
-  (5 V, GND, and data → GPIO16 or your preferred pin).
-- Ring wires pass through the slot-floor hole; leave ~15 cm of slack so
-  the plate can be unscrewed with everything connected.
-- Set a WLED current limit (e.g. 1800 mA for a 2 A USB supply).
-  Notification colors at modest brightness draw far less.
+- ESP32 DevKit (30-pin) snaps between the rails on the chassis floor
+  (Series M) or plate/tub (Series A), USB end toward the notch angle.
+  Feed the USB cable through the hole *before* plugging it in; leave a
+  service loop.
+- COB WS2812B strip (10 mm wide): Series M ring takes ~550 mm around
+  the Ø176 inside of the outer rim (~180 LEDs at 332/m — set a WLED
+  current limit, e.g. 1800 mA on a 2 A supply); Series A ring takes
+  ~455 mm. Stick it centered, LEDs facing the ring center; start/end
+  the strip at the wire hole at the bottom of the rim.
+- Series M: wires run down the Ø20 stem bore into the base; Series A:
+  through the tab channel and slot-floor hole. Either way leave ~15 cm
+  of slack so the base can be unscrewed with everything connected.
 
 ### Battery wiring
 
@@ -106,7 +137,17 @@ sized for the common 58×31.5×15.5 mm 2×AA boxes and 62×58×15.5 mm flat
 `pocket_flat4` / `pocket_flat8` in `scad/params.scad` (L×W×H + a couple
 mm) and re-render.
 
-## Ring assembly
+## Ring assembly — Series M (matched)
+
+1. Stick the COB strip around the inside of the outer rim, centered;
+   start/end at the wire hole at the stem angle, wires down the stem.
+2. Snap a diffuser tray into each face (double snap beads, exactly like
+   the original diffuser — firm push all around). The trays also
+   rigidify the ring, so snap both in before handling roughly.
+3. Push the stem into the shell collar until seated; the crush ribs
+   grip it. Wires continue into the chassis.
+
+## Ring assembly — Series A (generic)
 
 1. Drop a diffuser into each half's rebate (it's captive after joining).
 2. Stick the COB strip around the inside of one half's outer rim,

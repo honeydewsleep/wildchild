@@ -33,6 +33,14 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     stl battery_door_flat    battery_tub.scad part door_flat
     stl ring_half            ring.scad        part ring_half     # print x2
     stl ring_diffuser        ring.scad        part diffuser      # print x2
+    # matched series (original Energy Ring dimensions)
+    stl shell                matched/shell.scad   part shell
+    stl chassis              matched/chassis.scad part chassis
+    stl chassis_bat_cube     matched/chassis.scad part chassis_bat_cube
+    stl chassis_bat_flat4    matched/chassis.scad part chassis_bat_flat4
+    stl chassis_bat_flat8    matched/chassis.scad part chassis_bat_flat8
+    stl ring_double_sided    matched/ring_ds.scad part ring_ds
+    stl ring_ds_diffuser     matched/ring_ds.scad part diffuser_ds   # print x2
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then
@@ -42,7 +50,13 @@ if [[ "$mode" == "check" || "$mode" == "all" ]]; then
     echo "== fit check: engagement (must be NON-empty)"
     openscad -o /tmp/fit_engagement.stl -D 'mode="engagement"' scad/fit_check.scad 2>&1 \
         | grep -iE 'empty|warning|error' || true
-    ls -la /tmp/fit_clearance.stl /tmp/fit_engagement.stl 2>/dev/null || true
+    echo "== fit check: matched shell/chassis clearance (must be EMPTY)"
+    openscad -o /tmp/fit_m_clearance.stl -D 'mode="m_clearance"' scad/fit_check.scad 2>&1 \
+        | grep -iE 'empty|warning|error' || true
+    echo "== fit check: matched engagement (must be NON-empty)"
+    openscad -o /tmp/fit_m_engagement.stl -D 'mode="m_engagement"' scad/fit_check.scad 2>&1 \
+        | grep -iE 'empty|warning|error' || true
+    ls -la /tmp/fit_*.stl 2>/dev/null || true
 fi
 
 if [[ "$mode" == "png" || "$mode" == "all" ]]; then

@@ -11,6 +11,9 @@ use <base.scad>
 use <bottom_plate.scad>
 use <battery_tub.scad>
 use <ring.scad>
+use <matched/shell.scad>
+use <matched/chassis.scad>
+use <matched/ring_ds.scad>
 
 view = "usb";
 
@@ -42,8 +45,30 @@ module lamp_battery() {
     ring_assembled();
 }
 
+// matched series: chassis on desk, shell screwed on, double-sided
+// ring's stem in the shell collar, two diffuser trays
+module lamp_matched() {
+    color("SlateGray") chassis_std();
+    color("DimGray") translate([0, 0, m_skirt_h]) shell_body();
+    ring_c = m_skirt_h + m_shell_h + (m_ring_od/2 + m_boss_len + m_stem_len) - 13;
+    translate([0, 0, ring_c]) rotate([90, 0, 0]) translate([0, 0, -m_ring_t/2]) {
+        color("WhiteSmoke") ring_ds();
+        color("LightCyan", 0.45) {
+            translate([0, 0, -m_dif_face_t]) diffuser_ds();
+            translate([0, 0, m_ring_t + m_dif_face_t]) rotate([180, 0, 0]) diffuser_ds();
+        }
+    }
+}
+
 if (view == "usb")
     lamp_usb();
+else if (view == "matched")
+    lamp_matched();
+else if (view == "matched_cut")
+    difference() {
+        lamp_matched();
+        translate([0, -500, -500]) cube([1000, 1000, 1000]);
+    }
 else if (view == "battery")
     lamp_battery();
 else if (view == "cutaway")
