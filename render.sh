@@ -14,7 +14,8 @@ stl() {  # stl <outname> <scadfile> <var> <value>
 
 png() {  # png <outname> <scadfile> <var> <value> <camera>
     echo "== preview/$1.png"
-    openscad -o "preview/$1.png" -D "$3=\"$4\"" --imgsize=1280,960 \
+    # xvfb-run: OpenSCAD needs a (virtual) display for PNG export
+    xvfb-run -a openscad -o "preview/$1.png" -D "$3=\"$4\"" --imgsize=1280,960 \
         --camera="$5" --colorscheme=Tomorrow --projection=perspective \
         "scad/$2" >/dev/null 2>&1
 }
