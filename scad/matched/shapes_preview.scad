@@ -18,15 +18,32 @@ DEPTH = 40;     // front-to-back, same as the ring
 /* --------------------------- 2D outlines -------------------------- */
 module heart2d() {
     s = 118;
-    // closing rounds the cusp so a COB strip can follow it
-    translate([0, -83]) offset(r = -3) offset(r = 3+8) offset(r = -8)
+    // gentle closing on the top notch only; bottom tip stays sharp
+    translate([0, -83]) offset(r = -6) offset(r = 6)
         rotate(45) union() {
             square([s, s]);
             translate([s/2, s]) circle(d = s, $fn = 120);
             translate([s, s/2]) circle(d = s, $fn = 120);
         }
 }
-module peace2d() { circle(d = 180, $fn = 160); }   // band ring; bars added in 3D
+// peace sign as ONE connected hollow glow region: ring band + bars,
+// leaving three window openings (each gets its own edge walls)
+module peace2d() {
+    union() {
+        difference() {
+            circle(d = 180, $fn = 160);
+            circle(d = 180 - 2*BAND, $fn = 160);
+        }
+        intersection() {
+            union() {
+                translate([-7, -90]) square([14, 180]);
+                for (a = [45, -45])
+                    rotate(a) translate([-7, -92]) square([14, 92]);
+            }
+            circle(d = 180 - 2*BAND + 4, $fn = 160);
+        }
+    }
+}
 module star2d() {
     offset(r = 6) offset(r = -6-9) offset(r = 9)
         polygon([for (i = [0:9])
@@ -55,8 +72,10 @@ module cloud2d() {
 }
 
 /* ------------------- generic mockup lamp builder ------------------- */
-// solid=true: shape glows across its full area (no inner hole)
-module lamp_mock(solid = false) {
+// solid=true: shape glows across its full area (region may have holes)
+// sharp=true: inner outline uses mitered offset - inside corners come
+//             to points mirroring the outside (heart's bottom V)
+module lamp_mock(solid = false, sharp = false) {
     // opaque edge walls
     color("WhiteSmoke") linear_extrude(DEPTH) difference() {
         children(0);
@@ -64,15 +83,20 @@ module lamp_mock(solid = false) {
     }
     if (!solid)
         color("WhiteSmoke") linear_extrude(DEPTH) difference() {
-            offset(r = -BAND + 2) children(0);
-            offset(r = -BAND) children(0);
+            if (sharp) offset(delta = -BAND + 2) children(0);
+            else offset(r = -BAND + 2) children(0);
+            if (sharp) offset(delta = -BAND) children(0);
+            else offset(r = -BAND) children(0);
         }
     // translucent faces, both sides
     for (z = [-1.2, DEPTH])
         color("LightCyan", 0.5) translate([0, 0, z]) linear_extrude(1.2)
             difference() {
                 children(0);
-                if (!solid) offset(r = -BAND) children(0);
+                if (!solid) {
+                    if (sharp) offset(delta = -BAND) children(0);
+                    else offset(r = -BAND) children(0);
+                }
             }
 }
 
@@ -90,23 +114,17 @@ module on_base(ylow) {
         scale([1, 1, 0.55]) sphere(d = 46, $fn = 64);
 }
 
-module shape_lamp(solid = false, ylow = -90) {
+module shape_lamp(solid = false, ylow = -90, sharp = false) {
     on_base(ylow);
     translate([0, 0, 59.5 + 14 - ylow]) rotate([90, 0, 0])
-        translate([0, 0, -DEPTH/2]) lamp_mock(solid) children(0);
+        translate([0, 0, -DEPTH/2]) lamp_mock(solid, sharp) children(0);
 }
 
 /* --------------------------- selection ----------------------------- */
-if (shape == "heart")  shape_lamp(false, -86) heart2d();
-else if (shape == "peace") {
-    shape_lamp(false, -90) peace2d();
-    // opaque bars: vertical + two 45-degree legs (silhouette style)
-    color("WhiteSmoke") translate([0, 0, 59.5 + 14 + 90]) rotate([90, 0, 0]) {
-        translate([-6, -90, -DEPTH/2]) cube([12, 180, DEPTH]);
-        for (a = [45, -45])
-            rotate([0, 0, a]) translate([-6, -88, -DEPTH/2]) cube([12, 88, DEPTH]);
-    }
-}
+if (shape == "heart")  shape_lamp(false, -86, true) heart2d();
+else if (shape == "peace")
+    // bars are hollow glowing cavities too - whole sign lights up
+    shape_lamp(true, -90) peace2d();
 else if (shape == "star")  shape_lamp(false, -75) star2d();
 else if (shape == "hex")   shape_lamp(false, -90) hex2d();
 else if (shape == "moon")  shape_lamp(true, -92) moon2d();
