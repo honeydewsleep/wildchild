@@ -26,7 +26,8 @@ win_r_out        = ring_od/2 - 5;                // glow window outer radius (70
 rebate_depth     = 1.4;    // diffuser rebate depth into face flange
 rebate_lap       = 2.0;    // how far the rebate ledge overlaps past the window
 diffuser_t       = 1.2;    // diffuser plate thickness
-diffuser_clr     = 0.15;   // radial clearance of diffuser in rebate
+diffuser_clr     = 0.30;   // radial clearance of diffuser skirts/rebate
+                           // (0.15 test-printed a hair too tight)
 
 led_strip_w      = 10.5;   // channel width for COB WS2812B strip (10 mm typ.)
 led_strip_t      = 2.6;    // radial depth allowance for strip + adhesive
@@ -190,9 +191,10 @@ free_collar_d    = 40;     // wider clamp seat for the nut face
 // snap-in diffuser tray (original interface, one per face)
 m_dif_face_t     = 1.0;
 m_dif_skirt_h    = 10.0;
-m_dif_in_w       = [60.0, 62.0];   // inner skirt radii (over inner rim)
-m_dif_out_w      = [85.9, 87.9];   // outer skirt radii (inside outer rim)
-m_dif_bead       = 0.45;   // snap bead proudness (bite ~0.2-0.3 after clearance)
+m_dif_in_w       = [60.0, 62.0];   // inner skirt: [rim OD it slides over, skirt outer r]
+m_dif_out_w      = [85.7, 88.0];   // outer skirt: [skirt inner r, rim ID it slides in]
+m_dif_bead       = 0.45;   // snap bead proudness (bite = 0.45 - diffuser_clr
+                           // = 0.15 per bead, symmetric on both skirts)
 m_dif_bead_z     = [3.5, 8.5];     // bead positions down the skirt
 
 /* --------------------------- helpers ------------------------------ */

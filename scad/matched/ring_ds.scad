@@ -90,20 +90,34 @@ module boss_and_stem_solid() {
     }
 }
 
+// The frustum's wide end is flat but the rim it meets is curved, so
+// its corners would stand proud of the Ø180 surface at the sides.
+// This cutter removes everything outside the ring's outer cylinder
+// that lies above the rim's bottom tangent (y > -R), so the boss
+// wraps flush with the rim curve and only necks out below it.
+module boss_corner_cutter() {
+    difference() {
+        translate([-R - 50, -R, -2]) cube([2*R + 100, R + 52, T + 4]);
+        translate([0, 0, -3]) cylinder(h = T + 8, r = R, $fn = FN_ROUND);
+    }
+}
+
 // stem + boss only (no rims), for fast thread fit checks
 module stem_only() {
     difference() {
         boss_and_stem_solid();
+        boss_corner_cutter();
         wire_bores();
     }
 }
 
 module wire_bores() {
-    // wide bore through the stem
-    at_stem(stem_r0 - 2, m_stem_len + 3, m_stem_bore, m_stem_bore);
-    // narrower channel continuing through boss + outer rim into the
-    // light cavity - also where the strip's wires start/end
-    at_stem(R - m_rim_wall - 2.5, m_boss_len + 4, 10, 10);
+    // one constant Ø20 passage from the light cavity straight through
+    // rim, boss and stem into the base - as wide as the stem's thread
+    // root allows without growing the stem
+    at_stem(R - m_rim_wall - 2.5,
+            stem_r1 - (R - m_rim_wall - 2.5) + 2,
+            m_stem_bore, m_stem_bore);
 }
 
 module ring_ds() {
@@ -111,7 +125,10 @@ module ring_ds() {
         union() {
             rim_walls();
             spokes();
-            boss_and_stem_solid();
+            difference() {
+                boss_and_stem_solid();
+                boss_corner_cutter();
+            }
         }
         wire_bores();
     }
