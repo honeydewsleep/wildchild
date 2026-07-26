@@ -60,10 +60,22 @@ module at_stem(r_from, length, d1, d2) {
 module boss_and_stem_solid() {
     intersection() {
         union() {
-            // dome boss: wide against the outer rim, ending in a flat
-            // Ø34 shoulder that seats on the shell's top face (the
-            // clocking datum for the stem thread)
-            at_stem(R - 2.5, stem_r0 - (R - 2.5), m_boss_d, 34);
+            // smooth bulb: oblate spheroid centred ON the rim surface,
+            // hulled to the Ø34 stem shoulder disc. Like the original,
+            // it wraps over the curved rim (protruding a little past
+            // the Ø180 silhouette at the sides) - a flat-based cone
+            // here either leaves proud corners or pinches to a
+            // zero-width cusp at the rim tangent. The spheroid bites
+            // ~14mm into the cavity for a strong weld to the rim.
+            hull() {
+                rotate([0, 0, notch_angle]) translate([0, 0, T/2])
+                    rotate([0, 90, 0]) {
+                        translate([0, 0, R])
+                            scale([1, 1, 0.5]) sphere(d = 56, $fn = 96);
+                        translate([0, 0, stem_r0 - 2])
+                            cylinder(h = 2, d = 34, $fn = 96);
+                    }
+            }
             // threaded stem: crest = Ø27.8 (original stem OD), so it
             // still push-fits a plain shell hole; screws into the
             // shell_threaded collar. Thread phase carries
@@ -95,31 +107,21 @@ module boss_and_stem_solid() {
 // This cutter removes everything outside the ring's outer cylinder
 // that lies above the rim's bottom tangent (y > -R), so the boss
 // wraps flush with the rim curve and only necks out below it.
-// (trim cylinder is inset 0.05 from the rim OD: exact coincidence
-// with the rim surface / tangency with the cube face makes CGAL emit
-// degenerate non-manifold geometry; 0.05 is half a layer line)
-module boss_corner_cutter() {
-    difference() {
-        translate([-R - 50, -R, -2]) cube([2*R + 100, R + 52, T + 4]);
-        translate([0, 0, -3]) cylinder(h = T + 8, r = R - 0.05, $fn = FN_ROUND);
-    }
-}
-
 // stem + boss only (no rims), for fast thread fit checks
 module stem_only() {
     difference() {
         boss_and_stem_solid();
-        boss_corner_cutter();
         wire_bores();
     }
 }
 
 module wire_bores() {
     // one constant Ø20 passage from the light cavity straight through
-    // rim, boss and stem into the base - as wide as the stem's thread
-    // root allows without growing the stem
-    at_stem(R - m_rim_wall - 2.5,
-            stem_r1 - (R - m_rim_wall - 2.5) + 2,
+    // bulb, rim and stem into the base - as wide as the stem's thread
+    // root allows without growing the stem. Starts just outside the
+    // inner rim so it opens through the bulb's cavity-side face.
+    at_stem(Ri + m_rim_wall + 0.5,
+            stem_r1 - (Ri + m_rim_wall + 0.5) + 2,
             m_stem_bore, m_stem_bore);
 }
 
@@ -128,10 +130,7 @@ module ring_ds() {
         union() {
             rim_walls();
             spokes();
-            difference() {
-                boss_and_stem_solid();
-                boss_corner_cutter();
-            }
+            boss_and_stem_solid();
         }
         wire_bores();
     }
@@ -152,15 +151,23 @@ module skirt_with_beads(r_in, r_out, bead_on_inside) {
 }
 
 module diffuser_ds() {
-    // face plate
+    // face plate (full circle - it covers the bulb's flush face too)
     difference() {
         cylinder(h = m_dif_face_t, r = R, $fn = FN_ROUND);
         translate([0, 0, -EPS]) cylinder(h = m_dif_face_t + 2*EPS, r = Ri, $fn = FN_ROUND);
     }
     // inner skirt: slides OVER the inner rim, beads grip inward
     skirt_with_beads(m_dif_in_w[0] + diffuser_clr, m_dif_in_w[1], true);
-    // outer skirt: slides INSIDE the outer rim, beads grip outward
-    skirt_with_beads(m_dif_out_w[0], m_dif_out_w[1] - diffuser_clr, false);
+    // outer skirt: slides INSIDE the outer rim, beads grip outward,
+    // with a gap arc where the stem bulb bulges into the rim -
+    // INSTALL THE TRAY WITH THIS GAP AT THE STEM (bottom)
+    difference() {
+        skirt_with_beads(m_dif_out_w[0], m_dif_out_w[1] - diffuser_clr, false);
+        rotate([0, 0, notch_angle - 270])
+            translate([0, 0, m_dif_face_t + 0.01])
+                linear_extrude(height = m_dif_skirt_h + 2)
+                    polygon([[-29, -70], [-40, -95], [40, -95], [29, -70]]);
+    }
 }
 
 /* ------------------------- part selection -------------------------- */

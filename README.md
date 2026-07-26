@@ -68,8 +68,11 @@ crest at the original Ø27.8):
 Ring: print `ring_double_sided.stl` in your body color (the rims are
 opaque; white bounces the most light) and the two `ring_ds_diffuser.stl`
 trays in translucent/natural. The trays snap in with double beads
-exactly like the original diffuser. Print one tray opaque for a
-single-sided ring.
+exactly like the original diffuser — **install each tray with its
+outer-skirt gap at the stem (bottom)**; the gap clears the stem bulb.
+Print one tray opaque for a single-sided ring. The COB strip ends
+each side of the bulb (~500 mm of the 553 mm circumference); wires
+enter the Ø20 passage there.
 
 ## What to print — Series A (generic)
 
