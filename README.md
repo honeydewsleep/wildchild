@@ -41,18 +41,29 @@ replaces that slip joint with the clocked thread.
 
 | Configuration | Parts |
 |---|---|
-| USB powered | `shell.stl`, `chassis.stl`, `ring_double_sided.stl`, 2× `ring_ds_diffuser.stl` |
-| 4×AA battery (cube boxes) | `shell.stl`, `chassis_bat_cube.stl`, `battery_door_cube.stl`, + ring parts |
-| 4×AA battery (flat holder) | `shell.stl`, `chassis_bat_flat4.stl`, `battery_door_flat.stl`, + ring parts |
-| 8×AA / 12 V | `shell.stl`, `chassis_bat_flat8.stl`, `battery_door_flat.stl`, + ring parts |
+| USB powered | `shell_threaded.stl` (or `shell.stl`), `chassis.stl`, `ring_double_sided.stl`, 2× `ring_ds_diffuser.stl` |
+| 4×AA battery (cube boxes) | shell + `chassis_bat_cube.stl`, `battery_door_cube.stl`, + ring parts |
+| 4×AA battery (flat holder) | shell + `chassis_bat_flat4.stl`, `battery_door_flat.stl`, + ring parts |
+| 8×AA / 12 V | shell + `chassis_bat_flat8.stl`, `battery_door_flat.stl`, + ring parts |
 | Thread calibration | `thread_test_collar.stl` + any chassis (same thread as Series A) |
+
+**Two shell options** (the ring's stem is threaded either way, crest at
+the original Ø27.8):
+
+- `shell_threaded.stl` — female thread in the stem collar: **the ring
+  screws into the base** (~3 turns) and stops facing forward
+  (single-start; trim with `ring_clock_adjust` if your printer shifts
+  the stop a few degrees).
+- `shell.stl` — plain crush-rib collar: any ring *push-fits*, including
+  unmodified original rings. The threaded ring's crests still grip in
+  it, so rings are interchangeable across both shells and original
+  bases.
 
 Ring: print `ring_double_sided.stl` in your body color (the rims are
 opaque; white bounces the most light) and the two `ring_ds_diffuser.stl`
 trays in translucent/natural. The trays snap in with double beads
 exactly like the original diffuser. Print one tray opaque for a
-single-sided ring. The stem gets gripped by three crush ribs in the
-shell's 10 mm collar (the original had only a 3 mm floor to hang onto).
+single-sided ring.
 
 ## What to print — Series A (generic)
 
@@ -144,8 +155,10 @@ mm) and re-render.
 2. Snap a diffuser tray into each face (double snap beads, exactly like
    the original diffuser — firm push all around). The trays also
    rigidify the ring, so snap both in before handling roughly.
-3. Push the stem into the shell collar until seated; the crush ribs
-   grip it. Wires continue into the chassis.
+3. `shell_threaded`: screw the stem in clockwise (viewed from above)
+   until the shoulder seats — it stops facing forward. `shell`: push
+   the stem in until seated; the crush ribs grip it. Wires continue
+   into the chassis either way.
 
 ## Ring assembly — Series A (generic)
 

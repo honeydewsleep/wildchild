@@ -35,6 +35,7 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     stl ring_diffuser        ring.scad        part diffuser      # print x2
     # matched series (original Energy Ring dimensions)
     stl shell                matched/shell.scad   part shell
+    stl shell_threaded       matched/shell.scad   part shell_threaded
     stl chassis              matched/chassis.scad part chassis
     stl chassis_bat_cube     matched/chassis.scad part chassis_bat_cube
     stl chassis_bat_flat4    matched/chassis.scad part chassis_bat_flat4
@@ -55,6 +56,12 @@ if [[ "$mode" == "check" || "$mode" == "all" ]]; then
         | grep -iE 'empty|warning|error' || true
     echo "== fit check: matched engagement (must be NON-empty)"
     openscad -o /tmp/fit_m_engagement.stl -D 'mode="m_engagement"' scad/fit_check.scad 2>&1 \
+        | grep -iE 'empty|warning|error' || true
+    echo "== fit check: stem thread clearance (must be EMPTY)"
+    openscad -o /tmp/fit_s_clearance.stl -D 'mode="s_clearance"' scad/fit_check.scad 2>&1 \
+        | grep -iE 'empty|warning|error' || true
+    echo "== fit check: stem thread engagement (must be NON-empty)"
+    openscad -o /tmp/fit_s_engagement.stl -D 'mode="s_engagement"' scad/fit_check.scad 2>&1 \
         | grep -iE 'empty|warning|error' || true
     ls -la /tmp/fit_*.stl 2>/dev/null || true
 fi

@@ -167,6 +167,16 @@ m_spoke_n        = 3;      // thin mid-depth spokes tying the rims
 m_spoke_w        = 3.0;
 m_spoke_t        = 3.0;
 
+// threaded stem: the ring screws into the shell collar. Crest stays
+// at the original stem OD, so the threaded ring still push-fits a
+// plain (crush-rib or original) shell hole.
+stem_thr_root_r  = 12.6;   // root radius; crest = 12.6+1.3 = 13.9 (Ø27.8)
+stem_thr_depth   = 1.3;
+stem_thr_pitch   = 4.0;    // single start -> deterministic facing
+stem_thr_len     = 13.0;   // ~3.2 turns; plain pilot tip beyond it
+stem_thr_clr     = 0.30;   // same print clearance as the base thread
+ring_clock_adjust = 0;     // trims which way the seated ring faces
+
 // snap-in diffuser tray (original interface, one per face)
 m_dif_face_t     = 1.0;
 m_dif_skirt_h    = 10.0;

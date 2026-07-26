@@ -16,8 +16,34 @@ use <base.scad>
 use <bottom_plate.scad>
 use <matched/shell.scad>
 use <matched/chassis.scad>
+use <matched/ring_ds.scad>
 
 mode = "clearance";
+
+// seated threaded ring stem, in shell coordinates (shoulder on the
+// shell top face); lift = extra z to avoid degenerate contact sheets
+module seated_stem(lift = 0.02) {
+    RBc = m_ring_od/2 + m_boss_len;
+    translate([0, 0, m_shell_h + RBc + lift])
+        rotate([90, 0, 0])
+            translate([0, 0, -m_ring_t/2])
+                stem_only();
+}
+
+// standalone replica of the threaded collar region (much cheaper for
+// CGAL than intersecting the whole shell): collar + top plate disc
+// with the same female stem-thread cavity the shell uses
+module collar_chunk(threaded = true) {
+    difference() {
+        union() {
+            translate([0, 0, m_shell_h - m_shell_top_t - m_collar_h])
+                cylinder(h = m_collar_h, d = m_collar_d, $fn = 96);
+            translate([0, 0, m_shell_h - m_shell_top_t])
+                cylinder(h = m_shell_top_t, d = m_collar_d + 8, $fn = 96);
+        }
+        stem_thread_cavity();
+    }
+}
 
 // seated position, dropped 0.02 so the coincident flange/rim faces
 // don't produce a degenerate zero-volume contact sheet in the output
@@ -61,4 +87,22 @@ else if (mode == "m_engagement")
                 cylinder(h = thr_len + 2*EPS, r = thr_root_r + thr_clr, $fn = FN_ROUND);
         }
         chassis_std();
+    }
+// ring stem screwed fully into the threaded shell collar
+else if (mode == "s_clearance")
+    intersection() {
+        collar_chunk(true);
+        seated_stem(0.02);
+    }
+else if (mode == "s_engagement")
+    intersection() {
+        // stem thread ribs vs an un-threaded collar plug
+        translate([0, 0, m_shell_h - m_shell_top_t - m_collar_h])
+            difference() {
+                cylinder(h = m_collar_h + m_shell_top_t - 0.1, d = m_collar_d, $fn = 96);
+                translate([0, 0, -EPS])
+                    cylinder(h = m_collar_h + m_shell_top_t + 2,
+                             r = stem_thr_root_r + stem_thr_clr, $fn = 96);
+            }
+        seated_stem(0.02);
     }

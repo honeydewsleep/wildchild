@@ -20,6 +20,7 @@
 // part = "ring_ds" | "diffuser_ds"   (print 2 diffusers per ring)
 // =====================================================================
 include <../params.scad>
+use <../lib/threads.scad>
 
 part = "ring_ds";
 
@@ -59,14 +60,41 @@ module at_stem(r_from, length, d1, d2) {
 module boss_and_stem_solid() {
     intersection() {
         union() {
-            // dome boss: wide against the outer rim, narrowing outward
-            at_stem(R - 2.5, stem_r0 - (R - 2.5), m_boss_d, m_stem_d + 2);
-            // stem tube (solid; bored later)
-            at_stem(stem_r0 - 1, m_stem_len + 1, m_stem_d, m_stem_d);
-            // slight entry chamfer at the tip
+            // dome boss: wide against the outer rim, ending in a flat
+            // Ø34 shoulder that seats on the shell's top face (the
+            // clocking datum for the stem thread)
+            at_stem(R - 2.5, stem_r0 - (R - 2.5), m_boss_d, 34);
+            // threaded stem: crest = Ø27.8 (original stem OD), so it
+            // still push-fits a plain shell hole; screws into the
+            // shell_threaded collar. Thread phase carries
+            // ring_clock_adjust; datum = the shoulder plane.
+            rotate([0, 0, notch_angle]) translate([0, 0, T/2])
+                rotate([0, 90, 0]) translate([0, 0, stem_r0])
+                    intersection() {
+                        thread_male(stem_thr_root_r, stem_thr_depth,
+                                    stem_thr_pitch, stem_thr_len,
+                                    starts = 1, phase = ring_clock_adjust,
+                                    steps = 180, slices_per_turn = 90);
+                        thread_tip_taper(stem_thr_root_r, stem_thr_depth,
+                                         stem_thr_len);
+                    }
+            // plain pilot tip at root diameter, chamfered
+            at_stem(stem_r0 + stem_thr_len - EPS,
+                    m_stem_len - stem_thr_len - 1,
+                    2*stem_thr_root_r, 2*stem_thr_root_r);
+            at_stem(stem_r0 + m_stem_len - 1 - EPS, 1,
+                    2*stem_thr_root_r, 2*stem_thr_root_r - 3);
         }
         // clip the boss flush with the ring faces, as the original
         translate([-250, -250, 0]) cube([500, 500, T]);
+    }
+}
+
+// stem + boss only (no rims), for fast thread fit checks
+module stem_only() {
+    difference() {
+        boss_and_stem_solid();
+        wire_bores();
     }
 }
 

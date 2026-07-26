@@ -12,12 +12,19 @@
 // - Stem collar under the top face: 10mm deep bore with three crush
 //   ribs grips the ring stem (the original had only a 3mm floor).
 //
-// part = "shell"
+// part = "shell"           crush-rib collar: ring stem push-fits
+//                          (accepts original rings and the threaded
+//                          ring's crest alike)
+// part = "shell_threaded"  female thread in the collar: the ring
+//                          SCREWS in and stops facing forward
+//                          (deterministic, trimmed by ring_clock_adjust)
 // =====================================================================
 include <../params.scad>
 use <../lib/threads.scad>
 
 part = "shell";
+
+RB = m_ring_od/2 + m_boss_len;   // ring centre to stem shoulder (107.5)
 
 r_rim = m_shell_od_rim/2;    // 47.5 at the desk end
 r_top = m_shell_od_top/2;    // 43.3 at the top
@@ -67,6 +74,27 @@ module stem_bore() {
         cylinder(h = 1.3, d1 = m_stem_hole_d, d2 = m_stem_hole_d + 2.6, $fn = 96);
 }
 
+// Female stem thread, built through the SAME transform chain as the
+// assembled ring's stem (ring centre directly above the top face,
+// shoulder seated on it) - so male and female nest exactly at the
+// modeled position and the seated facing is deterministic.
+module stem_thread_cavity() {
+    translate([0, 0, m_shell_h + RB])
+        rotate([90, 0, 0])
+            rotate([0, 0, notch_angle])
+                rotate([0, 90, 0])
+                    translate([0, 0, RB])
+                        thread_female_cavity(stem_thr_root_r, stem_thr_depth,
+                                             stem_thr_pitch,
+                                             m_collar_h + m_shell_top_t,
+                                             stem_thr_clr, starts = 1, phase = 0,
+                                             steps = 180, slices_per_turn = 90);
+    // mouth chamfer at the top face
+    translate([0, 0, m_shell_h - 1.4])
+        cylinder(h = 1.5, d1 = 2*(stem_thr_root_r + stem_thr_clr),
+                 d2 = 2*(stem_thr_root_r + stem_thr_clr) + 4.5, $fn = 96);
+}
+
 // internal boss ring at the mouth carrying the female thread,
 // 45-degree cone transition above (prints inverted, no overhang)
 module thread_boss() {
@@ -100,14 +128,15 @@ module usb_hole_cut() {
                 }
 }
 
-module shell_body() {
+module shell_body(threaded_stem = false) {
     difference() {
         union() {
             difference() { shell_outer(); shell_cavity(); }
             thread_boss();
             stem_collar();
         }
-        stem_bore();
+        if (threaded_stem) stem_thread_cavity();
+        else stem_bore();
         female_thread_cut();
         usb_hole_cut();
     }
@@ -116,4 +145,6 @@ module shell_body() {
 /* ------------------------- part selection ------------------------- */
 // print-ready: inverted, top face on the bed (threads + hole face up)
 if (part == "shell")
-    rotate([180, 0, 0]) shell_body();
+    rotate([180, 0, 0]) shell_body(false);
+else if (part == "shell_threaded")
+    rotate([180, 0, 0]) shell_body(true);
