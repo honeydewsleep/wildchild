@@ -95,10 +95,13 @@ module boss_and_stem_solid() {
 // This cutter removes everything outside the ring's outer cylinder
 // that lies above the rim's bottom tangent (y > -R), so the boss
 // wraps flush with the rim curve and only necks out below it.
+// (trim cylinder is inset 0.05 from the rim OD: exact coincidence
+// with the rim surface / tangency with the cube face makes CGAL emit
+// degenerate non-manifold geometry; 0.05 is half a layer line)
 module boss_corner_cutter() {
     difference() {
         translate([-R - 50, -R, -2]) cube([2*R + 100, R + 52, T + 4]);
-        translate([0, 0, -3]) cylinder(h = T + 8, r = R, $fn = FN_ROUND);
+        translate([0, 0, -3]) cylinder(h = T + 8, r = R - 0.05, $fn = FN_ROUND);
     }
 }
 
