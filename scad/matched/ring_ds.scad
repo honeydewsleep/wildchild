@@ -59,6 +59,7 @@ module at_stem(r_from, length, d1, d2) {
 
 module boss_and_stem_solid() {
     intersection() {
+        difference() {
         union() {
             // smooth bulb: oblate spheroid centred ON the rim surface,
             // hulled to the Ø34 stem shoulder disc. Like the original,
@@ -96,6 +97,13 @@ module boss_and_stem_solid() {
                     2*stem_thr_root_r, 2*stem_thr_root_r);
             at_stem(stem_r0 + m_stem_len - 1 - EPS, 1,
                     2*stem_thr_root_r, 2*stem_thr_root_r - 3);
+        }
+        // SURFACE-MOUNT like the original: remove everything inboard
+        // of the rim's inner face (+0.05), so the bulb welds through
+        // the 2mm wall but leaves the light cavity completely clear -
+        // the diffuser trays keep full-circle skirts, no gap needed
+        translate([0, 0, -2])
+            cylinder(h = T + 4, r = R - m_rim_wall + 0.05, $fn = FN_ROUND);
         }
         // clip the boss flush with the ring faces, as the original
         translate([-250, -250, 0]) cube([500, 500, T]);
@@ -158,16 +166,10 @@ module diffuser_ds() {
     }
     // inner skirt: slides OVER the inner rim, beads grip inward
     skirt_with_beads(m_dif_in_w[0] + diffuser_clr, m_dif_in_w[1], true);
-    // outer skirt: slides INSIDE the outer rim, beads grip outward,
-    // with a gap arc where the stem bulb bulges into the rim -
-    // INSTALL THE TRAY WITH THIS GAP AT THE STEM (bottom)
-    difference() {
-        skirt_with_beads(m_dif_out_w[0], m_dif_out_w[1] - diffuser_clr, false);
-        rotate([0, 0, notch_angle - 270])
-            translate([0, 0, m_dif_face_t + 0.01])
-                linear_extrude(height = m_dif_skirt_h + 2)
-                    polygon([[-29, -70], [-40, -95], [40, -95], [29, -70]]);
-    }
+    // outer skirt: slides INSIDE the outer rim, beads grip outward.
+    // Full circle - the bulb is surface-mounted outside the wall, so
+    // nothing intrudes into the cavity.
+    skirt_with_beads(m_dif_out_w[0], m_dif_out_w[1] - diffuser_clr, false);
 }
 
 /* ------------------------- part selection -------------------------- */
