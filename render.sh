@@ -36,6 +36,8 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     # matched series (original Energy Ring dimensions)
     stl shell                matched/shell.scad   part shell
     stl shell_threaded       matched/shell.scad   part shell_threaded
+    stl shell_free           matched/shell.scad   part shell_free
+    stl stem_locknut         matched/stem_locknut.scad part locknut
     stl chassis              matched/chassis.scad part chassis
     stl chassis_bat_cube     matched/chassis.scad part chassis_bat_cube
     stl chassis_bat_flat4    matched/chassis.scad part chassis_bat_flat4

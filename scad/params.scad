@@ -173,9 +173,19 @@ m_spoke_t        = 3.0;
 stem_thr_root_r  = 12.6;   // root radius; crest = 12.6+1.3 = 13.9 (Ø27.8)
 stem_thr_depth   = 1.3;
 stem_thr_pitch   = 4.0;    // single start -> deterministic facing
-stem_thr_len     = 13.0;   // ~3.2 turns; plain pilot tip beyond it
+stem_thr_len     = 14.5;   // ~3.6 turns; chamfered tip beyond it
 stem_thr_clr     = 0.30;   // same print clearance as the base thread
 ring_clock_adjust = 0;     // trims which way the seated ring faces
+
+// stem locknut ("position-anywhere" option): the ring's stem drops
+// through shell_free's plain bore, you aim the ring, then this nut
+// screws onto the stem from inside the base and clamps it.
+nut_od           = 42;
+nut_h            = 10;
+nut_grip_n       = 16;     // grip scallops
+free_bore_d      = 28.6;   // shell_free: stem spins freely
+free_collar_h    = 4;      // shallow locating collar (more stem inside)
+free_collar_d    = 40;     // wider clamp seat for the nut face
 
 // snap-in diffuser tray (original interface, one per face)
 m_dif_face_t     = 1.0;

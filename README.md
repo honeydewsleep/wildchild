@@ -47,16 +47,22 @@ replaces that slip joint with the clocked thread.
 | 8×AA / 12 V | shell + `chassis_bat_flat8.stl`, `battery_door_flat.stl`, + ring parts |
 | Thread calibration | `thread_test_collar.stl` + any chassis (same thread as Series A) |
 
-**Two shell options** (the ring's stem is threaded either way, crest at
-the original Ø27.8):
+**Three shell options** (the ring's stem is threaded in all cases,
+crest at the original Ø27.8):
 
-- `shell_threaded.stl` — female thread in the stem collar: **the ring
-  screws into the base** (~3 turns) and stops facing forward
-  (single-start; trim with `ring_clock_adjust` if your printer shifts
-  the stop a few degrees).
+- `shell_free.stl` + `stem_locknut.stl` — **position-anywhere**: the
+  stem drops through a free-spinning bore; aim the ring at any angle,
+  then screw the knurled locknut onto the stem from inside the base
+  (reach in through the open bottom before the chassis goes on) and
+  tighten. The shell top gets clamped between the ring's shoulder and
+  the nut. Slip the nut over the wire bundle before connecting the
+  wires.
+- `shell_threaded.stl` — the ring **screws into the base** (~3.5
+  turns) and stops facing forward (single-start; trim with
+  `ring_clock_adjust` if your printer shifts the stop a few degrees).
 - `shell.stl` — plain crush-rib collar: any ring *push-fits*, including
   unmodified original rings. The threaded ring's crests still grip in
-  it, so rings are interchangeable across both shells and original
+  it, so rings are interchangeable across all shells and original
   bases.
 
 Ring: print `ring_double_sided.stl` in your body color (the rims are
@@ -155,10 +161,12 @@ mm) and re-render.
 2. Snap a diffuser tray into each face (double snap beads, exactly like
    the original diffuser — firm push all around). The trays also
    rigidify the ring, so snap both in before handling roughly.
-3. `shell_threaded`: screw the stem in clockwise (viewed from above)
-   until the shoulder seats — it stops facing forward. `shell`: push
-   the stem in until seated; the crush ribs grip it. Wires continue
-   into the chassis either way.
+3. Mount per your shell: `shell_free` — drop the stem in, aim the
+   ring, slip the locknut up the wires and tighten it from inside;
+   `shell_threaded` — screw the stem in clockwise (viewed from above)
+   until the shoulder seats facing forward; `shell` — push the stem in
+   until the crush ribs seat. Wires continue into the chassis in all
+   cases.
 
 ## Ring assembly — Series A (generic)
 

@@ -18,6 +18,9 @@
 // part = "shell_threaded"  female thread in the collar: the ring
 //                          SCREWS in and stops facing forward
 //                          (deterministic, trimmed by ring_clock_adjust)
+// part = "shell_free"      plain free-spinning bore + shallow collar:
+//                          aim the ring anywhere, then clamp it with
+//                          stem_locknut.stl from inside the base
 // =====================================================================
 include <../params.scad>
 use <../lib/threads.scad>
@@ -52,10 +55,20 @@ module shell_cavity() {
         ]);
 }
 
-module stem_collar() {
-    z0 = m_shell_h - m_shell_top_t - m_collar_h;
+module stem_collar(h = m_collar_h, d = m_collar_d) {
+    z0 = m_shell_h - m_shell_top_t - h;
     translate([0, 0, z0])
-        cylinder(h = m_collar_h + 1, d = m_collar_d, $fn = 96);
+        cylinder(h = h + 1, d = d, $fn = 96);
+}
+
+// free-spinning bore for the locknut option: the stem drops through,
+// rotates to taste, and the nut clamps against the collar's bottom face
+module stem_bore_free() {
+    z0 = m_shell_h - m_shell_top_t - free_collar_h;
+    translate([0, 0, z0 - EPS])
+        cylinder(h = free_collar_h + m_shell_top_t + 2, d = free_bore_d, $fn = 96);
+    translate([0, 0, m_shell_h - 1.2])
+        cylinder(h = 1.3, d1 = free_bore_d, d2 = free_bore_d + 2.6, $fn = 96);
 }
 
 module stem_bore() {
@@ -128,14 +141,20 @@ module usb_hole_cut() {
                 }
 }
 
-module shell_body(threaded_stem = false) {
+// stem_mode: "ribs" (push fit) | "threaded" (screws in) | "free"
+// (spins freely, clamped by stem_locknut from inside)
+module shell_body(stem_mode = "ribs") {
     difference() {
         union() {
             difference() { shell_outer(); shell_cavity(); }
             thread_boss();
-            stem_collar();
+            if (stem_mode == "free")
+                stem_collar(free_collar_h, free_collar_d);
+            else
+                stem_collar();
         }
-        if (threaded_stem) stem_thread_cavity();
+        if (stem_mode == "threaded") stem_thread_cavity();
+        else if (stem_mode == "free") stem_bore_free();
         else stem_bore();
         female_thread_cut();
         usb_hole_cut();
@@ -145,6 +164,8 @@ module shell_body(threaded_stem = false) {
 /* ------------------------- part selection ------------------------- */
 // print-ready: inverted, top face on the bed (threads + hole face up)
 if (part == "shell")
-    rotate([180, 0, 0]) shell_body(false);
+    rotate([180, 0, 0]) shell_body("ribs");
 else if (part == "shell_threaded")
-    rotate([180, 0, 0]) shell_body(true);
+    rotate([180, 0, 0]) shell_body("threaded");
+else if (part == "shell_free")
+    rotate([180, 0, 0]) shell_body("free");
