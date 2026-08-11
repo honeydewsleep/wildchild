@@ -181,6 +181,26 @@ mm) and re-render.
    bottom by design). A few dabs of CA or plastic glue on the rim.
 4. Seat the tab in the base slot, wires through the slot-floor hole.
 
+## Email notifications (the whole point!)
+
+WLED lamps take simple HTTP commands on your LAN, so a small bridge
+watches Gmail and flips presets:
+
+- **`companion/gmail_wled_bridge.py`** — standalone bridge, stdlib
+  Python, runs on any always-on machine (Pi, desktop). Polls Gmail
+  over IMAP for unread mail from specific senders (or Gmail labels),
+  switches all lamps to that rule's WLED preset, and returns them to
+  idle once the mail is read. Setup instructions in the file header.
+- **Home Assistant alternative**: the `imap` integration fires an
+  event per incoming mail; an automation matching the sender calls
+  the WLED integration (`light.turn_on` with a color, or select the
+  preset entity). Same idea, no extra script, if you already run HA.
+
+Either way, save your looks as WLED presets (1 = idle, 2 = red
+breathe, ...) so you can restyle in the WLED app without touching the
+bridge. With WLED Sync (one lamp sends, the rest receive) a single
+command drives every lamp in the house.
+
 ## Rendering
 
 ```bash
