@@ -1,0 +1,57 @@
+# Home Assistant: Gmail -> WLED notification lamps
+#
+# Architecture: one IMAP integration entry PER RULE, each with a
+# custom search - every entry gives you a sensor whose state is the
+# COUNT of unread messages matching it. The automation below maps
+# "which counters are non-zero" to a WLED preset, top choice wins,
+# and falls back to Idle when everything is read - so the lamp nags
+# until the mail is actually dealt with.
+#
+# Setup steps (UI, no YAML needed for the sensors):
+#  1. Gmail: enable IMAP; create an App Password (2FA required).
+#  2. Settings > Devices & Services > Add Integration > IMAP:
+#       server imap.gmail.com, port 993, your address + app password.
+#     Add one entry per rule and set its "IMAP search" (under
+#     Configure), e.g.:
+#       UnSeen FROM "boss@company.com"
+#       UnSeen X-GM-LABELS "lamp-urgent"     <- Gmail-filter managed
+#     Rename each resulting sensor something readable
+#     (sensor.gmail_boss, sensor.gmail_urgent, ...).
+#  3. WLED lamps are auto-discovered; each exposes a preset entity
+#     like select.energy_ring_preset listing your saved preset NAMES.
+#     Save presets in the WLED app first: "Idle", "Boss", "Client"...
+#  4. With WLED Sync on (one lamp sends, others receive), target only
+#     the sending lamp below and the whole fleet follows.
+
+automation:
+  - alias: "Notification lamps follow Gmail"
+    mode: restart
+    triggers:
+      - trigger: state
+        entity_id:
+          - sensor.gmail_boss
+          - sensor.gmail_client
+          - sensor.gmail_urgent
+    actions:
+      - choose:
+          # order = priority: first non-zero counter wins
+          - conditions: "{{ states('sensor.gmail_urgent') | int(0) > 0 }}"
+            sequence:
+              - action: select.select_option
+                target: { entity_id: select.energy_ring_preset }
+                data: { option: "Urgent" }
+          - conditions: "{{ states('sensor.gmail_boss') | int(0) > 0 }}"
+            sequence:
+              - action: select.select_option
+                target: { entity_id: select.energy_ring_preset }
+                data: { option: "Boss" }
+          - conditions: "{{ states('sensor.gmail_client') | int(0) > 0 }}"
+            sequence:
+              - action: select.select_option
+                target: { entity_id: select.energy_ring_preset }
+                data: { option: "Client" }
+        default:
+          # everything read/archived -> back to normal
+          - action: select.select_option
+            target: { entity_id: select.energy_ring_preset }
+            data: { option: "Idle" }
