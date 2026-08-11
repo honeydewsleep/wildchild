@@ -152,8 +152,16 @@ m_usb_z          = 2.0;    // above the shell rim
 // momentary button, wired to a free ESP32 GPIO + GND; WLED short
 // press -> Idle preset). Sits above the USB hole at the back.
 m_button_hole    = false;
-m_button_d       = 12.4;
+m_button_d       = 12.4;   // 7.3 for PBS-110 mini buttons
 m_button_z       = 24;     // above the shell rim
+m_button_angle   = 270;    // 90 = front (nicer when a jack takes the back)
+
+// optional panel-mount USB-C power jack (Gebildet-style 12mm chassis
+// jack, 2-wire pigtail). Sits high on the back wall, above the
+// chassis barrel, so the body and nut have clear interior space.
+m_jack_hole      = false;
+m_jack_d         = 12.6;
+m_jack_z         = 26;     // above the shell rim
 
 m_skirt_od       = 96.0;   // chassis skirt (visible ring at the desk)
 m_skirt_h        = 9.5;
