@@ -148,6 +148,13 @@ m_usb_w          = 11;     // USB hole in the shell wall at notch_angle
 m_usb_h          = 7.5;
 m_usb_z          = 2.0;    // above the shell rim
 
+// optional dismiss-button hole in the shell wall (12mm panel-mount
+// momentary button, wired to a free ESP32 GPIO + GND; WLED short
+// press -> Idle preset). Sits above the USB hole at the back.
+m_button_hole    = false;
+m_button_d       = 12.4;
+m_button_z       = 24;     // above the shell rim
+
 m_skirt_od       = 96.0;   // chassis skirt (visible ring at the desk)
 m_skirt_h        = 9.5;
 m_barrel_h       = 9.0;    // threaded barrel above the skirt (was a

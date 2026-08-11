@@ -23,6 +23,18 @@
 #  4. With WLED Sync on (one lamp sends, others receive), target only
 #     the sending lamp below and the whole fleet follows.
 
+# DISMISS BUTTON, two ways (both coexist happily with the automation
+# below, because it only re-fires on NEW mail or on all-read):
+#
+#  A) Hardware button on the lamp itself (recommended - works even
+#     with HA down): wire a momentary button between a free ESP32
+#     GPIO (e.g. 13) and GND. In WLED: Config > LED & Hardware setup
+#     > Button GPIO = 13, then set short-press action to preset
+#     "Idle". With WLED Sync on, one press dismisses every lamp.
+#     No HA config needed at all.
+#
+#  B) Any HA smart button - see the second automation below.
+
 automation:
   - alias: "Notification lamps follow Gmail"
     mode: restart
@@ -32,6 +44,16 @@ automation:
           - sensor.gmail_boss
           - sensor.gmail_client
           - sensor.gmail_urgent
+    conditions:
+      # Re-light only when NEW mail arrives (a counter increased) or
+      # when everything is read (total zero -> Idle). A dismissal is
+      # NOT undone by unrelated counters merely decreasing.
+      - condition: template
+        value_template: >
+          {{ (trigger.to_state.state | int(0)) > (trigger.from_state.state | int(0))
+             or (states('sensor.gmail_boss') | int(0)
+                 + states('sensor.gmail_client') | int(0)
+                 + states('sensor.gmail_urgent') | int(0)) == 0 }}
     actions:
       - choose:
           # order = priority: first non-zero counter wins
@@ -55,3 +77,18 @@ automation:
           - action: select.select_option
             target: { entity_id: select.energy_ring_preset }
             data: { option: "Idle" }
+
+  # Option B: dismiss from any HA smart button (Zigbee/Z-Wave/Matter).
+  # Replace the trigger with your button's device trigger (easiest:
+  # build it in the UI via Settings > Automations, pick the button).
+  - alias: "Dismiss notification lamps (smart button)"
+    triggers:
+      - trigger: device
+        device_id: YOUR_BUTTON_DEVICE_ID
+        domain: zha            # or matter / zwave_js per your button
+        type: remote_button_short_press
+        subtype: turn_on
+    actions:
+      - action: select.select_option
+        target: { entity_id: select.energy_ring_preset }
+        data: { option: "Idle" }

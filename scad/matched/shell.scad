@@ -141,6 +141,16 @@ module usb_hole_cut() {
                 }
 }
 
+// round hole for a 12mm panel-mount dismiss button, above the USB
+// hole (drilling an existing print at the same spot works too)
+module button_hole_cut() {
+    rotate([0, 0, notch_angle - 270])
+        rotate([90, 0, 0])
+            translate([0, m_button_z, 0])
+                linear_extrude(height = r_rim + 8)
+                    circle(d = m_button_d, $fn = 64);
+}
+
 // stem_mode: "ribs" (push fit) | "threaded" (screws in) | "free"
 // (spins freely, clamped by stem_locknut from inside)
 module shell_body(stem_mode = "ribs") {
@@ -158,6 +168,7 @@ module shell_body(stem_mode = "ribs") {
         else stem_bore();
         female_thread_cut();
         usb_hole_cut();
+        if (m_button_hole) button_hole_cut();
     }
 }
 
