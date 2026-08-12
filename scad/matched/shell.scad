@@ -169,7 +169,7 @@ module shell_body(stem_mode = "ribs") {
         else if (stem_mode == "free") stem_bore_free();
         else stem_bore();
         female_thread_cut();
-        usb_hole_cut();
+        if (m_usb_notch) usb_hole_cut();
         if (m_button_hole) button_hole_cut();
         if (m_jack_hole) jack_hole_cut();
     }

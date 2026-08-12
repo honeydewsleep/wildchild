@@ -144,6 +144,8 @@ m_stem_hole_d    = 28.2;   // ring stem hole in the shell top
 m_collar_d       = 37;     // reinforcing collar under the top face
 m_collar_h       = 10;     // grip depth for the ring stem
 m_crush_rib      = 0.35;   // crush ribs in the collar bore (stem grip)
+m_usb_notch      = true;   // low cable notch; disable when a panel
+                           // jack supplies power instead
 m_usb_w          = 11;     // USB hole in the shell wall at notch_angle
 m_usb_h          = 7.5;
 m_usb_z          = 2.0;    // above the shell rim
@@ -161,7 +163,10 @@ m_button_angle   = 270;    // 90 = front (nicer when a jack takes the back)
 // chassis barrel, so the body and nut have clear interior space.
 m_jack_hole      = false;
 m_jack_d         = 12.6;
-m_jack_z         = 26;     // above the shell rim
+m_jack_z         = 17;     // lowest safe: hole sits just above the
+                           // female thread, and the jack body (Ø~14.5)
+                           // clears the chassis barrel top (z=9) while
+                           // the shell is being screwed on
 
 m_skirt_od       = 96.0;   // chassis skirt (visible ring at the desk)
 m_skirt_h        = 9.5;
