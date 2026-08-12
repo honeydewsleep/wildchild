@@ -232,6 +232,18 @@ peace_bar_lap    = 4;      // bar overrun past the band inner edge (dia),
 peace_wire_r0    = 74;     // wire bore starts here (well inside the
                            // band cavity, clear of the bar junctions)
 peace_skirt_t    = 2.0;    // diffuser skirt wall thickness
+// Ties (the ring's spokes, re-aimed). The wall of a hollow outline is
+// one closed tube per boundary loop, so the outline and the four window
+// surrounds print as five loose shells unless they are bridged: three
+// ties hidden inside the bars group the window surrounds, then radial
+// ties cross the band cavity to the outer wall. Same 3x3 mm section as
+// the ring's spokes (m_spoke_w / m_spoke_t), same short-bridge print.
+peace_tie_pos    = 45;     // bar ties, measured along each bar from the centre
+peace_tie_angles = [157.5, 22.5];  // radial ties, at the upper windows' centres
+peace_tie_z      = [12, 28];       // radial ties sit either side of the strip
+                                   // channel (10.5 mm centred on mid-depth)
+                                   // instead of crossing it, so the COB strip
+                                   // stays one uninterrupted run
 peace_bead_n     = 5;      // slabs approximating each round snap bead
                            // (the outline is not a circle, so the bead
                            // cannot be a rotate_extrude torus)

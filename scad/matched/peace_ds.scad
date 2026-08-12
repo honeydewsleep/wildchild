@@ -89,6 +89,38 @@ module peace_walls() {
         }
 }
 
+/* ---------------------------- the ties ----------------------------- */
+// The wall of a hollow outline is ONE CLOSED TUBE PER BOUNDARY LOOP, so
+// the outline's tube and the four window surrounds come out as five
+// separate shells - the bars' walls are the window surrounds themselves,
+// they cannot tie each other together. Same problem the ring solves with
+// spokes, so: same 3x3 mm section, same mid-depth short bridges.
+//   - three ties hidden inside the bars group the four window surrounds
+//     (no strip runs there and the bars are the dim area anyway);
+//   - radial ties carry that group to the outer band wall, doubled up
+//     either side of the strip channel so the COB strip stays one run.
+module p_tie(l, zc) {          // bridge along X, centred on the origin
+    translate([-l/2, -m_spoke_w/2, zc - m_spoke_t/2])
+        cube([l, m_spoke_w, m_spoke_t]);
+}
+
+module peace_ties() {
+    bl = peace_bar_w - 2*m_rim_wall + 2;   // welds 1 mm into each bar wall
+    r0 = R - peace_band + 1;               // 1 mm into the window's arc wall
+    r1 = R - 1;                            // 1 mm into the outer wall
+    translate([0, peace_tie_pos, 0]) p_tie(bl, T/2);
+    for (a = [45, -45])
+        rotate([0, 0, a]) translate([0, -peace_tie_pos, 0]) p_tie(bl, T/2);
+    for (ang = peace_tie_angles, z = peace_tie_z)
+        rotate([0, 0, ang]) translate([(r0 + r1)/2, 0, 0]) p_tie(r1 - r0, z);
+}
+
+// the printed body without the stem: walls + ties
+module peace_shell() {
+    peace_walls();
+    peace_ties();
+}
+
 /* ----------------------- stem + bulb (ring's) ---------------------- */
 // helper: solid built along +X (axis at y=0,z=0), then swung to the
 // stem angle with the axis lifted to the sign's mid-plane
@@ -169,7 +201,7 @@ module peace_stem_only() {
 module peace_ds() {
     difference() {
         union() {
-            peace_walls();
+            peace_shell();
             peace_boss_and_stem();
         }
         peace_wire_bore();

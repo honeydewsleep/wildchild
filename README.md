@@ -207,6 +207,14 @@ bars are lit by spill light travelling in from the band. That falloff
 is the intended look; don't try to route strip along the bars — there
 is no clean wire return and the joints would show through the diffuser.
 
+The walls of a hollow outline form one closed tube per edge loop, so the
+outline and the four window surrounds are bridged by 3 × 3 mm ties, the
+ring's spokes re-aimed: three hide inside the bars (where nothing runs
+and the light is dim already), and two pairs cross the band cavity in
+the upper windows. Those pairs sit at z = 12 and 28 rather than at
+mid-depth, straddling the strip channel — so unlike the ring's spokes
+they leave the strip a single uninterrupted run all the way round.
+
 Assembly is the ring's, step for step (see [Ring assembly — Series
 M](#ring-assembly--series-m-matched)): strip around the inside of the
 outer band starting/ending at the Ø20 wire hole above the stem, wires

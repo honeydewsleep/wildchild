@@ -137,9 +137,10 @@ else if (mode == "p_engagement")
 // peace sign diffuser (beads suppressed - they are meant to interfere
 // by 0.15) seated on the z=0 face, dropped 0.02 so the coincident face
 // plate / sign face planes don't leave a degenerate contact sheet.
-// Walls only: the bulb sits outside them and clear of the diffuser.
+// Walls + ties only: the bulb sits outside them and clear of the
+// diffuser, but the ties must also stay out of the skirt's 10 mm.
 else if (mode == "p_dif_clearance")
     intersection() {
-        peace_walls();
+        peace_shell();
         translate([0, 0, -m_dif_face_t - 0.02]) peace_diffuser(false);
     }
