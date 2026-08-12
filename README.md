@@ -45,6 +45,7 @@ replaces that slip joint with the clocked thread.
 | 4×AA battery (cube boxes) | shell + `chassis_bat_cube.stl`, `battery_door_cube.stl`, + ring parts |
 | 4×AA battery (flat holder) | shell + `chassis_bat_flat4.stl`, `battery_door_flat.stl`, + ring parts |
 | 8×AA / 12 V | shell + `chassis_bat_flat8.stl`, `battery_door_flat.stl`, + ring parts |
+| Peace sign instead of the ring | any shell + chassis above, `peace_sign.stl`, 2× `peace_ds_diffuser.stl` (see [Shape lamps](#shape-lamps)) |
 | Thread calibration | `thread_test_collar.stl` + any chassis (same thread as Series A) |
 
 **Three shell options** (the ring's stem is threaded in all cases,
@@ -181,6 +182,51 @@ mm) and re-render.
    bottom by design). A few dabs of CA or plastic glue on the rim.
 4. Seat the tab in the base slot, wires through the slot-floor hole.
 
+## Shape lamps
+
+The double-sided ring's construction — opaque outline walls, LED strip
+firing inward, a translucent diffuser snapped onto each face, threaded
+Ø27.8 stem into the same base — is shape-agnostic. The first shape lamp
+is the **peace sign** (`scad/matched/peace_ds.scad`).
+
+| Part | Print in | Notes |
+|---|---|---|
+| `peace_sign.stl` | body colour (white bounces best) | Ø180 × 40, drops onto any Series M shell/chassis exactly like the ring |
+| `peace_ds_diffuser.stl` | translucent / natural | **print 2** — the outline is mirror symmetric, so one STL serves both faces (flip the second one over) |
+
+The whole sign glows, not just the circle: the outer band **and** the
+three bars are one connected hollow cavity, closed on both faces by the
+diffusers. The four window openings between the bars stay open all the
+way through and carry their own 2 mm edge walls, so the sign reads
+correctly from either side.
+
+**The bars glow dimmer than the band.** The COB strip runs around the
+inside of the outer band only (Ø176 ≈ 553 mm, same as the ring — the
+20 mm of wall between the two diffuser skirts is its channel), so the
+bars are lit by spill light travelling in from the band. That falloff
+is the intended look; don't try to route strip along the bars — there
+is no clean wire return and the joints would show through the diffuser.
+
+The walls of a hollow outline form one closed tube per edge loop, so the
+outline and the four window surrounds are bridged by 3 × 3 mm ties, the
+ring's spokes re-aimed: three hide inside the bars (where nothing runs
+and the light is dim already), and two pairs cross the band cavity in
+the upper windows. Those pairs sit at z = 12 and 28 rather than at
+mid-depth, straddling the strip channel — so unlike the ring's spokes
+they leave the strip a single uninterrupted run all the way round.
+
+Assembly is the ring's, step for step (see [Ring assembly — Series
+M](#ring-assembly--series-m-matched)): strip around the inside of the
+outer band starting/ending at the Ø20 wire hole above the stem, wires
+down the stem bore, then press a diffuser into each face — the snap
+beads run around the outline and around every window, so push all the
+way round both times. The diffusers also stiffen the sign, so snap them
+in before handling it roughly.
+
+Printing: the sign goes face-down flat as exported (the stem and bulb
+hang off the bottom edge exactly like the ring's); the diffusers print
+flat with the beads up. Same 0.2 mm / 3 walls / 15 % settings.
+
 ## Email notifications (the whole point!)
 
 WLED lamps take simple HTTP commands on your LAN, so a small bridge
@@ -213,11 +259,10 @@ Requires OpenSCAD (tested with 2021.01).
 
 ## Roadmap
 
-- **Other shapes (heart, peace sign, …)** — planned next, as discussed.
-  The double-sided construction (two flip-symmetric halves + captive
-  diffusers + tab) is shape-agnostic; the circle modules in
-  `scad/ring.scad` will be generalized to arbitrary outlines. Note the
-  peace sign's interior bars will need a lighting decision (lit bars vs
-  silhouette bars).
+- **Other shapes (heart, star, moon, cloud, …)** — the peace sign is
+  built (see [Shape lamps](#shape-lamps)); mockups of the rest live in
+  `scad/matched/shapes_preview.scad`. The heart needs sharp inside
+  corners (mitered offset) rather than the peace sign's round-friendly
+  geometry, so it gets its own pass.
 - Printed-contact AA holder (springs from salvaged holders) if the
   purchased-box pockets don't suit.

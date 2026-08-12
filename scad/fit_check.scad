@@ -17,6 +17,7 @@ use <bottom_plate.scad>
 use <matched/shell.scad>
 use <matched/chassis.scad>
 use <matched/ring_ds.scad>
+use <matched/peace_ds.scad>
 
 mode = "clearance";
 
@@ -28,6 +29,28 @@ module seated_stem(lift = 0.02) {
         rotate([90, 0, 0])
             translate([0, 0, -m_ring_t/2])
                 stem_only();
+}
+
+// same, for the peace sign's stem (identical Ø180 outline and boss
+// length, so it seats through the identical transform chain)
+module seated_peace_stem(lift = 0.02) {
+    RBc = peace_od/2 + m_boss_len;
+    translate([0, 0, m_shell_h + RBc + lift])
+        rotate([90, 0, 0])
+            translate([0, 0, -m_ring_t/2])
+                peace_stem_only();
+}
+
+// un-threaded collar plug: the collar bore filled back in, for
+// checking that the stem's thread ribs actually bite into it
+module bare_collar_plug() {
+    translate([0, 0, m_shell_h - m_shell_top_t - m_collar_h])
+        difference() {
+            cylinder(h = m_collar_h + m_shell_top_t - 0.1, d = m_collar_d, $fn = 96);
+            translate([0, 0, -EPS])
+                cylinder(h = m_collar_h + m_shell_top_t + 2,
+                         r = stem_thr_root_r + stem_thr_clr, $fn = 96);
+        }
 }
 
 // standalone replica of the threaded collar region (much cheaper for
@@ -97,12 +120,27 @@ else if (mode == "s_clearance")
 else if (mode == "s_engagement")
     intersection() {
         // stem thread ribs vs an un-threaded collar plug
-        translate([0, 0, m_shell_h - m_shell_top_t - m_collar_h])
-            difference() {
-                cylinder(h = m_collar_h + m_shell_top_t - 0.1, d = m_collar_d, $fn = 96);
-                translate([0, 0, -EPS])
-                    cylinder(h = m_collar_h + m_shell_top_t + 2,
-                             r = stem_thr_root_r + stem_thr_clr, $fn = 96);
-            }
+        bare_collar_plug();
         seated_stem(0.02);
+    }
+// peace sign: same stem, screwed fully into the threaded shell collar
+else if (mode == "p_clearance")
+    intersection() {
+        collar_chunk(true);
+        seated_peace_stem(0.02);
+    }
+else if (mode == "p_engagement")
+    intersection() {
+        bare_collar_plug();
+        seated_peace_stem(0.02);
+    }
+// peace sign diffuser (beads suppressed - they are meant to interfere
+// by 0.15) seated on the z=0 face, dropped 0.02 so the coincident face
+// plate / sign face planes don't leave a degenerate contact sheet.
+// Walls + ties only: the bulb sits outside them and clear of the
+// diffuser, but the ties must also stay out of the skirt's 10 mm.
+else if (mode == "p_dif_clearance")
+    intersection() {
+        peace_shell();
+        translate([0, 0, -m_dif_face_t - 0.02]) peace_diffuser(false);
     }
