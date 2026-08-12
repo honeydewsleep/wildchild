@@ -226,7 +226,10 @@ m_dif_bead_z     = [3.5, 8.5];     // bead positions down the skirt
 // ring above - no new tolerances.
 peace_od         = 180;    // outer circle; matches m_ring_od
 peace_band       = 22;     // radial width of the glowing outer band
-peace_bar_w      = 14;     // width of the vertical + two diagonal bars
+peace_bar_w      = peace_band;  // bars are the same stroke width as the
+                           // outer band, so the whole sign reads as one
+                           // even-weight line (was 14, which left the
+                           // bars visibly thinner than the ring)
 peace_bar_lap    = 4;      // bar overrun past the band inner edge (dia),
                            // so the bars fuse into the band
 peace_wire_r0    = 74;     // wire bore starts here (well inside the
