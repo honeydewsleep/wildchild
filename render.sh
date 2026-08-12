@@ -44,6 +44,9 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     stl chassis_bat_flat8    matched/chassis.scad part chassis_bat_flat8
     stl ring_double_sided    matched/ring_ds.scad part ring_ds
     stl ring_ds_diffuser     matched/ring_ds.scad part diffuser_ds   # print x2
+    # shape lamps (same construction language as the double-sided ring)
+    stl peace_sign           matched/peace_ds.scad part peace_ds
+    stl peace_ds_diffuser    matched/peace_ds.scad part diffuser_peace  # print x2
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then
@@ -64,6 +67,15 @@ if [[ "$mode" == "check" || "$mode" == "all" ]]; then
         | grep -iE 'empty|warning|error' || true
     echo "== fit check: stem thread engagement (must be NON-empty)"
     openscad -o /tmp/fit_s_engagement.stl -D 'mode="s_engagement"' scad/fit_check.scad 2>&1 \
+        | grep -iE 'empty|warning|error' || true
+    echo "== fit check: peace stem clearance (must be EMPTY)"
+    openscad -o /tmp/fit_p_clearance.stl -D 'mode="p_clearance"' scad/fit_check.scad 2>&1 \
+        | grep -iE 'empty|warning|error' || true
+    echo "== fit check: peace stem engagement (must be NON-empty)"
+    openscad -o /tmp/fit_p_engagement.stl -D 'mode="p_engagement"' scad/fit_check.scad 2>&1 \
+        | grep -iE 'empty|warning|error' || true
+    echo "== fit check: peace diffuser skirt clearance (must be EMPTY)"
+    openscad -o /tmp/fit_p_dif_clearance.stl -D 'mode="p_dif_clearance"' scad/fit_check.scad 2>&1 \
         | grep -iE 'empty|warning|error' || true
     ls -la /tmp/fit_*.stl 2>/dev/null || true
 fi

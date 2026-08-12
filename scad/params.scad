@@ -217,6 +217,25 @@ m_dif_bead       = 0.45;   // snap bead proudness (bite = 0.45 - diffuser_clr
                            // = 0.15 per bead, symmetric on both skirts)
 m_dif_bead_z     = [3.5, 8.5];     // bead positions down the skirt
 
+/* ------------------------- peace sign lamp ------------------------ */
+// Shape lamp built in the double-sided ring's construction language:
+// one connected hollow glow region (outer band + the three bars),
+// 2 mm walls all round (outline AND every window opening), same 40 mm
+// depth, same stem/bulb, a diffuser on each face. Everything fit-
+// critical (walls, clearances, beads, stem thread) is reused from the
+// ring above - no new tolerances.
+peace_od         = 180;    // outer circle; matches m_ring_od
+peace_band       = 22;     // radial width of the glowing outer band
+peace_bar_w      = 14;     // width of the vertical + two diagonal bars
+peace_bar_lap    = 4;      // bar overrun past the band inner edge (dia),
+                           // so the bars fuse into the band
+peace_wire_r0    = 74;     // wire bore starts here (well inside the
+                           // band cavity, clear of the bar junctions)
+peace_skirt_t    = 2.0;    // diffuser skirt wall thickness
+peace_bead_n     = 5;      // slabs approximating each round snap bead
+                           // (the outline is not a circle, so the bead
+                           // cannot be a rotate_extrude torus)
+
 /* --------------------------- helpers ------------------------------ */
 // 2D slot: full width w, open-ended at the bottom (extends to y=-h),
 // rounded top corners at y=+h
