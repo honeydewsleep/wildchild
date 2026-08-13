@@ -154,19 +154,21 @@ m_usb_z          = 2.0;    // above the shell rim
 // momentary button, wired to a free ESP32 GPIO + GND; WLED short
 // press -> Idle preset). Sits above the USB hole at the back.
 m_button_hole    = false;
-m_button_d       = 12.4;   // 7.3 for PBS-110 mini buttons
+m_button_d       = 11.8;   // user's 11.6mm button; 15.8 for their
+                           // 15.6mm one, 7.3 for PBS-110 minis
 m_button_z       = 24;     // above the shell rim
 m_button_angle   = 270;    // 90 = front (nicer when a jack takes the back)
 
-// optional panel-mount USB-C power jack (Gebildet-style 12mm chassis
-// jack, 2-wire pigtail). Sits high on the back wall, above the
-// chassis barrel, so the body and nut have clear interior space.
+// optional panel-mount USB-C power jack (2-wire pigtail). On the back
+// wall, low, but high enough that the mounting nut spins freely: the
+// internal thread-boss ledge tops out at z~11.8 on the wall, so the
+// nut (~Ø15 swept) needs the hole centre at 22+.
 m_jack_hole      = false;
-m_jack_d         = 12.6;
-m_jack_z         = 17;     // lowest safe: hole sits just above the
-                           // female thread, and the jack body (Ø~14.5)
-                           // clears the chassis barrel top (z=9) while
-                           // the shell is being screwed on
+m_jack_d         = 9.7;    // user's jack barrel is 9.1 wide (+0.6
+                           // print clearance; 12.6 fit the 12mm Gebildet)
+m_jack_z         = 22;     // nut sweep clears the thread-boss ledge
+                           // with ~2.5mm to spare; jack body clears the
+                           // chassis barrel during screw-on regardless
 
 m_skirt_od       = 96.0;   // chassis skirt (visible ring at the desk)
 m_skirt_h        = 9.5;
