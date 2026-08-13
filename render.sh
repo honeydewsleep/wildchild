@@ -82,6 +82,9 @@ if [[ "$mode" == "check" || "$mode" == "all" ]]; then
     echo "== fit check: tictac case shut, hinge side (must be EMPTY)"
     openscad -o /tmp/fit_tt_shut.stl -D 'part="shut"' scad/tictac_case.scad 2>&1 \
         | grep -iE 'empty|warning|error' || true
+    echo "== fit check: tictac hinge pin runs through the barrel (must be NON-empty)"
+    openscad -o /tmp/fit_tt_engage.stl -D 'part="engage"' scad/tictac_case.scad 2>&1 \
+        | grep -iE 'empty|warning|error' || true
 fi
 
 if [[ "$mode" == "png" || "$mode" == "all" ]]; then

@@ -86,16 +86,20 @@ does not rescale automatically, so nudge `edge_r`/`edge_tan` by the same ratio
 
 ```bash
 ./render.sh stl      # writes stl/tictac_case.stl
-./render.sh check    # hinge clearance checks — both must report EMPTY
+./render.sh check    # hinge checks — see what each must report, below
 ./render.sh png      # preview images
 ```
 
-Two fit checks guard the hinge, in the style of `scad/fit_check.scad`:
+Three fit checks guard the hinge, in the style of `scad/fit_check.scad`:
 
-- `part="collide"` — the two halves must not touch anywhere on the bed, or the
-  hinge prints as one fused lump.
-- `part="shut"` — with the case folded, nothing may interfere. The rims are
-  expected to meet exactly on the parting plane (that is the seal), so that
-  plane is excluded from the test.
+- `part="collide"` — **empty**: the two halves must not touch anywhere on the
+  bed, or the hinge prints as one fused lump.
+- `part="shut"` — **empty**: with the case folded, nothing may interfere. The
+  rims are expected to meet exactly on the parting plane (that is the seal), so
+  that plane is excluded from the test.
+- `part="engage"` — **non-empty**: the pin must actually run through the
+  barrel. Note that the two emptiness checks above cannot catch a missing pin —
+  deleting it makes them pass *more* easily — which is exactly how a pinless
+  first cut of this model got through review.
 
 Other parts for inspection: `left`, `right`, `closed`, `section`.

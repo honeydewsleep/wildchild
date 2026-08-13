@@ -12,7 +12,8 @@
 //   ./render.sh stl     -> stl/tictac_case.stl
 // ---------------------------------------------------------------------------
 
-part = "case";          // "case" | "left" | "right" | "section" | "closed" | "collide" | "shut"
+part = "case";          // "case" | "left" | "right" | "section" | "closed"
+                        //        | "collide" | "shut" | "engage"
 
 /* [Shell] ---------------------------------------------------------------- */
 case_len   = 50.0;      // Y — was 60
@@ -111,12 +112,20 @@ module axis_cyl(r, ya, yb)
 module axis_ball(r, y)
     translate([hinge_ax, y, hz]) sphere(r = r, $fn = 72);
 
-// pin half of the hinge: two domed knuckles joined by the pin
-module hinge_pin_side(rc = 0, yc = 0) {
+// pin half of the hinge: two domed knuckles ...
+module hinge_knuckles(rc = 0, yc = 0) {
     r = barrel_r + rc;
     axis_cyl(r, hy0, hy0 + knuckle_l + yc);  axis_ball(r, hy0);
     axis_cyl(r, hy1 - knuckle_l - yc, hy1);  axis_ball(r, hy1);
+}
+// ... joined by the pin, which runs the whole span and is what the barrel
+// rides on.  Inflated by rc it also cuts the barrel's bore.
+module hinge_pin_rod(rc = 0)
     axis_cyl(pin_r + rc, hy0, hy1);
+
+module hinge_pin_side(rc = 0, yc = 0) {
+    hinge_knuckles(rc, yc);
+    hinge_pin_rod(rc);
 }
 
 // barrel half of the hinge (a plain closed ring rides the pin)
@@ -138,26 +147,34 @@ module thumb_scoop()
     }
 
 // one tray.  kind = "pin" (knuckles + pin) or "barrel" (ring)
+//
+// The pin is unioned on AFTER the clearance cuts.  The barrel-clearance cut
+// that notches this shell clear of the mating ring is a solid cylinder on the
+// axis, so cutting with it first would shear the pin off inside the barrel —
+// leaving a case that passes both "must be EMPTY" checks and still falls apart.
 module tray(kind) {
-    difference() {
-        union() {
-            difference() {
-                outer_solid();
-                difference() {                      // cavity, less the magnet bosses
-                    cavity();
-                    for (y = mag_y)
-                        translate([mag_x, y, 0])
-                            cylinder(r = mag_boss_r, h = half_h + 1, $fn = 64);
+    union() {
+        difference() {
+            union() {
+                difference() {
+                    outer_solid();
+                    difference() {                  // cavity, less the magnet bosses
+                        cavity();
+                        for (y = mag_y)
+                            translate([mag_x, y, 0])
+                                cylinder(r = mag_boss_r, h = half_h + 1, $fn = 64);
+                    }
                 }
+                if (kind == "pin")    hinge_knuckles();
+                if (kind == "barrel") hinge_barrel_side();
             }
-            if (kind == "pin")    hinge_pin_side();
-            if (kind == "barrel") hinge_barrel_side();
+            magnet_bores();
+            thumb_scoop();
+            // clearance for the mating half's hinge
+            if (kind == "barrel") hinge_pin_side(hinge_clr, hinge_ygap);
+            if (kind == "pin")    hinge_barrel_side(hinge_clr, hinge_clr);
         }
-        magnet_bores();
-        thumb_scoop();
-        // clearance for the mating half's hinge
-        if (kind == "barrel") hinge_pin_side(hinge_clr, hinge_ygap);
-        if (kind == "pin")    hinge_barrel_side(hinge_clr, hinge_clr);
+        if (kind == "pin") hinge_pin_rod();
     }
 }
 
@@ -193,6 +210,15 @@ if (part == "collide")
     }
 
 if (part == "closed") case_closed();
+
+// fit check: must render NON-EMPTY — the pin has to actually run through the
+// barrel, or the halves are two loose trays.  The EMPTY checks above cannot
+// catch a missing pin: deleting it makes them pass more easily.
+if (part == "engage")
+    intersection() {
+        translate([2*hinge_ax, 0, 0]) mirror([1,0,0]) tray("pin");
+        axis_cyl(barrel_r, by0, by1);
+    }
 
 // fit check: must render EMPTY.  The halves are expected to meet exactly on the
 // parting plane (that is the seal), so that plane is excluded; anything left
