@@ -20,6 +20,14 @@ png() {  # png <outname> <scadfile> <var> <value> <camera>
         "scad/$2" >/dev/null 2>&1
 }
 
+pngv() {  # pngv <outname> <scadfile> <var> <value> <rot_x,rot_y,rot_z> [projection]
+    echo "== preview/$1.png"
+    xvfb-run -a openscad -o "preview/$1.png" -D "$3=\"$4\"" --imgsize=1280,960 \
+        --camera="0,0,0,$5,0" --viewall --autocenter \
+        --colorscheme=Tomorrow --projection="${6:-perspective}" \
+        "scad/$2" >/dev/null 2>&1
+}
+
 if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     stl base                 base.scad        part base
     stl base_wallhole        base.scad        part base_wallhole
@@ -44,6 +52,8 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     stl chassis_bat_flat8    matched/chassis.scad part chassis_bat_flat8
     stl ring_double_sided    matched/ring_ds.scad part ring_ds
     stl ring_ds_diffuser     matched/ring_ds.scad part diffuser_ds   # print x2
+    # pocket clamshell case (standalone — see TICTAC_CASE.md)
+    stl tictac_case          tictac_case.scad part case
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then
@@ -66,6 +76,12 @@ if [[ "$mode" == "check" || "$mode" == "all" ]]; then
     openscad -o /tmp/fit_s_engagement.stl -D 'mode="s_engagement"' scad/fit_check.scad 2>&1 \
         | grep -iE 'empty|warning|error' || true
     ls -la /tmp/fit_*.stl 2>/dev/null || true
+    echo "== fit check: tictac case halves apart on the bed (must be EMPTY)"
+    openscad -o /tmp/fit_tt_collide.stl -D 'part="collide"' scad/tictac_case.scad 2>&1 \
+        | grep -iE 'empty|warning|error' || true
+    echo "== fit check: tictac case shut, hinge side (must be EMPTY)"
+    openscad -o /tmp/fit_tt_shut.stl -D 'part="shut"' scad/tictac_case.scad 2>&1 \
+        | grep -iE 'empty|warning|error' || true
 fi
 
 if [[ "$mode" == "png" || "$mode" == "all" ]]; then
@@ -77,5 +93,8 @@ if [[ "$mode" == "png" || "$mode" == "all" ]]; then
     png bottom_plate       bottom_plate.scad part plate_notched "0,0,8,55,0,140,300"
     png battery_tub_cube   battery_tub.scad part tub_4aa_cube   "0,0,25,55,0,140,340"
     png ring_half          ring.scad        part ring_half      "0,0,10,45,0,30,480"
+    pngv tictac_flat       tictac_case.scad part case    "58,0,22"
+    pngv tictac_closed     tictac_case.scad part closed  "62,0,205"
+    pngv tictac_section    tictac_case.scad part section "90,0,0"  ortho
 fi
 echo "done."
