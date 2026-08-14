@@ -40,13 +40,34 @@ parting line. The original's arc is r = 7.107 turning vertical 2.18 mm below
 the rim; both are scaled by the height change (5.5/7.6) to r = 5.14 at
 3.92 mm, so the silhouette stays proportionally identical instead of going
 slab-sided. Plan corner radius (9 mm), wall (2.45 mm), floor (1.4 mm), rim
-chamfer (0.4 mm) and the 1 mm × 14.4 mm thumb scoop are all as measured.
+chamfer (0.4 mm) are all as measured.
 
-The hinge is reproduced dimension for dimension off the original: Ø2.30 pin,
-Ø4.30 knuckles domed at the outer ends, a plain closed-ring barrel on the
-other half, 0.24 mm radial clearance, 0.35 mm axial, 27 mm overall with 3.5 mm
-knuckles. The pin half and the barrel half are the same tray mirrored about the
-pivot, so the two shells and their magnets line up exactly when it shuts.
+The thumb divot is the original's exact construction: a **capsule lying along
+the rim line** — a rod of radius 2.766 with its axis *on* the parting plane,
+sunk 0.989 mm into the flank, with a 10.098 mm straight run. Fitted to the
+original at 0.04 mm RMS over its full depth. It matters that it is a capsule
+and not a dish: it gives a flat-bottomed groove 14.34 mm long that a thumb pad
+sits in, rather than a lens that a thumb skates off.
+
+The hinge is reproduced dimension for dimension off the original, and every
+number below was measured back off `case_6mm.stl` rather than chosen:
+
+| | original | here |
+|---|---|---|
+| pin | r 1.150 | 1.15 |
+| barrel outer | r 2.149 | 2.15 |
+| pin ↔ barrel bore | 0.200 mm | 0.200 |
+| barrel ↔ facing shell | 0.249 mm | 0.250 |
+| barrel ring length | 19.40 mm | 19.35 |
+| axial gap ring ↔ knuckle | 0.35 / 0.30 | 0.30 |
+| overall hinge length | 27.30 mm | 27.20 |
+
+The knuckle tips are **ellipsoidal, running out over 2.50 mm** — not
+hemispherical. That one detail is what sets the overall length: capping a
+2.15 mm barrel with hemispheres instead stretches the hinge to 31.3 mm.
+
+The pin half and the barrel half are the same tray mirrored about the pivot, so
+the two shells and their magnets line up exactly when it shuts.
 
 ## Printing
 
@@ -55,8 +76,8 @@ supports.
 
 - 0.2 mm layers, 3 walls, 15 % infill, PLA or PETG.
 - The barrel bridges over the pin on one layer; that gap is the original's
-  0.24 mm and wants no ironing or elephant-foot compensation on the first
-  layer. If your printer squashes it shut, raise `hinge_clr` to 0.3.
+  0.20 mm and wants no ironing or elephant-foot compensation on the first
+  layer. If your printer squashes it shut, raise `pin_clr` to 0.25.
 - **4 × Ø6 × 3 mm disc magnets.** Press them into the four rim pockets after
   printing. Check the polarity across the closed case before gluing — the
   pairs must attract, and the two pairs must agree with each other. A drop of
@@ -75,8 +96,8 @@ touching:
 | `half_h` | per-half height — closed height is twice this (5.5) |
 | `mag_dia` / `mag_depth` | magnet pocket, sized for Ø6 × 3 discs |
 | `mag_y` | where the closure pairs sit along the length |
-| `hinge_clr` | print-in-place radial clearance (0.24) |
-| `scoop` | set `false` to drop the thumb dish |
+| `pin_clr` / `body_clr` | hinge clearances, as measured off the original (0.20 / 0.25) |
+| `scoop` | set `false` to drop the thumb divot |
 
 Raising `half_h` to 6.0 gives a 12 mm case with a deeper box; the exterior roll
 does not rescale automatically, so nudge `edge_r`/`edge_tan` by the same ratio
@@ -101,5 +122,20 @@ Three fit checks guard the hinge, in the style of `scad/fit_check.scad`:
   barrel. Note that the two emptiness checks above cannot catch a missing pin —
   deleting it makes them pass *more* easily — which is exactly how a pinless
   first cut of this model got through review.
+
+All three only test two poses: flat, and fully shut. A rub that happens
+*between* them — while the lid is swinging — passes all three. `tools/fold_check.py`
+walks the fold and prints the worst clearance at stations along the hinge:
+
+```bash
+python3 tools/fold_check.py stl/tictac_case.stl 5.5      # this case
+python3 tools/fold_check.py case_6mm.stl        7.6      # the original, to compare
+```
+
+It needs trimesh/shapely/scipy, so it is deliberately not wired into
+`render.sh` — that stays a pure-OpenSCAD build. Current result matches the
+original station for station: 0.199 mm through the barrel, and a 0.044 mm
+pinch where the two rim corners pass each other at ~170°, which is inherent to
+the 0.50 mm gap between the halves and is present on the original too.
 
 Other parts for inspection: `left`, `right`, `closed`, `section`.

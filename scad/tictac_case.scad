@@ -38,36 +38,49 @@ mag_x      =  4.70;     // centre, in from the outer face — as original
 mag_boss_r =  4.45;     // boss around the pocket
 mag_y      = [case_len*0.25, case_len*0.75];   // two pairs
 
-/* [Hinge] — every dimension unchanged from the original ----------------- */
+/* [Hinge] — every dimension measured off case_6mm.stl ------------------- */
 half_gap   =  0.50;     // between the halves when laid flat
-pin_r      =  1.15;     // Ø2.30 pin
-barrel_r   =  2.15;     // Ø4.30 barrel / knuckles
-hinge_clr  =  0.24;     // radial print-in-place clearance
-hinge_span = 27.0;      // overall length of the hinge
-knuckle_l  =  3.50;     // solid knuckle at each end (pin half)
-hinge_ygap =  0.35;     // axial gap knuckle <-> barrel
+pin_r      =  1.15;     // Ø2.30 pin                        (orig 1.150)
+barrel_r   =  2.15;     // Ø4.30 barrel / knuckles          (orig 2.149)
+pin_clr    =  0.20;     // pin <-> barrel bore              (orig bore r 1.350)
+body_clr   =  0.25;     // barrel <-> the facing shell      (orig relief r 2.399)
+ring_len   = 19.40;     // length of the barrel ring        (orig 20.30..39.70)
+knuckle_l  =  1.10;     // full-radius knuckle at each end
+cap_l      =  2.50;     // domed tip beyond it — an ELLIPSOID, not a hemisphere:
+                        // the original runs out over 2.50 mm, not barrel_r
+hinge_ygap =  0.35;     // axial gap ring <-> knuckle       (orig 0.35 / 0.30)
+// overall = ring_len + 2*(hinge_ygap + knuckle_l + cap_l) = 27.30, as measured
 
-/* [Thumb scoop] — the little dish you get a nail into ------------------- */
+/* [Thumb scoop] — the divot you get a nail into -------------------------
+   Cut by a capsule lying along the rim line, exactly as on case_6mm.stl:
+   a rod of radius scoop_r with its axis ON the parting plane, sunk so it
+   bites scoop_deep into the flank.  That gives a flat-bottomed groove with
+   rounded run-outs, not a dish — which is what it feels like under a thumb.
+   Fitted to the original: RMS 0.04 mm over its full depth. */
 scoop      = true;
-scoop_deep =  1.00;     // depth at the rim — unchanged
-scoop_len  = 14.40;     // length at the rim — unchanged
-scoop_fade =  2.20;     // dies out this far below the rim
+scoop_r    =  2.766;    // capsule radius
+scoop_flat = 10.098;    // length of the flat-bottomed part (the axis segment)
+scoop_deep =  0.989;    // depth at the rim
+// => 14.34 mm long at the rim, running out 2.12 mm below it
 
 $fa = 2; $fs = 0.4;
 
 assert(corner_r <= case_wid/2 && corner_r <= case_len/2, "corner_r too large for the plan");
 assert(mag_x - mag_dia/2 > 0.8, "magnet pocket breaks out through the outer wall");
 assert(mag_depth < half_h - floor_t, "magnet pocket is deeper than the wall is tall");
-assert(hinge_span + 2 <= case_len, "hinge is longer than the case");
+assert(hinge_len + 2 <= case_len, "hinge is longer than the case");
+assert(scoop_deep < scoop_r, "scoop depth must be less than the capsule radius");
 
 // === geometry ===============================================================
 
 hinge_ax = case_wid + half_gap/2;               // X of the pivot axis
 hz  = half_h;                                   // hinge axis height (parting plane)
-hy0 = (case_len - hinge_span)/2;                // hinge start / end in Y
-hy1 = hy0 + hinge_span;
-by0 = hy0 + knuckle_l + hinge_ygap;             // barrel (female) span
-by1 = hy1 - knuckle_l - hinge_ygap;
+ymid = case_len/2;
+by0 = ymid - ring_len/2;                        // barrel ring span
+by1 = ymid + ring_len/2;
+hy0 = by0 - hinge_ygap;                         // knuckle cylinders, outboard of the ring
+hy1 = by1 + hinge_ygap;
+hinge_len = ring_len + 2*(hinge_ygap + knuckle_l + cap_l);   // 27.30 overall
 
 function roll_inset(z) = (z >= edge_tan) ? 0
     : edge_r - sqrt(max(0, edge_r*edge_r - (edge_tan - z)*(edge_tan - z)));
@@ -112,20 +125,36 @@ module axis_cyl(r, ya, yb)
 module axis_ball(r, y)
     translate([hinge_ax, y, hz]) sphere(r = r, $fn = 72);
 
-// pin half of the hinge: two domed knuckles ...
+// A domed tip.  The original's is NOT a hemisphere — it runs out over 1.25 mm,
+// not 2.15, which is what kept its hinge 27.3 mm long overall instead of 31.3.
+module axis_cap(r, ylen, y, dir)
+    translate([hinge_ax, y, hz]) scale([1, ylen/r, 1]) sphere(r = r, $fn = 72);
+
+// pin half of the hinge: two knuckles, each a short cylinder with a domed tip
 module hinge_knuckles(rc = 0, yc = 0) {
     r = barrel_r + rc;
-    axis_cyl(r, hy0, hy0 + knuckle_l + yc);  axis_ball(r, hy0);
-    axis_cyl(r, hy1 - knuckle_l - yc, hy1);  axis_ball(r, hy1);
+    cl = cap_l + yc;
+    axis_cyl(r, hy0 - knuckle_l, hy0 + yc);  axis_cap(r, cl, hy0 - knuckle_l, -1);
+    axis_cyl(r, hy1 - yc, hy1 + knuckle_l);  axis_cap(r, cl, hy1 + knuckle_l, +1);
 }
 // ... joined by the pin, which runs the whole span and is what the barrel
 // rides on.  Inflated by rc it also cuts the barrel's bore.
+// Spans knuckle to knuckle, not out to the cap tips: at the tip the clearance
+// envelope has tapered to about the pin radius, so a full-length rod would
+// touch it and fuse the halves.  The caps are solid, so the pin is continuous
+// with them regardless.
 module hinge_pin_rod(rc = 0)
-    axis_cyl(pin_r + rc, hy0, hy1);
+    axis_cyl(pin_r + rc, hy0 - knuckle_l, hy1 + knuckle_l);
 
 module hinge_pin_side(rc = 0, yc = 0) {
     hinge_knuckles(rc, yc);
     hinge_pin_rod(rc);
+}
+
+// what the barrel half must clear: the knuckles at body_clr, the pin at pin_clr
+module hinge_pin_clearance() {
+    hinge_knuckles(body_clr, hinge_ygap);
+    hinge_pin_rod(pin_clr);
 }
 
 // barrel half of the hinge (a plain closed ring rides the pin)
@@ -138,13 +167,13 @@ module magnet_bores()
             cylinder(d = mag_dia, h = mag_depth + 1, $fn = 64);
 
 module thumb_scoop()
-    if (scoop) {
-        a = 8.0;                                        // X semi-axis
-        x0 = scoop_deep - a;
-        b  = (scoop_len/2) / sqrt(1 - pow(-x0/a, 2));   // Y semi-axis
-        translate([x0, case_len/2, half_h])
-            scale([a, b, scoop_fade]) sphere(r = 1, $fn = 96);
-    }
+    if (scoop)
+        hull()
+            for (s = [-1, 1])
+                translate([scoop_deep - scoop_r,
+                           case_len/2 + s*scoop_flat/2,
+                           half_h])
+                    sphere(r = scoop_r, $fn = 96);
 
 // one tray.  kind = "pin" (knuckles + pin) or "barrel" (ring)
 //
@@ -171,8 +200,8 @@ module tray(kind) {
             magnet_bores();
             thumb_scoop();
             // clearance for the mating half's hinge
-            if (kind == "barrel") hinge_pin_side(hinge_clr, hinge_ygap);
-            if (kind == "pin")    hinge_barrel_side(hinge_clr, hinge_clr);
+            if (kind == "barrel") hinge_pin_clearance();
+            if (kind == "pin")    hinge_barrel_side(body_clr, body_clr);
         }
         if (kind == "pin") hinge_pin_rod();
     }
