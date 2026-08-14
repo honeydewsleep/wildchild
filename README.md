@@ -65,6 +65,22 @@ crest at the original Ø27.8):
   it, so rings are interchangeable across all shells and original
   bases.
 
+**Bottom-port options** (`shell_free_port_button.stl` — port window at
+the original notch position + front dismiss-button hole):
+
+- **Cable through the window**: pair with any standard chassis; the
+  USB-C plug passes through the 13×10 window (17×14 funneled mouth)
+  and plugs into the board inside.
+- **Panel jack in the base** (`chassis_jack.stl`): a Ø9.7 hole in a
+  recessed panel across the barrel passage takes a 9.1 mm USB-C chassis
+  jack (nut from the open interior, pigtail to the board's 5V/GND).
+  The clocked thread lands the shell's window framing the jack. The
+  port face sits ~8 mm behind the shell surface, so the plug's
+  overmold must be slimmer than ~13×10 mm for its first centimeter —
+  typical cable ends fit, extra-chunky ones may not. Flash the board
+  before assembly (or use WLED OTA); the board's own USB port isn't
+  reachable through the wall in this build.
+
 Ring: print `ring_double_sided.stl` in your body color (the rims are
 opaque; white bounces the most light) and the two `ring_ds_diffuser.stl`
 trays in translucent/natural. The trays snap in with double beads

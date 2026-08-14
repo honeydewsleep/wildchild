@@ -44,6 +44,14 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     stl chassis_bat_flat8    matched/chassis.scad part chassis_bat_flat8
     stl ring_double_sided    matched/ring_ds.scad part ring_ds
     stl ring_ds_diffuser     matched/ring_ds.scad part diffuser_ds   # print x2
+    stl chassis_jack         matched/chassis.scad part chassis_jack
+    # bottom port window + front button (multi-flag variant)
+    echo "== stl/shell_free_port_button.stl"
+    openscad -o stl/shell_free_port_button.stl -D 'part="shell_free"' \
+        -D 'm_usb_notch=false' -D 'm_port_window=true' \
+        -D 'm_button_hole=true' -D 'm_button_angle=90' -D 'm_button_z=26' \
+        scad/matched/shell.scad 2>&1 \
+        | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then

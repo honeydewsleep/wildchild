@@ -150,6 +150,17 @@ m_usb_w          = 11;     // USB hole in the shell wall at notch_angle
 m_usb_h          = 7.5;
 m_usb_z          = 2.0;    // above the shell rim
 
+// bottom port window ("OG notch" position, sized for a USB-C plug
+// overmold): straight 13x10 tunnel with a funneled 17x14 mouth so the
+// plug self-centres. Serves two builds: bare cable through to a
+// free-floating board (standard chassis), or framing the recessed
+// panel jack on chassis_jack. Centre height = jack axis on chassis_jack.
+m_port_window    = false;
+m_port_w         = 13;
+m_port_h         = 10;
+m_port_zc        = 6;      // centre above the rim; window spans z 1..11
+m_port_flare     = 2;      // funnel border per side at the mouth
+
 // optional dismiss-button hole in the shell wall (12mm panel-mount
 // momentary button, wired to a free ESP32 GPIO + GND; WLED short
 // press -> Idle preset). Sits above the USB hole at the back.

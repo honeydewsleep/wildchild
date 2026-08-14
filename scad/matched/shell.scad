@@ -141,6 +141,30 @@ module usb_hole_cut() {
                 }
 }
 
+// bottom port window: straight rounded-rect tunnel through wall+boss
+// at notch_angle, plus a funneled mouth on the exterior (hull of a
+// wide outer slab and a thin window-sized slab just inside the skin)
+module port_rrect_2d(w, h, zc) {
+    hull()
+        for (dx = [-1, 1], dz = [-1, 1])
+            translate([dx*(w/2 - 3), zc + dz*(h/2 - 3)])
+                circle(3, $fn = 32);
+}
+
+module port_window_cut() {
+    rotate([0, 0, notch_angle - 270]) rotate([90, 0, 0]) {
+        linear_extrude(height = r_rim + 8)
+            port_rrect_2d(m_port_w, m_port_h, m_port_zc);
+        hull() {
+            translate([0, 0, r_rim - 1.8]) linear_extrude(height = 9.8)
+                port_rrect_2d(m_port_w + 2*m_port_flare,
+                              m_port_h + 2*m_port_flare, m_port_zc);
+            translate([0, 0, r_rim - 3.6]) linear_extrude(height = 0.1)
+                port_rrect_2d(m_port_w, m_port_h, m_port_zc);
+        }
+    }
+}
+
 // round radial hole in the shell wall at a given angle/height
 module wall_round_hole(angle, z, d) {
     rotate([0, 0, angle - 270])
@@ -170,6 +194,7 @@ module shell_body(stem_mode = "ribs") {
         else stem_bore();
         female_thread_cut();
         if (m_usb_notch) usb_hole_cut();
+        if (m_port_window) port_window_cut();
         if (m_button_hole) button_hole_cut();
         if (m_jack_hole) jack_hole_cut();
     }

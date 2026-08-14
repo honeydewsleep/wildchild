@@ -91,6 +91,31 @@ module zip_slots_cut_at(face_t) {
             cube([zip_slot[0], zip_slot[1], face_t + 2*EPS]);
 }
 
+/* --------------- chassis with panel-mounted power jack ------------- */
+// A flat panel fills the barrel's USB passage; the panel jack mounts
+// in it (nut from the open interior) and the shell's port window lands
+// framing it when seated. The face sits at y=-39 with corners shaved
+// to r39.9 - just inside the shell's thread-boss sweep (bore r40.3),
+// so the shell screws past it. Jack axis = m_port_zc above the datum,
+// matching the window centre by construction.
+module chassis_jack() {
+    zc = m_skirt_h + m_port_zc;
+    difference() {
+        union() {
+            chassis_std();
+            rotate([0, 0, notch_angle - 270]) intersection() {
+                // welds to the deck below and the barrel stubs each side
+                translate([-10, -39, m_skirt_h - 0.2])
+                    cube([20, 2.5, 12.7]);
+                cylinder(h = 40, r = 39.9, $fn = FN_ROUND);
+            }
+        }
+        rotate([0, 0, notch_angle - 270])
+            translate([0, -45, zc]) rotate([-90, 0, 0])
+                cylinder(h = 20, d = m_jack_d, $fn = 64);
+    }
+}
+
 /* ----------------------- battery chassis --------------------------- */
 module chassis_battery(pocket, use_switch = switch_cutout) {
     skirt_h  = floor_bat_t + pocket[2] + m_floor_t + 4;
@@ -148,6 +173,7 @@ module zip_slots_cut_at_z(z0, t) {
 
 /* ------------------------- part selection -------------------------- */
 if (part == "chassis")               chassis_std();
+else if (part == "chassis_jack")     chassis_jack();
 else if (part == "chassis_bat_cube") chassis_battery(pocket_cube);
 else if (part == "chassis_bat_flat4") chassis_battery(pocket_flat4);
 else if (part == "chassis_bat_flat8") chassis_battery(pocket_flat8);
