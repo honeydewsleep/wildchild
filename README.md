@@ -1,5 +1,10 @@
 # Energy Ring Remix — WLED Notification Light
 
+> Also in this repo, unrelated to the lamp: **[a pocket clamshell case for tic
+> tacs](TICTAC_CASE.md)** (`scad/tictac_case.scad`) — the print-in-place hinge
+> and magnet snap of an existing 6 mm-magnet case, hollowed out and shrunk to
+> 50 × 35 × 11 mm.
+
 A fully parametric OpenSCAD rebuild of the
 [ENERGY RING (ESP32 + WLED)](https://makerworld.com/en/models/2045449-energy-ring-esp32-wled)
 desk lamp by DSL Design, with three revisions for use as a fleet of
