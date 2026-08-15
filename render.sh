@@ -54,6 +54,7 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     stl ring_ds_diffuser     matched/ring_ds.scad part diffuser_ds   # print x2
     # pocket clamshell case (standalone — see TICTAC_CASE.md)
     stl tictac_case          tictac_case.scad part case
+    stl tictac_case_snap     tictac_case.scad closure snap    # no hardware
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then
@@ -85,6 +86,14 @@ if [[ "$mode" == "check" || "$mode" == "all" ]]; then
     echo "== fit check: tictac hinge pin runs through the barrel (must be NON-empty)"
     openscad -o /tmp/fit_tt_engage.stl -D 'part="engage"' scad/tictac_case.scad 2>&1 \
         | grep -iE 'empty|warning|error' || true
+    for m in collide shut; do
+        echo "== fit check: tictac SNAP $m (must be EMPTY)"
+        openscad -o "/tmp/fit_tts_$m.stl" -D 'closure="snap"' -D "part=\"$m\"" \
+            scad/tictac_case.scad 2>&1 | grep -iE 'empty|warning|error' || true
+    done
+    echo "== fit check: tictac SNAP bead has something to snap over (must be NON-empty)"
+    openscad -o /tmp/fit_tts_snapfit.stl -D 'closure="snap"' -D 'part="snapfit"' \
+        scad/tictac_case.scad 2>&1 | grep -iE 'empty|warning|error' || true
 fi
 
 if [[ "$mode" == "png" || "$mode" == "all" ]]; then
@@ -99,5 +108,6 @@ if [[ "$mode" == "png" || "$mode" == "all" ]]; then
     pngv tictac_flat       tictac_case.scad part case    "58,0,22"
     pngv tictac_closed     tictac_case.scad part closed  "62,0,205"
     pngv tictac_section    tictac_case.scad part section "90,0,0"  ortho
+    pngv tictac_snap       tictac_case.scad closure snap "58,0,22"
 fi
 echo "done."

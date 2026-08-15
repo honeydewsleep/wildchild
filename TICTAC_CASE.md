@@ -1,6 +1,7 @@
 # Pocket Clamshell Case — hollow "tic tac" version
 
-`scad/tictac_case.scad` → `stl/tictac_case.stl`
+`scad/tictac_case.scad` → `stl/tictac_case.stl` (magnets) and
+`stl/tictac_case_snap.stl` (no hardware)
 
 A rework of the 6 mm-magnet clamshell (`case_6mm.stl`) into a plain pocket
 container for tic tacs. The parts that give it its character — the
@@ -69,6 +70,48 @@ hemispherical. That one detail is what sets the overall length: capping a
 The pin half and the barrel half are the same tray mirrored about the pivot, so
 the two shells and their magnets line up exactly when it shuts.
 
+## Two closures
+
+`closure` picks how it stays shut. Both are dimensionally identical from the
+outside — 50 × 35 × 11 mm either way.
+
+| | `"magnet"` (default) | `"snap"` |
+|---|---|---|
+| STL | `tictac_case.stl` | `tictac_case_snap.stl` |
+| Hardware | 4 × Ø6 × 3 mm discs | **none** |
+| Holds by | magnets meeting at the rim | interlocking rim + snap bead |
+| Material | 7.59 cm³ | 7.20 cm³ |
+
+![snap](preview/tictac_snap.png)
+
+### How the snap one works
+
+A normal cantilever snap hook cannot be built in a case this shallow. There is
+only about 3 mm of depth to put a beam in, and deflecting a 1.1 mm tab the
+0.3 mm it needs to hold works out at 5–13 % bending strain; PLA lets go
+somewhere around 2–3 %. A hook here would print, close once, and shear off.
+
+So the flexing member is a long run of the case **wall** instead. The two rims
+interlock rather than butting: the inner part of one rim stands proud by
+1.6 mm and drops into a matching recess in the other, running round all three
+free sides and stopping short of the hinge. A bead on the tongue makes the
+facing wall bow outward by 0.30 mm as it passes, then drops into a groove. The
+span doing the bending is 17–32 mm, which puts it at **0.1–1.0 % strain** —
+well inside what the material tolerates, and it can be opened and shut
+indefinitely.
+
+The bead only runs where the wall can actually bow: the two short ends across
+their straight middles, and two stretches of the free edge clear of both the
+corners and the divot. A bead in a corner has nothing to give. Total engaged
+length is about 44 mm, in four runs.
+
+The tongue sits 1.90 mm in from the outer face rather than in the middle of
+the wall, which is set by the divot: it cuts 0.99 mm deep, and this leaves
+0.91 mm of wall in front of it. That is what lets the tongue run unbroken past
+the divot instead of stopping either side of it.
+
+To open it, put a nail in the divot and lift — the same as before, just firmer.
+
 ## Printing
 
 Print **as exported** — laid open flat, both cavities up, hinge in place. No
@@ -78,11 +121,15 @@ supports.
 - The barrel bridges over the pin on one layer; that gap is the original's
   0.20 mm and wants no ironing or elephant-foot compensation on the first
   layer. If your printer squashes it shut, raise `pin_clr` to 0.25.
-- **4 × Ø6 × 3 mm disc magnets.** Press them into the four rim pockets after
-  printing. Check the polarity across the closed case before gluing — the
-  pairs must attract, and the two pairs must agree with each other. A drop of
-  CA once you're sure; they sit 0.2 mm below the rim so the shells still meet
-  face to face.
+- **`tictac_case.stl` only — 4 × Ø6 × 3 mm disc magnets.** Press them into the
+  four rim pockets after printing. Check the polarity across the closed case
+  before gluing — the pairs must attract, and the two pairs must agree with
+  each other. A drop of CA once you're sure; they sit 0.2 mm below the rim so
+  the shells still meet face to face.
+- **`tictac_case_snap.stl` — nothing to add**, it is done when it comes off
+  the bed. The rim is where the tolerance matters: if it will not close, drop
+  `bead_d` from 0.45 to 0.35; if it closes but feels slack, raise it to 0.55 or
+  drop `lip_clr` to 0.10. Net engagement is `bead_d - lip_clr`.
 - Work the hinge loose with a fingernail before the first full close.
 
 ## Parameters
@@ -98,6 +145,8 @@ touching:
 | `mag_y` | where the closure pairs sit along the length |
 | `pin_clr` / `body_clr` | hinge clearances, as measured off the original (0.20 / 0.25) |
 | `scoop` | set `false` to drop the thumb divot |
+| `closure` | `"magnet"` or `"snap"` |
+| `bead_d` / `lip_clr` | snap strength — engagement is the difference (0.30) |
 
 Raising `half_h` to 6.0 gives a 12 mm case with a deeper box; the exterior roll
 does not rescale automatically, so nudge `edge_r`/`edge_tan` by the same ratio
@@ -106,7 +155,7 @@ does not rescale automatically, so nudge `edge_r`/`edge_tan` by the same ratio
 ## Rendering and checks
 
 ```bash
-./render.sh stl      # writes stl/tictac_case.stl
+./render.sh stl      # writes both tictac_case.stl and tictac_case_snap.stl
 ./render.sh check    # hinge checks — see what each must report, below
 ./render.sh png      # preview images
 ```
@@ -138,4 +187,22 @@ original station for station: 0.199 mm through the barrel, and a 0.044 mm
 pinch where the two rim corners pass each other at ~170°, which is inherent to
 the 0.50 mm gap between the halves and is present on the original too.
 
-Other parts for inspection: `left`, `right`, `closed`, `section`.
+With `closure="snap"` the same three run again, plus one more that is the only
+real test of the latch:
+
+- `part="snapfit"` — **non-empty**: intersects the closed case against a recess
+  built *without* its bead groove, so what survives is exactly the material the
+  bead has to ride over. If the bead were missing, too shallow, or at the wrong
+  depth, the other three would all still pass and this would come up empty. It
+  reports 3.98 mm³ across the four bead runs.
+
+`tools/fold_check.py` also matters more for the snap version: the bead is
+*meant* to interfere on the way in, and what you are checking is that the
+interference is small and transient rather than the tongue jamming. Sample
+finely near full close — at 5° steps the lid travels 1.6 mm per step near the
+ends and skips straight over the engagement. Measured peak is 0.067 mm² of
+overlap, against a bead cross-section of 0.135 mm², falling back to zero when
+seated.
+
+Other parts for inspection: `left`, `right`, `closed`, `section`, `latch`
+(the rim band on its own).

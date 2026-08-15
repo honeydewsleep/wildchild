@@ -13,7 +13,12 @@
 // ---------------------------------------------------------------------------
 
 part = "case";          // "case" | "left" | "right" | "section" | "closed"
-                        //        | "collide" | "shut" | "engage"
+                        //        | "collide" | "shut" | "engage" | "latch"
+
+// How it stays shut.  "magnet" is the original: 4 x Ø6x3 discs in the rim.
+// "snap" needs no hardware at all — an interlocking rim with a snap bead —
+// and is dimensionally identical from the outside.
+closure = "magnet";     // "magnet" | "snap"
 
 /* [Shell] ---------------------------------------------------------------- */
 case_len   = 50.0;      // Y — was 60
@@ -37,6 +42,8 @@ mag_depth  =  3.20;     // pocket depth — a 3 mm magnet sits 0.2 mm below the 
 mag_x      =  4.70;     // centre, in from the outer face — as original
 mag_boss_r =  4.45;     // boss around the pocket
 mag_y      = [case_len*0.25, case_len*0.75];   // two pairs
+magnets    = (closure == "magnet");
+snaprim    = (closure == "snap");
 
 /* [Hinge] — every dimension measured off case_6mm.stl ------------------- */
 half_gap   =  0.50;     // between the halves when laid flat
@@ -50,6 +57,29 @@ cap_l      =  2.50;     // domed tip beyond it — an ELLIPSOID, not a hemispher
                         // the original runs out over 2.50 mm, not barrel_r
 hinge_ygap =  0.35;     // axial gap ring <-> knuckle       (orig 0.35 / 0.30)
 // overall = ring_len + 2*(hinge_ygap + knuckle_l + cap_l) = 27.30, as measured
+
+/* [Snap rim] — closure = "snap" only ------------------------------------
+   A short cantilever standing on the rim cannot work here: with only ~3 mm
+   of depth to play with, deflecting a 1.1 mm tab far enough to hold (0.3 mm)
+   needs 5-13 % bending strain and PLA lets go at 2-3 %.  So the flexing
+   member is a long run of the case WALL instead — the rim interlocks, and a
+   bead on the tongue makes the outer wall bow out by bead_d over a 17-32 mm
+   span.  That is 0.1-1.0 % strain, which the material does not mind.
+
+   The rims step into each other rather than butting: the inner part of one
+   rim stands proud by lip_h and drops into a matching recess in the other.
+   Outside dimensions are untouched. */
+lip_h      =  1.60;     // tongue height above the parting plane
+lip_x      =  1.90;     // outer wall left in front of the tongue.  Sized off
+                        // the divot: it cuts 0.99 deep, so this leaves 0.91.
+lip_t      =  1.00;     // tongue thickness (it overhangs the cavity by 0.45)
+lip_clr    =  0.15;     // clearance, tongue <-> recess
+lip_tip    =  0.35;     // lead-in chamfer on the tongue tip
+bead_d     =  0.45;     // how far the bead stands proud.  Net engagement is
+                        // bead_d - lip_clr = 0.30; the wall bows that far.
+bead_h     =  0.90;     // bead height
+bead_z     =  0.80;     // bead centre, above the parting plane
+lip_hinge_keepout = 7.0;   // tongue stops short of the hinge
 
 /* [Thumb scoop] — the divot you get a nail into -------------------------
    Cut by a capsule lying along the rim line, exactly as on case_6mm.stl:
@@ -67,6 +97,9 @@ $fa = 2; $fs = 0.4;
 
 assert(corner_r <= case_wid/2 && corner_r <= case_len/2, "corner_r too large for the plan");
 assert(mag_x - mag_dia/2 > 0.8, "magnet pocket breaks out through the outer wall");
+assert(closure == "magnet" || closure == "snap", "closure must be \"magnet\" or \"snap\"");
+assert(lip_x - scoop_deep > 0.6, "snap rim leaves too little wall under the divot");
+assert(lip_h + lip_clr < half_h - floor_t, "snap rim recess would cut into the floor");
 assert(mag_depth < half_h - floor_t, "magnet pocket is deeper than the wall is tall");
 assert(hinge_len + 2 <= case_len, "hinge is longer than the case");
 assert(scoop_deep < scoop_r, "scoop depth must be less than the capsule radius");
@@ -161,6 +194,80 @@ module hinge_pin_clearance() {
 module hinge_barrel_side(rc = 0, yc = 0)
     axis_cyl(barrel_r + rc, by0 - yc, by1 + yc);
 
+// === snap rim ===============================================================
+// The rim ring the tongue lives in.  da moves the OUTER face out, db moves the
+// INNER face in, so lip_ring(-c,-c) is the tongue grown by c all round.
+module lip_ring(da = 0, db = 0)
+    difference() {
+        offset(r = -(lip_x + da)) plan();
+        offset(r = -(lip_x + lip_t - db)) plan();
+    }
+
+// Where the tongue is allowed: the three free sides, stopping short of the
+// hinge.  It runs unbroken past the divot — that is why lip_x is 1.90.
+module lip_zone(g = 0)
+    offset(r = g)
+    translate([-20, -20]) square([case_wid - lip_hinge_keepout + 20, case_len + 40]);
+
+// Where the bead is allowed: only the straight runs, which are the parts of
+// the wall that can bow.  A bead in a corner has nothing to give.
+module bead_zone(g = 0)
+    offset(r = g)
+    intersection() {
+        lip_zone();
+        union() {
+            // the two short ends, mid-width
+            for (y = [-20, case_len - 4])
+                translate([corner_r + 1, y]) square([case_wid - 2*corner_r - 2, 24]);
+            // the free edge, clear of both the corners and the divot
+            for (y = [corner_r + 1, case_len - corner_r - 8])
+                translate([-20, y]) square([24, 7]);
+        }
+    }
+
+// A tapered run of the rim ring, built as a short stack of slices.
+// NOT hull() — these slices are rings, and the convex hull of a ring fills its
+// middle in and bridges straight across the keepout gaps.
+module lip_stack(z0, z1, da0, da1, db0, db1, bead = false, g = 0, n = 6)
+    for (i = [0 : n-1]) {
+        tm = (i + 0.5) / n;
+        translate([0, 0, z0 + (z1 - z0)*i/n])
+            linear_extrude((z1 - z0)/n + 0.002)
+                intersection() {
+                    lip_ring(da0 + (da1 - da0)*tm, db0 + (db1 - db0)*tm);
+                    if (bead) bead_zone(g); else lip_zone(g);
+                }
+    }
+
+// the tongue: a plain rib with a trapezoidal bead partway up and a chamfered tip
+module lip_tongue() {
+    b0 = half_h + bead_z - bead_h/2;
+    bm = half_h + bead_z;
+    b1 = half_h + bead_z + bead_h/2;
+    translate([0,0,half_h]) linear_extrude(lip_h - lip_tip)
+        intersection() { lip_ring(); lip_zone(); }
+    lip_stack(half_h + lip_h - lip_tip, half_h + lip_h,        // chamfered tip
+              0, lip_tip, 0, lip_tip);
+    lip_stack(b0, bm, 0, -bead_d, 0, 0, true);                 // bead, ramped
+    lip_stack(bm, b1, -bead_d, 0, 0, 0, true);                 // both ways
+}
+
+// the recess: a plain slot the tongue drops into, plus a groove for the bead.
+// The slot mouth is deliberately narrower than the bead — squeezing through it
+// is the snap.
+module lip_recess(groove = true) {
+    g  = lip_clr;
+    b0 = half_h - bead_z - bead_h/2 - lip_clr;
+    bm = half_h - bead_z;
+    b1 = half_h - bead_z + bead_h/2 + lip_clr;
+    translate([0,0,half_h - lip_h - lip_clr]) linear_extrude(lip_h + lip_clr + 1)
+        intersection() { lip_ring(-lip_clr, -lip_clr); lip_zone(g); }
+    if (groove) {
+        lip_stack(b0, bm, -lip_clr, -(bead_d + lip_clr), -lip_clr, -lip_clr, true, g);
+        lip_stack(bm, b1, -(bead_d + lip_clr), -lip_clr, -lip_clr, -lip_clr, true, g);
+    }
+}
+
 module magnet_bores()
     for (y = mag_y)
         translate([mag_x, y, half_h - mag_depth])
@@ -181,7 +288,7 @@ module thumb_scoop()
 // that notches this shell clear of the mating ring is a solid cylinder on the
 // axis, so cutting with it first would shear the pin off inside the barrel —
 // leaving a case that passes both "must be EMPTY" checks and still falls apart.
-module tray(kind) {
+module tray(kind, groove = true) {
     union() {
         difference() {
             union() {
@@ -189,15 +296,18 @@ module tray(kind) {
                     outer_solid();
                     difference() {                  // cavity, less the magnet bosses
                         cavity();
-                        for (y = mag_y)
-                            translate([mag_x, y, 0])
-                                cylinder(r = mag_boss_r, h = half_h + 1, $fn = 64);
+                        if (magnets)
+                            for (y = mag_y)
+                                translate([mag_x, y, 0])
+                                    cylinder(r = mag_boss_r, h = half_h + 1, $fn = 64);
                     }
                 }
                 if (kind == "pin")    hinge_knuckles();
                 if (kind == "barrel") hinge_barrel_side();
+                if (snaprim && kind == "barrel") lip_tongue();
             }
-            magnet_bores();
+            if (magnets) magnet_bores();
+            if (snaprim && kind == "pin") lip_recess(groove);
             thumb_scoop();
             // clearance for the mating half's hinge
             if (kind == "barrel") hinge_pin_clearance();
@@ -239,6 +349,25 @@ if (part == "collide")
     }
 
 if (part == "closed") case_closed();
+
+// fit check: with closure="snap" this must be NON-EMPTY, and it is the only
+// check that proves the bead has anything to snap over.  It intersects the
+// closed case against a recess built WITHOUT its bead groove, so what is left
+// is exactly the material the bead has to ride over on the way in.  If the
+// bead were missing, or too shallow, or landed at the wrong depth, every other
+// check would still pass and this one would come up empty.
+if (part == "snapfit")
+    intersection() {
+        translate([2*hinge_ax, 0, 0]) mirror([1,0,0]) tray("pin", false);
+        fold_shut() tray("barrel");
+    }
+
+// the snap rim on its own, for eyeballing where tongue and bead actually land
+if (part == "latch")
+    intersection() {
+        case_flat();
+        translate([-10, -10, half_h - lip_h - 1]) cube([2*hinge_ax + 20, case_len + 20, lip_h + 3]);
+    }
 
 // fit check: must render NON-EMPTY — the pin has to actually run through the
 // barrel, or the halves are two loose trays.  The EMPTY checks above cannot
