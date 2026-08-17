@@ -79,17 +79,65 @@ ang_end    = 57.78;   // +/-Y end faces
 relief_d   = 6.80;
 relief_on  = is_orig;
 
-trough_w   = 10.00;   // cable/finger trough down the 45 deg front face
-trough_on  = true;
+// Cable trough down the 45 deg face. The original routes its cable
+// through here; this build feeds the module from a panel-mount socket
+// instead, so the face stays closed. Replica only.
+trough_w   = 10.00;
+trough_on  = is_orig;
 
-// Cable exit. On this module the connector edge is a SHORT edge, which
-// in landscape becomes a Y end, so the notch goes in the end wall.
-// Widen / move it here if the port on your board sits elsewhere.
+// Internal cable relief in the end wall - lets the short jumper reach
+// the module's own connector. NOT the external cable exit any more;
+// that is the panel-mount socket below. Set port_on = false to close
+// the shell completely if your module's connector faces rearward into
+// the cavity instead of out of an edge.
 port_on    = !is_orig;
-port_w     = 12.00;   // wide enough to pass a USB-C plug
+port_w     = 13.00;
 port_h     = skirt_h; // full skirt height
 port_x     = 0.00;    // offset along the edge from centre
 port_end   = -1;      // -1 = -Y wall, +1 = +Y wall
+
+/* -------------------------------------------------------------- */
+/* panel-mount USB-C socket, back (57.3 deg) face                  */
+/* -------------------------------------------------------------- */
+// Round threaded barrel clamped by its nut. The roof is a uniform
+// 2.50 mm slab with parallel inner and outer faces, so a plain bore
+// normal to the face gives the connector a flat seat on both sides -
+// no pad or boss needed. 2.50 mm sits inside the 1-4 mm panel range
+// these connectors are built for.
+//
+// Bore for an M16 x 1 barrel. M12 -> 12.20, M22 -> 22.20.
+usb_on     = !is_orig;
+usb_bore_d = 16.20;
+usb_z      = 28.00;   // height of the bore centre up the back face
+usb_y      =  0.00;   // offset along the face from centre
+
+/* -------------------------------------------------------------- */
+/* magnet retention                                                */
+/* -------------------------------------------------------------- */
+// Brass/copper inserts are not ferromagnetic, so a magnet cannot pull
+// on them directly. Instead a steel M3 button-head screw goes into
+// each of the module's four corner inserts BEFORE the module is
+// dropped in - which is also the answer to "the closed back means I
+// can't reach them", since the screws are fitted with the module in
+// hand and never touched again. The heads are then the ferrous targets
+// for these four magnets.
+mag_on     = !is_orig;
+mag_d      =  6.00;
+mag_l      =  3.00;
+mag_clr    =  0.20;   // pocket diameter = mag_d + mag_clr
+mag_gap    =  0.35;   // air gap, magnet face to screw head
+// The module's back is NOT flat: the wall mount's z=3.25 surface is
+// four corner pads of ~7.9 x 7.8 (area 206.8 = 4 x ~50), and between
+// them the back protrudes 2.25 mm deeper. So the boss footprint has to
+// stay inside those pads. At 3.425 / 3.30 from the walls, Ø8.4 reaches
+// 7.63 / 7.50 inboard - just inside the 7.93 / 7.80 pad.
+mag_boss_d =  8.40;
+mod_back_z =  5.00;   // the corner pads' plane, below the rim
+ret_head_h =  1.65;   // M3 button head, ISO 7380. Pan head = 2.1,
+                      // socket cap = 3.0 - raising this pushes the
+                      // magnet toward the 45 deg roof, so drop mag_l
+                      // to 2.00 if you use a socket cap screw.
+screws     = [52.25, 84.50];   // corner insert grid, from the wall mount
 
 /* -------------------------------------------------------------- */
 /* derived                                                         */
@@ -102,7 +150,15 @@ apex_dz = outer[0] / (1/tan(ang_front) + 1/tan(ang_back));
 apex_x  = outer[0]/2 - apex_dz/tan(ang_front);
 apex_z  = skirt_h + apex_dz;
 
+// magnet seat: just clear of the screw heads standing on the module back
+mag_face_z = mod_back_z + ret_head_h + mag_gap;
+
+// outward normal / plane offset of the back face, for the USB bore
+back_d  = sin(ang_back)*outer[0]/2 + cos(ang_back)*skirt_h;
+usb_x   = (cos(ang_back)*usb_z - back_d) / sin(ang_back);
+
 echo(str("outer = ", outer, "  apex z = ", apex_z, "  apex x = ", apex_x));
+echo(str("magnet seat z = ", mag_face_z, "  usb bore centre = [", usb_x, ",", usb_y, ",", usb_z, "]"));
 
 /* -------------------------------------------------------------- */
 /* primitives                                                      */
@@ -136,10 +192,55 @@ module wedge(foot, r, inset = 0, z0 = 0) {
 }
 
 /* -------------------------------------------------------------- */
+/* magnet bosses                                                   */
+/* -------------------------------------------------------------- */
+// The seat sits 3.3 mm inboard of both pocket walls, so it cannot be
+// cantilevered off one wall without a long droopy overhang. Instead
+// the pad is hulled out to a foot in EACH wall, so its first layer is
+// anchored at both ends and the span across the corner prints as a
+// ~9 mm bridge. Nothing reaches below mag_face_z, so the module's back
+// frame at z = 5.00 stays clear.
+module mag_pad(sx, sy) {
+    cx = sx*screws[0]/2;   cy = sy*screws[1]/2;
+    ax = sx*(body[0]/2 + wall[0]/2);   // foot buried in the X wall
+    ay = sy*(body[1]/2 + wall[1]/2);   // foot buried in the Y wall
+    hull() {
+        translate([cx, cy])              circle(d = mag_boss_d);
+        translate([ax, cy - sy*2.5])     circle(d = 3);
+        translate([cx - sx*2.5, ay])     circle(d = 3);
+    }
+}
+
+module mag_bosses() {
+    intersection() {
+        translate([0, 0, mag_face_z])
+            linear_extrude(mag_l + 1.5)
+                for (sx = [-1, 1], sy = [-1, 1]) mag_pad(sx, sy);
+        wedge(outer, r_out);
+    }
+}
+
+module mag_pockets() {
+    for (sx = [-1, 1], sy = [-1, 1])
+        translate([sx*screws[0]/2, sy*screws[1]/2, mag_face_z - EPS])
+            cylinder(h = mag_l + EPS, d = mag_d + mag_clr);
+}
+
+// Bore normal to the back face, through its 2.50 mm slab.
+module usb_bore() {
+    translate([usb_x, usb_y, usb_z])
+        rotate([0, -ang_back, 0])
+            translate([0, 0, -10]) cylinder(h = 20, d = usb_bore_d);
+}
+
+/* -------------------------------------------------------------- */
 /* the part                                                        */
 /* -------------------------------------------------------------- */
 module stand() {
-    difference() {
+  difference() {
+    union() {
+      if (mag_on) mag_bosses();
+      difference() {
         wedge(outer, r_out);
 
         // Cavity = straight display pocket for the full skirt height,
@@ -162,13 +263,18 @@ module stand() {
             translate([apex_x, -trough_w/2, -EPS])
                 cube([outer[0], trough_w, ztop]);
 
-        // cable exit through the end wall
+        // internal cable relief through the end wall
         if (port_on)
             translate([port_x - port_w/2,
                        port_end > 0 ? body[1]/2 - 1 : -outer[1]/2 - 1,
                        -EPS])
                 cube([port_w, wall[1] + 2, port_h + EPS]);
+      }
     }
+
+    if (mag_on) mag_pockets();
+    if (usb_on) usb_bore();
+  }
 }
 
 stand();

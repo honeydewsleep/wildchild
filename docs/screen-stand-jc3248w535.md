@@ -79,8 +79,9 @@ back is a closed roof with nothing to screw against.
 | rim wall | 2.00 | wall mount |
 | roof | 2.500 | original |
 | face angles | 45.00° / 57.32° / 57.78° | original, held constant |
-| cable trough | 10 mm, 45° face | original |
-| cable exit | 12 × 9 notch, −Y end wall, centred | see below |
+| USB-C socket | Ø16.2 bore, back face, 28 mm up | panel mount, M16 × 1 |
+| magnet bosses | 4 × Ø6.2 × 3.0, seat z 7.00 | corner insert grid |
+| internal cable relief | 13 × 9 notch, −Y end wall | see below |
 
 Angles are held rather than scaled: they are what the stand *is*, and
 holding them keeps both rest positions identical to the original. The
@@ -97,19 +98,102 @@ display does not — the wall mount clears the same module with a plain
 r2.0 pocket corner, and a Ø6.8 relief in a 2.00 mm wall would leave only
 0.65 mm of wall standing. `relief_on` turns them back on.
 
-**The cable exit is the one guess in the part.** The wall mount's only
-opening is a 3.5 mm slot — a hardwired-cable pass-through, too narrow
-for a USB-C plug — so it does not tell us where the connector is. The
-notch here is 12 × 9 mm, wide enough to pass a USB-C plug, at the centre
-of the −Y end wall (the module's short edge, which is where the wall
-mount puts its slot). If the port on your board sits elsewhere, move it
-with `port_x` / `port_end` / `port_w` and re-render.
+## Cable system
+
+The donor routes its cable through a 10 mm trough cut clean through the
+45° face, from the apex to the rim. That is gone. Instead a **round
+threaded panel-mount USB-C socket** clamps into the back (57.3°) face,
+and a short jumper inside the shell feeds the module.
+
+The bore is plain and normal to the face — no pad, no boss. The roof is
+a uniform 2.50 mm slab whose inner and outer faces are parallel, so a
+panel mount gets a flat seat on both sides for free, and 2.50 mm is
+inside the 1–4 mm panel range these connectors are built for. Default
+bore is Ø16.2 for an M16 × 1 barrel; `usb_bore_d` takes 12.20 for M12
+or 22.20 for M22, and `usb_z` / `usb_y` move it on the face.
+
+It sits on the back face rather than an end because the back is never a
+resting surface in the 45° position — which is the position the trough
+used to serve.
+
+**Assembly order matters**: the nut lands inside the shell, so fit the
+socket through the open front *before* the module goes in.
+
+## Retention — magnets
+
+**Brass and copper are not ferromagnetic.** A magnet glued behind those
+corner inserts pulls on nothing. Nickel-plated brass is no better; the
+plating is microns thick.
+
+What works is to put steel in the loop. A **steel M3 button-head screw
+into each of the module's four corner inserts**, fitted with the module
+in hand before it goes anywhere near the stand — which is also the
+answer to "the closed back means I can't reach them to screw it in". The
+four heads are then the ferrous targets, and four Ø6 × 3 magnets in the
+stand hold the module in.
+
+The seat height is fixed by that screw: the module's corner pads land at
+z 5.00, an ISO 7380 button head stands 1.65 proud, plus a 0.35 air gap →
+**magnet face at z 7.00**. `ret_head_h` covers other heads, but a socket
+cap (3.0 tall) would push the magnet into the 45° roof — drop `mag_l` to
+2.00 if you use one.
+
+Two constraints squeeze this feature from both sides, and the geometry
+only just fits between them:
+
+- **From above**: at the +X corners the 45° roof is the lowest. The cap
+  over the magnet bore measures **0.937 mm** perpendicular to that face
+  at the bore rim — the tightest wall in the part. A 3 mm magnet is the
+  most that fits; a taller screw head or a longer magnet breaks through.
+- **From below**: the module's back is not flat. The wall mount's z=3.25
+  surface is four corner pads of ~7.9 × 7.8 (area 206.8 ≈ 4 × 50), and
+  between them the back protrudes 2.25 mm deeper. So the boss footprint
+  has to stay inside those pads: Ø8.4 at 3.425 / 3.30 from the walls
+  reaches 7.63 / 7.50 inboard, just inside the 7.93 / 7.80 pad.
+
+The seat sits 3.3 mm inboard of both pocket walls, so it cannot hang off
+one wall without a long drooping overhang. Each pad is instead hulled
+out to a foot buried in *each* wall, so its first layer is anchored at
+both ends and the ~9 mm span across the corner prints as a bridge.
+
+## The one thing still unverified
+
+**Where the module's own USB-C connector is.** The wall mount cannot
+tell us: its only opening is a 3.5 mm slot, and a USB-C plug's metal
+shell alone is 8.3 × 2.5, so that slot was never meant to pass one — its
+designer hardwired power instead.
+
+So the internal cable relief (13 × 9 in the −Y end wall, `port_*`) is a
+best guess at where the jumper needs to reach the board. Two outcomes:
+
+- If the connector faces **rearward** into the cavity, set
+  `port_on = false` and the shell closes up completely.
+- If it faces **out of an edge**, the jumper's plug needs roughly 6 mm
+  beyond that edge and the skirt only offers 2 mm of wall, so some of
+  the plug body will stand outside the notch. A 90° plug minimises it.
+
+Measure the board and this is a one-line change.
+
+## Bill of materials
+
+| qty | part |
+|---|---|
+| 4 | M3 × 5 steel button-head screws (ISO 7380) — into the module's corner inserts |
+| 4 | Ø6 × 3 mm neodymium disc magnets — glued into the bosses |
+| 1 | panel-mount USB-C socket, M16 × 1 threaded barrel + nut |
+| 1 | short USB-C jumper, socket → module (90° plug preferred) |
 
 ## Printing
 
 Export orientation is print orientation: rim face down on the bed. Every
 outer face is ≥45°, so no supports, no brim. The pocket walls and roof
-are 2.0/2.5 mm — 3 perimeters at 0.4 mm nozzle.
+are 2.0/2.5 mm — 3 perimeters at 0.4 mm nozzle. The only bridged feature
+is the underside of the four magnet bosses, ~9 mm across each corner.
+
+Assemble in this order: panel-mount socket first (its nut is inside the
+shell and only reachable through the open front), then glue the magnets
+in flush with the boss undersides, then screws into the module, then
+plug in the jumper and drop the module into the pocket.
 
 ## Verification
 
