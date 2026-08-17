@@ -71,6 +71,24 @@ ang_front  = 45.00;   // +X face - the shallow rest face (45 deg tilt)
 ang_back   = 57.32;   // -X face - the upright rest face  (57 deg tilt)
 ang_end    = 57.78;   // +/-Y end faces
 
+/* -------------------------------------------------------------- */
+/* the flat back                                                   */
+/* -------------------------------------------------------------- */
+// The wedge's apex is the point where the 45 and 57.3 deg faces meet -
+// and when the stand sits on its 45 deg face, that apex lies ON THE
+// DESK at the rear. Truncating it with a fifth plane therefore does
+// not touch the silhouette's proportions or any of the three face
+// angles; it just squares off the back corner.
+//
+// Cut that plane at 45 deg and the new facet comes out exactly
+// VERTICAL in use: a small flat back panel standing off the desk, with
+// the socket bored square through it so the cable leaves horizontally.
+// It is the same construction as the other four faces, so the 2.50 mm
+// wall follows automatically from the inset.
+back_flat   = !is_orig;   // replica stays faithful to the donor
+back_flat_h = 26.00;  // panel height above the desk, in use
+back_cut_a  = 45.00;  // 45 deg is what makes it vertical in use
+
 // Corner reliefs. The original needs them: its Ø6.8 pockets sit 2.05 mm
 // inboard of the pocket corners and scallop into the corner mass. The
 // JC3248W535C does not - the wall mount clears this module with a plain
@@ -105,11 +123,14 @@ port_end   = -1;      // -1 = -Y wall, +1 = +Y wall
 // no pad or boss needed. 2.50 mm sits inside the 1-4 mm panel range
 // these connectors are built for.
 //
-// Bore for an M16 x 1 barrel. M12 -> 12.20, M22 -> 22.20.
+// Bore for an M16 x 1 barrel, nominal thread + 0.6. The bore is square
+// to the flat back, so its worst inside face is a 45 deg overhang and
+// droops a little; 0.1 mm of radial clearance would bind on that.
+// M12 -> 12.60, M22 -> 22.60.
 usb_on     = !is_orig;
-usb_bore_d = 16.20;
-usb_z      = 28.00;   // height of the bore centre up the back face
-usb_y      =  0.00;   // offset along the face from centre
+usb_bore_d = 16.60;
+usb_h      = 13.00;   // bore centre, height up the flat back
+usb_y      =  0.00;   // offset across the panel from centre
 
 /* -------------------------------------------------------------- */
 /* magnet retention                                                */
@@ -153,9 +174,26 @@ apex_z  = skirt_h + apex_dz;
 // magnet seat: just clear of the screw heads standing on the module back
 mag_face_z = mod_back_z + ret_head_h + mag_gap;
 
-// outward normal / plane offset of the back face, for the USB bore
-back_d  = sin(ang_back)*outer[0]/2 + cos(ang_back)*skirt_h;
-usb_x   = (cos(ang_back)*usb_z - back_d) / sin(ang_back);
+// Back-flat geometry. The cut plane is z - x = back_D. Where it meets
+// the front and back faces gives the facet's two ends; the distance
+// between them, times sqrt(2), is the panel height in use. Inverting
+// that gives back_D for a wanted height.
+front_d = sin(ang_front)*outer[0]/2 + cos(ang_front)*skirt_h;
+back_d  = sin(ang_back) *outer[0]/2 + cos(ang_back) *skirt_h;
+cA = front_d / (sin(ang_front) + cos(ang_front));
+cB = cos(ang_front) / (sin(ang_front) + cos(ang_front));
+cC = back_d / (cos(ang_back) - sin(ang_back));
+cE = cos(ang_back) / (cos(ang_back) - sin(ang_back));
+back_D    = ((cA - cC) - back_flat_h/sqrt(2)) / (cB - cE);
+back_cut  = back_D - skirt_h;          // x-intercept at z = skirt_h
+// facet corner where it meets the 45 deg face - i.e. the panel's foot,
+// which sits right on the desk
+facet_x = cA - cB*back_D;
+facet_z = facet_x + back_D;
+// bore centre: up the panel from that foot, "up in use" being
+// (-sin45, 0, -cos45) in part coordinates
+usb_x   = facet_x - usb_h*cos(back_cut_a);
+usb_z   = facet_z - usb_h*cos(back_cut_a);
 
 echo(str("outer = ", outer, "  apex z = ", apex_z, "  apex x = ", apex_x));
 echo(str("magnet seat z = ", mag_face_z, "  usb bore centre = [", usb_x, ",", usb_y, ",", usb_z, "]"));
@@ -188,6 +226,10 @@ module wedge(foot, r, inset = 0, z0 = 0) {
         mirror([1,0,0])  halfspace_x(outer[0]/2 - inset/sin(ang_back),  skirt_h, ang_back);
         rotate([0,0, 90]) halfspace_x(outer[1]/2 - inset/sin(ang_end),  skirt_h, ang_end);
         rotate([0,0,-90]) halfspace_x(outer[1]/2 - inset/sin(ang_end),  skirt_h, ang_end);
+        // fifth plane: squares off the apex into the flat back
+        if (back_flat)
+            mirror([1,0,0]) halfspace_x(back_cut - inset/sin(back_cut_a),
+                                        skirt_h, back_cut_a);
     }
 }
 
@@ -226,10 +268,10 @@ module mag_pockets() {
             cylinder(h = mag_l + EPS, d = mag_d + mag_clr);
 }
 
-// Bore normal to the back face, through its 2.50 mm slab.
+// Bore square through the flat back's 2.50 mm slab.
 module usb_bore() {
     translate([usb_x, usb_y, usb_z])
-        rotate([0, -ang_back, 0])
+        rotate([0, -back_cut_a, 0])
             translate([0, 0, -10]) cylinder(h = 20, d = usb_bore_d);
 }
 

@@ -74,12 +74,13 @@ back is a closed roof with nothing to screw against.
 | feature | value | from |
 |---|---|---|
 | outer footprint | 63.10 × 95.10, corner r 4.0 | wall mount outer |
-| height | 47.44 | falls out of the angles |
+| height | 50.98 in use (43.43 in part space) | falls out of the angles |
 | display pocket | 59.10 × 91.10, corner r 2.0, 9.00 deep | wall mount pocket |
 | rim wall | 2.00 | wall mount |
 | roof | 2.500 | original |
 | face angles | 45.00° / 57.32° / 57.78° | original, held constant |
-| USB-C socket | Ø16.2 bore, back face, 28 mm up | panel mount, M16 × 1 |
+| flat back | 26.0 tall × 74.9 wide, vertical in use | squares off the apex |
+| USB-C socket | Ø16.6 bore, 13 mm up the flat back | panel mount, M16 × 1 |
 | magnet bosses | 4 × Ø6.2 × 3.0, seat z 7.00 | corner insert grid |
 | internal cable relief | 13 × 9 notch, −Y end wall | see below |
 
@@ -102,19 +103,44 @@ r2.0 pocket corner, and a Ø6.8 relief in a 2.00 mm wall would leave only
 
 The donor routes its cable through a 10 mm trough cut clean through the
 45° face, from the apex to the rim. That is gone. Instead a **round
-threaded panel-mount USB-C socket** clamps into the back (57.3°) face,
+threaded panel-mount USB-C socket** clamps into a flat back panel,
 and a short jumper inside the shell feeds the module.
 
-The bore is plain and normal to the face — no pad, no boss. The roof is
-a uniform 2.50 mm slab whose inner and outer faces are parallel, so a
-panel mount gets a flat seat on both sides for free, and 2.50 mm is
-inside the 1–4 mm panel range these connectors are built for. Default
-bore is Ø16.2 for an M16 × 1 barrel; `usb_bore_d` takes 12.20 for M12
-or 22.20 for M22, and `usb_z` / `usb_y` move it on the face.
+### The flat back
 
-It sits on the back face rather than an end because the back is never a
-resting surface in the 45° position — which is the position the trough
-used to serve.
+The socket does not go into the sloping 57.3° face. A round bore in the
+middle of that face reads as a hole punched through a taper, and there
+is no honestly flat panel for the connector to sit square on.
+
+Instead the wedge gets a **fifth plane**. Its apex — where the 45° and
+57.3° faces meet — lies *on the desk at the rear* once the stand is
+sitting on its 45° face, so truncating it costs nothing: none of the
+three face angles move, the silhouette keeps its proportions, and the
+in-use height is unchanged at 50.98 because the display's top edge sets
+that, not the apex.
+
+Cut that fifth plane at **45°** and the new facet comes out **exactly
+vertical in use** — measured off the mesh at 0.000° from vertical. That
+gives a small flat back panel standing straight up off the desk, with
+the socket bored square through it so the cable leaves horizontally
+instead of pointing skyward.
+
+| | |
+|---|---|
+| panel height | 26.00 mm, from the desk up (`back_flat_h`) |
+| panel width | 74.9 mm, tapering with the hips |
+| panel thickness | 2.495 mm — the same seat the flat-face version had |
+| bore centre | 13 mm up the panel (`usb_h`) |
+| stand depth | 55.05 mm, ~6 shorter than the untruncated wedge |
+
+It is built as the same kind of half-space as the other four faces, so
+the 2.50 mm wall falls out of the shared `inset` rather than being
+maintained by hand — and `back_flat = false` puts the apex back.
+
+Bore is Ø16.6 for an M16 × 1 barrel, nominal thread + 0.6: it runs
+square through a 45° face, so its worst inside surface is a 45° overhang
+and droops slightly, and 0.1 mm of radial clearance would bind on that.
+`usb_bore_d` takes 12.60 for M12 or 22.60 for M22.
 
 **Assembly order matters**: the nut lands inside the shell, so fit the
 socket through the open front *before* the module goes in.
