@@ -52,6 +52,9 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
         -D 'm_button_hole=true' -D 'm_button_angle=90' -D 'm_button_z=26' \
         scad/matched/shell.scad 2>&1 \
         | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
+    # display wedge stand (separate part, not the lamp) - see
+    # docs/screen-stand-jc3248w535.md
+    stl screen_stand_jc3248w535 screen_stand/stand.scad display jc3248w535
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then
