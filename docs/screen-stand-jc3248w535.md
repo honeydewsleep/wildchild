@@ -79,7 +79,7 @@ back is a closed roof with nothing to screw against.
 | rim wall | 2.00 | wall mount |
 | roof | 2.500 | original |
 | face angles | 45.00° / 57.32° / 57.78° | original, held constant |
-| USB-C socket | Ø16.6 bore in a plinth, back face | panel mount, M16 × 1 |
+| USB-C socket | Ø16.2 bore, back face, 28 mm up | panel mount, M16 × 1 |
 | magnet bosses | 4 × Ø6.2 × 3.0, seat z 7.00 | corner insert grid |
 | internal cable relief | 13 × 9 notch, −Y end wall | see below |
 
@@ -105,43 +105,16 @@ The donor routes its cable through a 10 mm trough cut clean through the
 threaded panel-mount USB-C socket** clamps into the back (57.3°) face,
 and a short jumper inside the shell feeds the module.
 
+The bore is plain and normal to the face — no pad, no boss. The roof is
+a uniform 2.50 mm slab whose inner and outer faces are parallel, so a
+panel mount gets a flat seat on both sides for free, and 2.50 mm is
+inside the 1–4 mm panel range these connectors are built for. Default
+bore is Ø16.2 for an M16 × 1 barrel; `usb_bore_d` takes 12.20 for M12
+or 22.20 for M22, and `usb_z` / `usb_y` move it on the face.
+
 It sits on the back face rather than an end because the back is never a
 resting surface in the 45° position — which is the position the trough
 used to serve.
-
-### The plinth
-
-A bare bore in the middle of a big sloped triangle reads as a hole
-punched through the form, so the socket gets a raised landing. Its
-sides taper at exactly the rate the back face's own hip edges do —
-`hip_rate = sin(ang_back)/tan(ang_end)` = 0.5305 of half-width per mm
-travelled up-slope — so the plinth is a smaller echo of the face it sits
-on rather than a boss stuck onto it. 50 mm wide at the foot, 22.4 at the
-top, 26 along the slope, standing 2.0 mm proud.
-
-Printing decides the rest of the profile. Printed rim-down a face only
-overhangs where its normal turns downward, which leaves the plinth's
-uphill and side walls free and makes the **downhill** wall the whole
-problem — square to the face it would sit at 32.7°. Running the foot
-4.5 mm further downhill than the landing swings it to 89°, effectively
-vertical. That is what `pad_grow` and `pad_shift` are for, and it is
-why the chamfer band under the landing is wider at the bottom.
-
-Two numbers worth keeping:
-
-- **Panel thickness 4.50 mm** (2.50 roof + 2.00 plinth), verified equal
-  in all three directions around the bore. M16 barrels are threaded
-  8–10 mm so that is well inside their range; if yours is short, set
-  `usb_cb_d` to your flange diameter + 0.4 and the flange drops into a
-  well that puts the seat back at 2.50 mm.
-- **Bore Ø16.6**, nominal thread + 0.6. The bore runs normal to a 57.3°
-  face, so its up-slope inside is a 32.7° overhang and droops a little.
-  The 0.1 mm of radial clearance a Ø16.2 bore gives would bind on that
-  droop. `usb_bore_d` takes 12.60 for M12 or 22.60 for M22.
-
-Nothing here grows the footprint: the plinth sits well inside the
-skirt's own outline, and the bounding box is still 63.10 × 95.10 ×
-47.44.
 
 **Assembly order matters**: the nut lands inside the shell, so fit the
 socket through the open front *before* the module goes in.

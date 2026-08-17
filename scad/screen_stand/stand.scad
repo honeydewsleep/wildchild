@@ -105,39 +105,11 @@ port_end   = -1;      // -1 = -Y wall, +1 = +Y wall
 // no pad or boss needed. 2.50 mm sits inside the 1-4 mm panel range
 // these connectors are built for.
 //
-// Bore for an M16 x 1 barrel. M12 -> 12.60, M22 -> 22.60.
-// Nominal thread OD + 0.6: the bore runs normal to a 57.3 deg face, so
-// its up-slope inside is a 32.7 deg overhang and droops slightly. 0.1 mm
-// of radial clearance would bind on that droop; 0.3 will not.
+// Bore for an M16 x 1 barrel. M12 -> 12.20, M22 -> 22.20.
 usb_on     = !is_orig;
-usb_bore_d = 16.60;
-usb_z      = 26.00;   // height of the bore centre up the back face
+usb_bore_d = 16.20;
+usb_z      = 28.00;   // height of the bore centre up the back face
 usb_y      =  0.00;   // offset along the face from centre
-
-// A bare bore in the middle of a big sloped triangle reads as a hole
-// punched in the form, so the socket gets a plinth: a flat landing
-// that grows out of the back face. Its sides taper in the same
-// direction as the wedge's own hip lines, so it belongs to the shape
-// rather than sitting on it.
-//
-// Printing sets the profile. Printed rim-down, a face is an overhang
-// only where its normal turns downward, so the plinth's uphill and
-// side walls are free - only the DOWNHILL wall would overhang, at a
-// hopeless 32.7 deg. Extending the foot 4.5 mm downhill swings that
-// wall to 89 deg, near vertical.
-pad_h      =  2.00;   // how far the landing stands proud of the face
-pad_len    = 26.00;   // along-slope
-pad_w_lo   = 50.00;   // width at the downhill end; the uphill width is
-                      // derived so the sides run parallel to the hips
-pad_r      =  1.50;   // corner radius
-pad_grow   =  3.00;   // taper run at the foot, all round
-pad_shift  =  1.50;   // extra run downhill, for the overhang above
-
-// The plinth thickens the panel the socket clamps to, 2.50 -> 4.50 mm.
-// M16 barrels are threaded 8-10 mm so that is well inside their range,
-// but if yours is short, set usb_cb_d to your flange diameter + 0.4 and
-// the flange drops into a well that puts the seat back at 2.50 mm.
-usb_cb_d   =  0.00;
 
 /* -------------------------------------------------------------- */
 /* magnet retention                                                */
@@ -184,12 +156,6 @@ mag_face_z = mod_back_z + ret_head_h + mag_gap;
 // outward normal / plane offset of the back face, for the USB bore
 back_d  = sin(ang_back)*outer[0]/2 + cos(ang_back)*skirt_h;
 usb_x   = (cos(ang_back)*usb_z - back_d) / sin(ang_back);
-
-// How fast the back face narrows per mm travelled up its slope - i.e.
-// the slope of its own hip edges, in the face's plane. The plinth uses
-// the same rate, so its sides read as parallel to them.
-hip_rate = sin(ang_back) / tan(ang_end);
-pad_w_hi = pad_w_lo - 2*hip_rate*pad_len;
 
 echo(str("outer = ", outer, "  apex z = ", apex_z, "  apex x = ", apex_x));
 echo(str("magnet seat z = ", mag_face_z, "  usb bore centre = [", usb_x, ",", usb_y, ",", usb_z, "]"));
@@ -260,37 +226,11 @@ module mag_pockets() {
             cylinder(h = mag_l + EPS, d = mag_d + mag_clr);
 }
 
-// Everything below works in a frame sitting on the back face:
-// rotate([0,-ang_back,0]) sends local +x up-slope, +y across the face
-// and +z out along its normal.
-module on_back_face() {
-    translate([usb_x, usb_y, usb_z]) rotate([0, -ang_back, 0]) children();
-}
-
-// Plinth outline, local +x up-slope. Narrower uphill, echoing the hips.
-module pad_profile(grow = 0) {
-    offset(r = grow + pad_r) offset(delta = -pad_r)
-        polygon([[-pad_len/2, -pad_w_lo/2], [-pad_len/2,  pad_w_lo/2],
-                 [ pad_len/2,  pad_w_hi/2], [ pad_len/2, -pad_w_hi/2]]);
-}
-
-module usb_pad() {
-    on_back_face() hull() {
-        // foot, sunk into the roof so it merges cleanly
-        translate([-pad_shift, 0, -2]) linear_extrude(2) pad_profile(pad_grow);
-        // landing
-        translate([0, 0, pad_h - EPS]) linear_extrude(EPS) pad_profile();
-    }
-}
-
-// Bore normal to the face, through the roof slab and the plinth.
+// Bore normal to the back face, through its 2.50 mm slab.
 module usb_bore() {
-    on_back_face() {
-        translate([0, 0, -10]) cylinder(h = 20 + pad_h, d = usb_bore_d);
-        // optional flange well, seat back down at the original face
-        if (usb_cb_d > 0)
-            cylinder(h = pad_h + 10, d = usb_cb_d);
-    }
+    translate([usb_x, usb_y, usb_z])
+        rotate([0, -ang_back, 0])
+            translate([0, 0, -10]) cylinder(h = 20, d = usb_bore_d);
 }
 
 /* -------------------------------------------------------------- */
@@ -300,7 +240,6 @@ module stand() {
   difference() {
     union() {
       if (mag_on) mag_bosses();
-      if (usb_on) usb_pad();
       difference() {
         wedge(outer, r_out);
 
