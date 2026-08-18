@@ -82,9 +82,9 @@ ang_end    = 57.78;   // +/-Y end faces
 //
 // Cut that plane at 45 deg and the new facet comes out exactly
 // VERTICAL in use: a small flat back panel standing off the desk, with
-// the socket bored square through it so the cable leaves horizontally.
-// It is the same construction as the other four faces, so the 2.50 mm
-// wall follows automatically from the inset.
+// the socket cut square through it so the cable leaves horizontally.
+// It is the same construction as the other four faces; only its wall
+// thickness differs (back_pan_t, to suit the snap-in socket).
 back_flat   = !is_orig;   // replica stays faithful to the donor
 back_flat_h = 26.00;  // panel height above the desk, in use
 back_cut_a  = 45.00;  // 45 deg is what makes it vertical in use
@@ -103,34 +103,39 @@ relief_on  = is_orig;
 trough_w   = 10.00;
 trough_on  = is_orig;
 
-// Internal cable relief in the end wall - lets the short jumper reach
-// the module's own connector. NOT the external cable exit any more;
-// that is the panel-mount socket below. Set port_on = false to close
-// the shell completely if your module's connector faces rearward into
-// the cavity instead of out of an edge.
-port_on    = !is_orig;
+// Cable relief in the end wall. OFF: the module is fed from the
+// panel-mount socket in the flat back, nothing needs to pass through
+// the rim, so the skirt stays unbroken all the way round. Set true if
+// you ever need a jumper to reach a connector on the module's edge.
+port_on    = false;
 port_w     = 13.00;
 port_h     = skirt_h; // full skirt height
 port_x     = 0.00;    // offset along the edge from centre
 port_end   = -1;      // -1 = -Y wall, +1 = +Y wall
 
 /* -------------------------------------------------------------- */
-/* panel-mount USB-C socket, back (57.3 deg) face                  */
+/* panel-mount USB-C socket, in the flat back                      */
 /* -------------------------------------------------------------- */
-// Round threaded barrel clamped by its nut. The roof is a uniform
-// 2.50 mm slab with parallel inner and outer faces, so a plain bore
-// normal to the face gives the connector a flat seat on both sides -
-// no pad or boss needed. 2.50 mm sits inside the 1-4 mm panel range
-// these connectors are built for.
+// Rectangular snap-in socket, not the threaded barrel. Opening copied
+// from Base__45_Degree__Symmetrical_Bezel.stl, which is dimensioned
+// for the sockets recommended for that model:
 //
-// Bore for an M16 x 1 barrel, nominal thread + 0.6. The bore is square
-// to the flat back, so its worst inside face is a 45 deg overhang and
-// droops a little; 0.1 mm of radial clearance would bind on that.
-// M12 -> 12.60, M22 -> 22.60.
+//   13.600 x 5.500, corner radius 1.200, prismatic through the wall
+//   centred 8.950 above the floor
+//
+// Measured off that mesh, not eyeballed: the cutout profile is
+// identical at three depths through its 2.00 mm wall, so it is a
+// straight extrusion with no draft.
+//
+// That donor panel is 2.00 mm where our roof is 2.50, and a snap-in
+// socket grips a panel thickness rather than clamping any thickness
+// like a nut does - so the flat back is thinned to 2.00 to match.
 usb_on     = !is_orig;
-usb_bore_d = 16.60;
-usb_h      = 13.00;   // bore centre, height up the flat back
+usb_cut    = [13.60, 5.50];  // [across the panel, up the panel]
+usb_cut_r  =  1.20;
+usb_h      =  8.95;   // centre height up the flat back, from the floor
 usb_y      =  0.00;   // offset across the panel from centre
+back_pan_t =  2.00;   // flat back wall thickness (donor's panel)
 
 /* -------------------------------------------------------------- */
 /* magnet retention                                                */
@@ -226,9 +231,10 @@ module wedge(foot, r, inset = 0, z0 = 0) {
         mirror([1,0,0])  halfspace_x(outer[0]/2 - inset/sin(ang_back),  skirt_h, ang_back);
         rotate([0,0, 90]) halfspace_x(outer[1]/2 - inset/sin(ang_end),  skirt_h, ang_end);
         rotate([0,0,-90]) halfspace_x(outer[1]/2 - inset/sin(ang_end),  skirt_h, ang_end);
-        // fifth plane: squares off the apex into the flat back
+        // fifth plane uses the panel's own thickness, not roof_t
         if (back_flat)
-            mirror([1,0,0]) halfspace_x(back_cut - inset/sin(back_cut_a),
+            mirror([1,0,0]) halfspace_x(back_cut - (inset > 0 ? back_pan_t : 0)
+                                                   /sin(back_cut_a),
                                         skirt_h, back_cut_a);
     }
 }
@@ -268,11 +274,16 @@ module mag_pockets() {
             cylinder(h = mag_l + EPS, d = mag_d + mag_clr);
 }
 
-// Bore square through the flat back's 2.50 mm slab.
+// Socket opening, square through the flat back. In this frame local
+// +z is the panel normal, +y runs across the panel and +x runs DOWN
+// it, so the cut is usb_cut[1] tall by usb_cut[0] wide.
 module usb_bore() {
     translate([usb_x, usb_y, usb_z])
         rotate([0, -back_cut_a, 0])
-            translate([0, 0, -10]) cylinder(h = 20, d = usb_bore_d);
+            translate([0, 0, -10]) linear_extrude(20)
+                offset(r = usb_cut_r)
+                    square([usb_cut[1] - 2*usb_cut_r,
+                            usb_cut[0] - 2*usb_cut_r], center = true);
 }
 
 /* -------------------------------------------------------------- */

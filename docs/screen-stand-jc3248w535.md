@@ -80,13 +80,13 @@ back is a closed roof with nothing to screw against.
 | roof | 2.500 | original |
 | face angles | 45.00° / 57.32° / 57.78° | original, held constant |
 | flat back | 26.0 tall × 74.9 wide, vertical in use | squares off the apex |
-| USB-C socket | Ø16.6 bore, 13 mm up the flat back | panel mount, M16 × 1 |
+| USB-C socket | 13.60 × 5.50 cutout, 8.95 up the flat back | copied from the 45° base STL |
 | magnet bosses | 4 × Ø6.2 × 3.0, seat z 7.00 | corner insert grid |
-| internal cable relief | 13 × 9 notch, −Y end wall | see below |
 
 Angles are held rather than scaled: they are what the stand *is*, and
 holding them keeps both rest positions identical to the original. The
-height therefore drops only 51.29 → 47.44 while the plan shrinks more.
+height therefore drops only 51.29 → 47.44 before the flat back
+truncates the apex, while the plan shrinks more.
 
 Pocket depth stays at the original's 9.00 mm. The module's back body is
 5.00 mm deep (wall mount) and its deepest back components reach 7.25 mm,
@@ -102,13 +102,13 @@ r2.0 pocket corner, and a Ø6.8 relief in a 2.00 mm wall would leave only
 ## Cable system
 
 The donor routes its cable through a 10 mm trough cut clean through the
-45° face, from the apex to the rim. That is gone. Instead a **round
-threaded panel-mount USB-C socket** clamps into a flat back panel,
-and a short jumper inside the shell feeds the module.
+45° face, from the apex to the rim. That is gone. Instead a
+**rectangular snap-in panel-mount USB-C socket** sits in a flat back
+panel, and a short jumper inside the shell feeds the module.
 
 ### The flat back
 
-The socket does not go into the sloping 57.3° face. A round bore in the
+The socket does not go into the sloping 57.3° face. An opening in the
 middle of that face reads as a hole punched through a taper, and there
 is no honestly flat panel for the connector to sit square on.
 
@@ -122,28 +122,42 @@ that, not the apex.
 Cut that fifth plane at **45°** and the new facet comes out **exactly
 vertical in use** — measured off the mesh at 0.000° from vertical. That
 gives a small flat back panel standing straight up off the desk, with
-the socket bored square through it so the cable leaves horizontally
+the socket cut square through it so the cable leaves horizontally
 instead of pointing skyward.
 
 | | |
 |---|---|
 | panel height | 26.00 mm, from the desk up (`back_flat_h`) |
 | panel width | 74.9 mm, tapering with the hips |
-| panel thickness | 2.495 mm — the same seat the flat-face version had |
-| bore centre | 13 mm up the panel (`usb_h`) |
+| panel thickness | 2.00 mm (`back_pan_t`), to suit the snap-in socket |
+| socket centre | 8.95 mm up the panel (`usb_h`) |
 | stand depth | 55.05 mm, ~6 shorter than the untruncated wedge |
 
 It is built as the same kind of half-space as the other four faces, so
-the 2.50 mm wall falls out of the shared `inset` rather than being
-maintained by hand — and `back_flat = false` puts the apex back.
+its wall follows from an `inset` rather than being maintained by hand —
+and `back_flat = false` puts the apex back.
 
-Bore is Ø16.6 for an M16 × 1 barrel, nominal thread + 0.6: it runs
-square through a 45° face, so its worst inside surface is a 45° overhang
-and droops slightly, and 0.1 mm of radial clearance would bind on that.
-`usb_bore_d` takes 12.60 for M12 or 22.60 for M22.
+### The socket opening
 
-**Assembly order matters**: the nut lands inside the shell, so fit the
-socket through the open front *before* the module goes in.
+Not a threaded barrel — a **rectangular snap-in socket**, with the
+opening copied from `Base__45_Degree__Symmetrical_Bezel.stl`, which is
+dimensioned for the sockets recommended for that model:
+
+| | measured | ours |
+|---|---|---|
+| opening | 13.600 × 5.500, corner r 1.200 | identical |
+| centre above the floor | 8.950 | 8.950 |
+| profile through the wall | constant at three depths — a straight extrusion, no draft | same |
+| panel thickness | 2.00 | 2.00 (`back_pan_t`) |
+
+The panel is the one thing that is *not* simply inherited. Everywhere
+else the shell is 2.50 mm, but a snap-in socket grips a specific panel
+thickness rather than clamping any thickness the way a nut does, so the
+flat back alone is thinned to the donor's 2.00 mm. That is why the
+fifth plane takes `back_pan_t` instead of `roof_t` for its inset.
+
+The cutout's lower wall is a 45° overhang — right at the printable
+limit, and only 5.5 mm of it — so it needs no support.
 
 ## Retention — magnets
 
@@ -182,23 +196,18 @@ one wall without a long drooping overhang. Each pad is instead hulled
 out to a foot buried in *each* wall, so its first layer is anchored at
 both ends and the ~9 mm span across the corner prints as a bridge.
 
-## The one thing still unverified
+## The shell is closed
 
-**Where the module's own USB-C connector is.** The wall mount cannot
-tell us: its only opening is a 3.5 mm slot, and a USB-C plug's metal
-shell alone is 8.3 × 2.5, so that slot was never meant to pass one — its
-designer hardwired power instead.
+Earlier revisions carried a 13 × 9 relief in the −Y end wall so a jumper
+could reach a connector on the module's edge. It is off: the module is
+fed from the socket in the flat back, nothing needs to pass through the
+rim, and the user confirmed they will not plug in from that side. The
+skirt is now unbroken the whole way round — checked at both ends.
 
-So the internal cable relief (13 × 9 in the −Y end wall, `port_*`) is a
-best guess at where the jumper needs to reach the board. Two outcomes:
-
-- If the connector faces **rearward** into the cavity, set
-  `port_on = false` and the shell closes up completely.
-- If it faces **out of an edge**, the jumper's plug needs roughly 6 mm
-  beyond that edge and the skirt only offers 2 mm of wall, so some of
-  the plug body will stand outside the notch. A 90° plug minimises it.
-
-Measure the board and this is a one-line change.
+`port_on = true` brings it back if a jumper ever has to reach an edge
+connector. Worth knowing if you do: the plug wants roughly 6 mm beyond
+the module's edge and the skirt only offers 2 mm of wall, so part of the
+plug body would stand outside the notch. A 90° plug minimises it.
 
 ## Bill of materials
 
@@ -206,7 +215,7 @@ Measure the board and this is a one-line change.
 |---|---|
 | 4 | M3 × 5 steel button-head screws (ISO 7380) — into the module's corner inserts |
 | 4 | Ø6 × 3 mm neodymium disc magnets — glued into the bosses |
-| 1 | panel-mount USB-C socket, M16 × 1 threaded barrel + nut |
+| 1 | panel-mount USB-C socket, rectangular snap-in for a 13.6 × 5.5 opening in a 2.0 mm panel |
 | 1 | short USB-C jumper, socket → module (90° plug preferred) |
 
 ## Printing
@@ -215,11 +224,13 @@ Export orientation is print orientation: rim face down on the bed. Every
 outer face is ≥45°, so no supports, no brim. The pocket walls and roof
 are 2.0/2.5 mm — 3 perimeters at 0.4 mm nozzle. The only bridged feature
 is the underside of the four magnet bosses, ~9 mm across each corner.
+The socket cutout's lower wall is a 45° overhang, right at the limit.
 
-Assemble in this order: panel-mount socket first (its nut is inside the
-shell and only reachable through the open front), then glue the magnets
-in flush with the boss undersides, then screws into the module, then
-plug in the jumper and drop the module into the pocket.
+Assemble in this order: snap the socket into the flat back, glue the
+magnets in flush with the boss undersides, screw the four steel screws
+into the module's corner inserts, then plug in the jumper and drop the
+module into the pocket. The shell has no other opening, so anything
+that has to go inside goes in through the open front first.
 
 ## Verification
 
