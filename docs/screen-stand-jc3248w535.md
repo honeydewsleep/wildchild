@@ -1,8 +1,9 @@
 # Display wedge stand — Guition JC3248W535C (3.5")
 
 `scad/screen_stand/stand.scad` →
-`stl/screen_stand_jc3248w535.stl` (sits at 45°) and
-`stl/screen_stand_jc3248w535_upright.stl` (stands at 57.3°)
+`stl/screen_stand_jc3248w535.stl` (sits at 45°),
+`..._upright.stl` (stands at 57.3°),
+`..._parallel.stl` (back parallel to the screen, stable at both)
 
 A re-dimensioned version of the "4.3 inch Screen Stand" wedge, rebuilt
 parametrically so it fits the Guition JC3248W535C instead of the 4.3"
@@ -14,6 +15,8 @@ openscad -o stl/screen_stand_jc3248w535.stl \
     -D 'variant="flat45"'  scad/screen_stand/stand.scad
 openscad -o stl/screen_stand_jc3248w535_upright.stl \
     -D 'variant="upright"' scad/screen_stand/stand.scad
+openscad -o stl/screen_stand_jc3248w535_parallel.stl \
+    -D 'variant="parallel"' scad/screen_stand/stand.scad
 python3 scripts/stl2bin.py stl/*.stl
 ```
 
@@ -124,14 +127,16 @@ what puts the socket square-on and its cable horizontal. But a plane
 can only be perpendicular to one of them: the two rest faces are
 **77.68° apart**. Hence a variant per position.
 
-| | `flat45` | `upright` |
-|---|---|---|
-| cut angle | 90 − `ang_front` = +45.00° | `ang_back` − 90 = −32.68° |
-| perpendicular to | the 45° face | the 57.3° face |
-| panel | 26.0 mm, vertical at 45° | 16.0 mm, vertical at 57.3° |
-| patch sitting at 45° | 48.7 mm, margin 18.9 | 38.0 mm, margin 7.3 |
-| patch standing at 57.3° | 19.1 mm, **margin −5.8** | 42.2 mm, margin 17.2 |
-| socket above the desk | 9.0 mm at 45°, 3.6 upright | 9.0 mm upright, 1.5 at 45° |
+| | `flat45` | `upright` | `parallel` |
+|---|---|---|---|
+| cut angle | +45.00° | −32.68° | 0° |
+| square to | the 45° face | the 57.3° face | neither — parallel to the screen |
+| panel | 26.0 mm, vertical at 45° | 16.0 mm, vertical at 57.3° | 20.0 mm, leaning in both |
+| patch sitting at 45° | 48.7 mm, margin 18.9 | 38.0 mm, margin 7.3 | 37.1 mm, margin 7.7 |
+| patch standing at 57.3° | 19.1 mm, **margin −5.8** | 42.2 mm, margin 17.2 | 31.2 mm, margin 7.2 |
+| socket above the desk | 9.0 at 45°, 3.6 upright | 9.0 upright, 1.5 at 45° | 7.69 in **both** |
+| socket aims | horizontally at 45° | horizontally upright | −45° / −32.7°, i.e. down |
+| cable | straight | straight | **90° plug** |
 
 Margins are the centre of mass to the nearer edge of the contact patch,
 computed from each mesh's own volume centroid. They are for the bare
@@ -150,22 +155,44 @@ opening identical. Each stands in *both* positions; what differs is
 which one the socket is usable in, since the panel lies nearly flat
 against the desk in the other.
 
-**Why not one part for both.** A middle cut angle looks tempting and it
-does make the socket usable in both positions (~5.5 mm of clearance
-each). It fails on printing instead. The inside of the panel is a
-ceiling over the cavity at exactly |cut angle| from horizontal, so a
-0.2 mm layer steps out `0.2/tan(angle)`:
+### `parallel` — the one that does both
 
-| cut | inner ceiling | step per layer |
+Cutting the facet parallel to the screen is square to neither rest face,
+so the panel never stands vertical. What it buys is symmetry: instead of
+running across one rest face and gutting it, the cut trims both evenly.
+That makes it the only one of the three comfortably stable in *both*
+positions — margins 7.7 and 7.2, against `flat45`'s −5.8 standing up.
+
+Its socket sits at the point where both positions give the same
+clearance, solved rather than guessed: `d·cos(tilt₄₅) = (L−d)·cos(tilt₅₇)`
+puts it 10.87 mm up a 20 mm panel, 7.69 mm above the desk either way.
+
+**The catch is in the name.** Parallel to the screen means the socket
+points directly *away* from the screen — which is downwards in both
+positions, −45.0° sitting and −32.7° standing. A plug therefore reaches
+only 10.9 mm (sitting) or 14.2 mm (standing) before it meets the desk.
+A 90° USB-C plug clears that; a straight one does not.
+
+Raising the socket to fix it does not work: clearing a straight ~20 mm
+plug needs the socket 14 mm up, which needs a ~24 mm panel, which cuts
+the margins back to ~3 and puts the tipping problem back.
+
+### Printing the three cuts
+
+The surface that decides this is the *inside* of the panel — a ceiling
+over the cavity lying at exactly |cut angle| from horizontal:
+
+| cut | inner ceiling | per 0.2 mm layer |
 |---|---|---|
-| ±45° | 45° | 0.20 mm — prints clean |
-| −32.68° | 32.7° | 0.31 mm — prints clean |
-| −10° (a middle compromise) | 10° | **1.13 mm — sags** |
+| +45° (`flat45`) | 45° | 0.20 mm step — clean |
+| −32.68° (`upright`) | 32.7° | 0.31 mm step — clean |
+| 0° (`parallel`) | flat → a **bridge** | 12.8 mm span — clean |
+| −10° (a middle compromise) | 10° | **1.13 mm step — sags** |
 
-Both shipped angles happen to sit above 32°. A compromise angle lands
-in the sagging band, and that sag is directly behind the socket, where
-the snap-in needs a clean 2.00 mm panel. `variant` takes any angle via
-`back_cut_a` if you want to try it anyway.
+All three shipped cuts are fine; it is the shallow-but-not-flat band in
+between that fails, and it fails directly behind the socket where the
+snap-in needs a clean 2.00 mm panel. `back_cut_a` takes any angle if you
+want to explore it.
 
 ### The socket opening
 

@@ -56,6 +56,7 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     # docs/screen-stand-jc3248w535.md
     stl screen_stand_jc3248w535 screen_stand/stand.scad variant flat45
     stl screen_stand_jc3248w535_upright screen_stand/stand.scad variant upright
+    stl screen_stand_jc3248w535_parallel screen_stand/stand.scad variant parallel
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then

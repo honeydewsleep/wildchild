@@ -87,30 +87,48 @@ ang_end    = 57.78;   // +/-Y end faces
 // thickness differs (back_pan_t, to suit the snap-in socket).
 back_flat   = !is_orig;   // replica stays faithful to the donor
 
-// Which rest position the facet is tuned for. A facet can only be
-// square to ONE of the two rest faces - they are 77.68 deg apart - and
-// square is what makes the panel stand vertical and the socket clear
-// the desk. So there is a variant per position.
+// Which rest position the facet is tuned for. Cutting the facet square
+// to a rest face is what makes the panel stand vertical there and the
+// socket point horizontally - but a facet can only be square to ONE of
+// them, since the two rest faces are 77.68 deg apart.
 //
-//   "flat45"  - facet perpendicular to the 45 deg face, so the panel is
-//               vertical when the stand sits at 45 deg. But it eats the
-//               57.3 deg face down to a 19 mm patch, which is why the
-//               stand tips backwards if you try to stand it upright.
+//   "flat45"   - square to the 45 deg face: panel vertical when the
+//                stand sits at 45 deg. This cut runs straight ACROSS
+//                the 57.3 deg face though, taking it 45.7 -> 19.1 mm,
+//                which is why the stand tips backwards standing up.
 //
-//   "upright" - facet perpendicular to the 57.3 deg face instead. That
-//               cut runs almost parallel to the face it is trimming, so
-//               it barely shortens it: the upright patch goes 19 -> 42
-//               mm and the panel stands vertical THERE.
+//   "upright"  - square to the 57.3 deg face instead. That cut runs
+//                nearly parallel to the face it trims, so it barely
+//                shortens it (42.2 mm) and the panel is vertical THERE.
 //
-// Both cuts happen to land at |angle| > 45, which matters: the inside
-// of the panel is a ceiling over the cavity at exactly |back_cut_a|
-// from horizontal. At 45 and 32.7 deg a 0.2 mm layer steps out 0.2 and
-// 0.31 mm, which prints. Middle angles look tempting for a one-part
-// compromise but sag - at 10 deg the step is 1.13 mm.
+//   "parallel" - facet parallel to the SCREEN. Square to neither, so
+//                the panel leans in both positions (45 deg at 45,
+//                32.7 deg upright) - but it trims the two faces evenly
+//                rather than gutting one, and is the only cut that is
+//                comfortably stable in BOTH. The catch is in the name:
+//                parallel to the screen means the socket points
+//                directly AWAY from the screen, which is downwards in
+//                both positions, so it needs a 90 deg cable.
+//
+// Printing watches one surface: the inside of the panel is a ceiling
+// over the cavity, lying at exactly |back_cut_a| from horizontal.
+//   45.0 deg -> 0.20 mm step per 0.2 layer   prints clean
+//   32.7 deg -> 0.31 mm                      prints clean
+//    0.0 deg -> flat, so it is a BRIDGE      prints clean (12.8 mm span)
+// The band to avoid is shallow-but-not-flat: at 10 deg the step is
+// 1.13 mm and it sags, right behind the socket.
 variant     = "flat45";
 is_upright  = (variant == "upright");
-back_cut_a  = is_upright ? ang_back - 90 : 90 - ang_front;
-back_flat_h = is_upright ? 16.00 : 26.00;   // facet length
+is_parallel = (variant == "parallel");
+back_cut_a  = is_upright  ? ang_back - 90
+            : is_parallel ? 0
+            :               90 - ang_front;
+back_flat_h = is_upright ? 16.00 : is_parallel ? 20.00 : 26.00;   // facet length
+
+// How far the panel leans from vertical in each rest position. Zero in
+// the position its own cut was made square to.
+tilt_at_45  = abs(back_cut_a - (90 - ang_front));
+tilt_at_57  = abs(back_cut_a - (ang_back - 90));
 
 // Corner reliefs. The original needs them: its Ø6.8 pockets sit 2.05 mm
 // inboard of the pocket corners and scallop into the corner mass. The
@@ -156,7 +174,14 @@ port_end   = -1;      // -1 = -Y wall, +1 = +Y wall
 usb_on     = !is_orig;
 usb_cut    = [13.60, 5.50];  // [across the panel, up the panel]
 usb_cut_r  =  1.20;
-usb_h      =  8.95;   // centre height up the flat back, from the floor
+// Socket height up the panel. The square-cut variants take the donor's
+// 8.95 straight, since their panel is vertical in its own position. The
+// parallel one is vertical in neither, so instead its socket is placed
+// where the two positions give it the SAME clearance above the desk:
+// d*cos(tilt_45) = (L-d)*cos(tilt_57).
+usb_h      = is_parallel
+             ? back_flat_h*cos(tilt_at_57)/(cos(tilt_at_45) + cos(tilt_at_57))
+             : 8.95;
 usb_y      =  0.00;   // offset across the panel from centre
 back_pan_t =  2.00;   // flat back wall thickness (donor's panel)
 
