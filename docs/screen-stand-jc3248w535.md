@@ -1,6 +1,8 @@
 # Display wedge stand — Guition JC3248W535C (3.5")
 
-`scad/screen_stand/stand.scad` → `stl/screen_stand_jc3248w535.stl`
+`scad/screen_stand/stand.scad` →
+`stl/screen_stand_jc3248w535.stl` (sits at 45°) and
+`stl/screen_stand_jc3248w535_upright.stl` (stands at 57.3°)
 
 A re-dimensioned version of the "4.3 inch Screen Stand" wedge, rebuilt
 parametrically so it fits the Guition JC3248W535C instead of the 4.3"
@@ -9,8 +11,10 @@ is the same module→wedge mapping the original uses.
 
 ```bash
 openscad -o stl/screen_stand_jc3248w535.stl \
-    -D 'display="jc3248w535"' scad/screen_stand/stand.scad
-python3 scripts/stl2bin.py stl/screen_stand_jc3248w535.stl
+    -D 'variant="flat45"'  scad/screen_stand/stand.scad
+openscad -o stl/screen_stand_jc3248w535_upright.stl \
+    -D 'variant="upright"' scad/screen_stand/stand.scad
+python3 scripts/stl2bin.py stl/*.stl
 ```
 
 ## Why it is a rebuild and not a scale factor
@@ -74,12 +78,12 @@ back is a closed roof with nothing to screw against.
 | feature | value | from |
 |---|---|---|
 | outer footprint | 63.10 × 95.10, corner r 4.0 | wall mount outer |
-| height | 50.98 in use (43.43 in part space) | falls out of the angles |
+| height | 50.98 sitting at 45° | falls out of the angles |
 | display pocket | 59.10 × 91.10, corner r 2.0, 9.00 deep | wall mount pocket |
 | rim wall | 2.00 | wall mount |
 | roof | 2.500 | original |
 | face angles | 45.00° / 57.32° / 57.78° | original, held constant |
-| flat back | 26.0 tall × 74.9 wide, vertical in use | squares off the apex |
+| flat back | 26.0 mm (`flat45`) / 16.0 mm (`upright`) | squares off the apex |
 | USB-C socket | 13.60 × 5.50 cutout, 8.95 up the flat back | copied from the 45° base STL |
 | magnet bosses | 4 × Ø6.2 × 3.0, seat z 7.00 | corner insert grid |
 
@@ -106,36 +110,62 @@ The donor routes its cable through a 10 mm trough cut clean through the
 **rectangular snap-in panel-mount USB-C socket** sits in a flat back
 panel, and a short jumper inside the shell feeds the module.
 
-### The flat back
+### The flat back, and why there are two variants
 
-The socket does not go into the sloping 57.3° face. An opening in the
-middle of that face reads as a hole punched through a taper, and there
-is no honestly flat panel for the connector to sit square on.
+The wedge's apex is the corner where the 45° and 57.3° faces meet, and
+it lies *on the desk* in whichever position the stand is in. Truncating
+it with a fifth plane costs none of the three face angles and none of
+the silhouette's proportions — it just squares off that corner into a
+flat panel for the socket.
 
-Instead the wedge gets a **fifth plane**. Its apex — where the 45° and
-57.3° faces meet — lies *on the desk at the rear* once the stand is
-sitting on its 45° face, so truncating it costs nothing: none of the
-three face angles move, the silhouette keeps its proportions, and the
-in-use height is unchanged at 50.98 because the display's top edge sets
-that, not the apex.
+Cut that plane **perpendicular to one of the rest faces** and the panel
+comes out exactly vertical when the stand sits on that face, which is
+what puts the socket square-on and its cable horizontal. But a plane
+can only be perpendicular to one of them: the two rest faces are
+**77.68° apart**. Hence a variant per position.
 
-Cut that fifth plane at **45°** and the new facet comes out **exactly
-vertical in use** — measured off the mesh at 0.000° from vertical. That
-gives a small flat back panel standing straight up off the desk, with
-the socket cut square through it so the cable leaves horizontally
-instead of pointing skyward.
+| | `flat45` | `upright` |
+|---|---|---|
+| cut angle | 90 − `ang_front` = +45.00° | `ang_back` − 90 = −32.68° |
+| perpendicular to | the 45° face | the 57.3° face |
+| panel | 26.0 mm, vertical at 45° | 16.0 mm, vertical at 57.3° |
+| patch sitting at 45° | 48.7 mm, margin 18.9 | 38.0 mm, margin 7.3 |
+| patch standing at 57.3° | 19.1 mm, **margin −5.8** | 42.2 mm, margin 17.2 |
+| socket above the desk | 9.0 mm at 45°, 3.6 upright | 9.0 mm upright, 1.5 at 45° |
 
-| | |
-|---|---|
-| panel height | 26.00 mm, from the desk up (`back_flat_h`) |
-| panel width | 74.9 mm, tapering with the hips |
-| panel thickness | 2.00 mm (`back_pan_t`), to suit the snap-in socket |
-| socket centre | 8.95 mm up the panel (`usb_h`) |
-| stand depth | 55.05 mm, ~6 shorter than the untruncated wedge |
+Margins are the centre of mass to the nearer edge of the contact patch,
+computed from each mesh's own volume centroid. They are for the bare
+shell; the module's mass sits forward of the shell's centroid in both
+positions, so it only improves them.
 
-It is built as the same kind of half-space as the other four faces, so
-its wall follows from an `inset` rather than being maintained by hand —
-and `back_flat = false` puts the apex back.
+That −5.8 is the tipping the `flat45` print shows: cutting perpendicular
+to the *front* face runs the plane straight across the back one, taking
+it from 45.7 mm down to 19.1 and leaving the centre of mass 5.8 mm
+behind the patch. Cutting perpendicular to the *back* face instead runs
+nearly parallel to it, so it barely shortens it — 42.2 mm — while doing
+the same trimming job on the front face that `flat45` did on the back.
+
+Both variants keep the display pocket, magnets, closed rim and socket
+opening identical. Each stands in *both* positions; what differs is
+which one the socket is usable in, since the panel lies nearly flat
+against the desk in the other.
+
+**Why not one part for both.** A middle cut angle looks tempting and it
+does make the socket usable in both positions (~5.5 mm of clearance
+each). It fails on printing instead. The inside of the panel is a
+ceiling over the cavity at exactly |cut angle| from horizontal, so a
+0.2 mm layer steps out `0.2/tan(angle)`:
+
+| cut | inner ceiling | step per layer |
+|---|---|---|
+| ±45° | 45° | 0.20 mm — prints clean |
+| −32.68° | 32.7° | 0.31 mm — prints clean |
+| −10° (a middle compromise) | 10° | **1.13 mm — sags** |
+
+Both shipped angles happen to sit above 32°. A compromise angle lands
+in the sagging band, and that sag is directly behind the socket, where
+the snap-in needs a clean 2.00 mm panel. `variant` takes any angle via
+`back_cut_a` if you want to try it anyway.
 
 ### The socket opening
 
@@ -225,6 +255,10 @@ outer face is ≥45°, so no supports, no brim. The pocket walls and roof
 are 2.0/2.5 mm — 3 perimeters at 0.4 mm nozzle. The only bridged feature
 is the underside of the four magnet bosses, ~9 mm across each corner.
 The socket cutout's lower wall is a 45° overhang, right at the limit.
+
+Print `screen_stand_jc3248w535.stl` for the 45° position or
+`..._upright.stl` for the 57.3° one — they are otherwise identical, so
+printing both gives you the display at either angle.
 
 Assemble in this order: snap the socket into the flat back, glue the
 magnets in flush with the boss undersides, screw the four steel screws

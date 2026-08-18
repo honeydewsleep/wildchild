@@ -86,8 +86,31 @@ ang_end    = 57.78;   // +/-Y end faces
 // It is the same construction as the other four faces; only its wall
 // thickness differs (back_pan_t, to suit the snap-in socket).
 back_flat   = !is_orig;   // replica stays faithful to the donor
-back_flat_h = 26.00;  // panel height above the desk, in use
-back_cut_a  = 45.00;  // 45 deg is what makes it vertical in use
+
+// Which rest position the facet is tuned for. A facet can only be
+// square to ONE of the two rest faces - they are 77.68 deg apart - and
+// square is what makes the panel stand vertical and the socket clear
+// the desk. So there is a variant per position.
+//
+//   "flat45"  - facet perpendicular to the 45 deg face, so the panel is
+//               vertical when the stand sits at 45 deg. But it eats the
+//               57.3 deg face down to a 19 mm patch, which is why the
+//               stand tips backwards if you try to stand it upright.
+//
+//   "upright" - facet perpendicular to the 57.3 deg face instead. That
+//               cut runs almost parallel to the face it is trimming, so
+//               it barely shortens it: the upright patch goes 19 -> 42
+//               mm and the panel stands vertical THERE.
+//
+// Both cuts happen to land at |angle| > 45, which matters: the inside
+// of the panel is a ceiling over the cavity at exactly |back_cut_a|
+// from horizontal. At 45 and 32.7 deg a 0.2 mm layer steps out 0.2 and
+// 0.31 mm, which prints. Middle angles look tempting for a one-part
+// compromise but sag - at 10 deg the step is 1.13 mm.
+variant     = "flat45";
+is_upright  = (variant == "upright");
+back_cut_a  = is_upright ? ang_back - 90 : 90 - ang_front;
+back_flat_h = is_upright ? 16.00 : 26.00;   // facet length
 
 // Corner reliefs. The original needs them: its Ø6.8 pockets sit 2.05 mm
 // inboard of the pocket corners and scallop into the corner mass. The
@@ -179,26 +202,40 @@ apex_z  = skirt_h + apex_dz;
 // magnet seat: just clear of the screw heads standing on the module back
 mag_face_z = mod_back_z + ret_head_h + mag_gap;
 
-// Back-flat geometry. The cut plane is z - x = back_D. Where it meets
-// the front and back faces gives the facet's two ends; the distance
-// between them, times sqrt(2), is the panel height in use. Inverting
-// that gives back_D for a wanted height.
+// Back-flat geometry, for ANY cut angle. The facet plane is
+//   -sin(a)x + cos(a)z = dc
+// and its two ends are where that meets the front and back faces. Both
+// ends are affine in dc, so the facet's length is too - sample it at
+// dc = 0 and 1 and invert to get the dc for a wanted length.
 front_d = sin(ang_front)*outer[0]/2 + cos(ang_front)*skirt_h;
 back_d  = sin(ang_back) *outer[0]/2 + cos(ang_back) *skirt_h;
-cA = front_d / (sin(ang_front) + cos(ang_front));
-cB = cos(ang_front) / (sin(ang_front) + cos(ang_front));
-cC = back_d / (cos(ang_back) - sin(ang_back));
-cE = cos(ang_back) / (cos(ang_back) - sin(ang_back));
-back_D    = ((cA - cC) - back_flat_h/sqrt(2)) / (cB - cE);
-back_cut  = back_D - skirt_h;          // x-intercept at z = skirt_h
-// facet corner where it meets the 45 deg face - i.e. the panel's foot,
-// which sits right on the desk
-facet_x = cA - cB*back_D;
-facet_z = facet_x + back_D;
-// bore centre: up the panel from that foot, "up in use" being
-// (-sin45, 0, -cos45) in part coordinates
-usb_x   = facet_x - usb_h*cos(back_cut_a);
-usb_z   = facet_z - usb_h*cos(back_cut_a);
+
+function fct_fx(dc) = (front_d*cos(back_cut_a) - cos(ang_front)*dc)
+                      / sin(ang_front + back_cut_a);
+function fct_fz(dc) = (sin(ang_front)*dc + sin(back_cut_a)*front_d)
+                      / sin(ang_front + back_cut_a);
+function fct_bx(dc) = (back_d*cos(back_cut_a) - cos(ang_back)*dc)
+                      / sin(back_cut_a - ang_back);
+function fct_bz(dc) = (-sin(ang_back)*dc + sin(back_cut_a)*back_d)
+                      / sin(back_cut_a - ang_back);
+function fct_len(dc) = norm([fct_fx(dc) - fct_bx(dc),
+                             fct_fz(dc) - fct_bz(dc)]);
+
+back_L0 = fct_len(0);
+back_L1 = fct_len(1);
+back_dc = (back_flat_h - back_L0) / (back_L1 - back_L0);
+
+// the facet's two ends: "front foot" sits on the desk in the 45 deg
+// rest, "back foot" sits on it in the 57.3 deg rest
+facet_fx = fct_fx(back_dc);  facet_fz = fct_fz(back_dc);
+facet_bx = fct_bx(back_dc);  facet_bz = fct_bz(back_dc);
+
+// Socket centre. usb_h is its height above the desk in the variant's
+// own rest position, so it is measured from whichever foot is down
+// there: the front foot at 45 deg, the back foot when upright.
+usb_up  = is_upright ? back_flat_h - usb_h : usb_h;
+usb_x   = facet_fx - usb_up*cos(back_cut_a);
+usb_z   = facet_fz - usb_up*sin(back_cut_a);
 
 echo(str("outer = ", outer, "  apex z = ", apex_z, "  apex x = ", apex_x));
 echo(str("magnet seat z = ", mag_face_z, "  usb bore centre = [", usb_x, ",", usb_y, ",", usb_z, "]"));
@@ -232,10 +269,11 @@ module wedge(foot, r, inset = 0, z0 = 0) {
         rotate([0,0, 90]) halfspace_x(outer[1]/2 - inset/sin(ang_end),  skirt_h, ang_end);
         rotate([0,0,-90]) halfspace_x(outer[1]/2 - inset/sin(ang_end),  skirt_h, ang_end);
         // fifth plane uses the panel's own thickness, not roof_t
+        // fifth plane, positioned by a point on it so any angle works
         if (back_flat)
-            mirror([1,0,0]) halfspace_x(back_cut - (inset > 0 ? back_pan_t : 0)
-                                                   /sin(back_cut_a),
-                                        skirt_h, back_cut_a);
+            mirror([1,0,0])
+                halfspace_x(0, (back_dc - (inset > 0 ? back_pan_t : 0))
+                               / cos(back_cut_a), back_cut_a);
     }
 }
 

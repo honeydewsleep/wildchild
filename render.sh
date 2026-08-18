@@ -54,7 +54,8 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
         | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
     # display wedge stand (separate part, not the lamp) - see
     # docs/screen-stand-jc3248w535.md
-    stl screen_stand_jc3248w535 screen_stand/stand.scad display jc3248w535
+    stl screen_stand_jc3248w535 screen_stand/stand.scad variant flat45
+    stl screen_stand_jc3248w535_upright screen_stand/stand.scad variant upright
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then
