@@ -58,7 +58,22 @@ is_orig  = (display == "orig43");
 
 body     = is_orig ? o_body   : g_body;
 wall     = is_orig ? o_wall   : g_wall;
-r_out    = is_orig ? o_r_out  : g_r_out;
+// Edge treatment. The geometry is identical in all three; only how the
+// OUTER solid's edges are finished differs. Cavity, socket cutout and
+// magnet pockets are subtracted afterwards either way, so every fit is
+// untouched.
+//   "crisp" - as designed: flat facets, plan corners rounded r4
+//   "sharp" - plan corners taken to zero as well, so the shell is
+//             nothing but flat facets meeting on hard lines (low-poly)
+//   "soft"  - every outer edge broken by soft_r. Done by shrinking the
+//             solid by soft_r and Minkowski-summing a sphere back on:
+//             for a convex solid that returns each face to exactly its
+//             original plane and rounds only the edges between them, so
+//             the outside dimensions do not move.
+edges    = "crisp";
+soft_r   = 1.20;
+
+r_out    = (edges == "sharp") ? 0 : (is_orig ? o_r_out : g_r_out);
 r_in     = is_orig ? o_r_in   : g_r_in;
 relief   = is_orig ? o_relief : g_relief;
 
@@ -117,7 +132,7 @@ back_flat   = !is_orig;   // replica stays faithful to the donor
 //    0.0 deg -> flat, so it is a BRIDGE      prints clean (12.8 mm span)
 // The band to avoid is shallow-but-not-flat: at 10 deg the step is
 // 1.13 mm and it sags, right behind the socket.
-variant     = "flat45";
+variant     = "parallel";   // the standard
 is_upright  = (variant == "upright");
 is_parallel = (variant == "parallel");
 back_cut_a  = is_upright  ? ang_back - 90
@@ -286,7 +301,8 @@ module halfspace_x(px, pz, ang) {
 //           is exactly how the inner face of a constant-thickness roof
 //           sits. The planes are always derived from `outer`, never
 //           from `foot`, so roof thickness stays equal to `inset`.
-module wedge(foot, r, inset = 0, z0 = 0) {
+module wedge(foot, r, inset = 0, z0 = 0, pan = -1) {
+    pan_i = (pan < 0) ? inset : pan;
     intersection() {
         translate([0, 0, z0]) linear_extrude(ztop - z0) rrect(foot[0], foot[1], r);
                          halfspace_x(outer[0]/2 - inset/sin(ang_front), skirt_h, ang_front);
@@ -297,8 +313,8 @@ module wedge(foot, r, inset = 0, z0 = 0) {
         // fifth plane, positioned by a point on it so any angle works
         if (back_flat)
             mirror([1,0,0])
-                halfspace_x(0, (back_dc - (inset > 0 ? back_pan_t : 0))
-                               / cos(back_cut_a), back_cut_a);
+                halfspace_x(0, (back_dc - pan_i) / cos(back_cut_a),
+                            back_cut_a);
     }
 }
 
@@ -327,7 +343,7 @@ module mag_bosses() {
         translate([0, 0, mag_face_z])
             linear_extrude(mag_l + 1.5)
                 for (sx = [-1, 1], sy = [-1, 1]) mag_pad(sx, sy);
-        wedge(outer, r_out);
+        outer_solid();
     }
 }
 
@@ -349,6 +365,24 @@ module usb_bore() {
                             usb_cut[0] - 2*usb_cut_r], center = true);
 }
 
+// The outer shell. "soft" shrinks it by soft_r on every face and puts
+// the radius back as a sphere; the z>=0 trim keeps the bed face flat and
+// its edge crisp, which is what the module's bezel seats against.
+module outer_solid() {
+    if (edges == "soft")
+        intersection() {
+            minkowski() {
+                wedge([outer[0] - 2*soft_r, outer[1] - 2*soft_r],
+                      max(0.01, r_out - soft_r),
+                      inset = soft_r, pan = soft_r);
+                sphere(r = soft_r, $fn = 48);
+            }
+            translate([-BIG/2, -BIG/2, 0]) cube(BIG);
+        }
+    else
+        wedge(outer, r_out);
+}
+
 /* -------------------------------------------------------------- */
 /* the part                                                        */
 /* -------------------------------------------------------------- */
@@ -357,7 +391,7 @@ module stand() {
     union() {
       if (mag_on) mag_bosses();
       difference() {
-        wedge(outer, r_out);
+        outer_solid();
 
         // Cavity = straight display pocket for the full skirt height,
         // then the roof cavity above it. The step where they meet is
@@ -365,7 +399,8 @@ module stand() {
         union() {
             translate([0, 0, -EPS])
                 linear_extrude(skirt_h + EPS) rrect(body[0], body[1], r_in);
-            wedge(body, r_in, inset = roof_t, z0 = skirt_h);
+            wedge(body, r_in, inset = roof_t, z0 = skirt_h,
+                  pan = back_pan_t);
         }
 
         // corner reliefs so the module's corner bosses drop in clean

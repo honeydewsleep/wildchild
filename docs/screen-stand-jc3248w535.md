@@ -1,9 +1,14 @@
 # Display wedge stand — Guition JC3248W535C (3.5")
 
-`scad/screen_stand/stand.scad` →
-`stl/screen_stand_jc3248w535.stl` (sits at 45°),
-`..._upright.stl` (stands at 57.3°),
-`..._parallel.stl` (back parallel to the screen, stable at both)
+All from `scad/screen_stand/stand.scad`:
+
+| STL | what it is |
+|---|---|
+| `screen_stand_jc3248w535.stl` | **the standard** — back parallel to the screen, stable at both angles |
+| `..._lowpoly.stl` | standard, every plan corner taken to zero — all flat facets |
+| `..._soft.stl` | standard, every outer edge broken by 1.2 mm |
+| `..._flat45.stl` | earlier variant, panel vertical sitting at 45° |
+| `..._upright.stl` | earlier variant, panel vertical standing at 57.3° |
 
 A re-dimensioned version of the "4.3 inch Screen Stand" wedge, rebuilt
 parametrically so it fits the Guition JC3248W535C instead of the 4.3"
@@ -11,13 +16,10 @@ module. Screen sits **landscape** (module long axis horizontal), which
 is the same module→wedge mapping the original uses.
 
 ```bash
+./render.sh stl                       # all five, or one at a time:
 openscad -o stl/screen_stand_jc3248w535.stl \
-    -D 'variant="flat45"'  scad/screen_stand/stand.scad
-openscad -o stl/screen_stand_jc3248w535_upright.stl \
-    -D 'variant="upright"' scad/screen_stand/stand.scad
-openscad -o stl/screen_stand_jc3248w535_parallel.stl \
-    -D 'variant="parallel"' scad/screen_stand/stand.scad
-python3 scripts/stl2bin.py stl/*.stl
+    -D 'variant="parallel"' -D 'edges="crisp"' scad/screen_stand/stand.scad
+python3 scripts/stl2bin.py stl/*.stl   # OpenSCAD writes ASCII
 ```
 
 ## Why it is a rebuild and not a scale factor
@@ -194,6 +196,33 @@ All three shipped cuts are fine; it is the shallow-but-not-flat band in
 between that fails, and it fails directly behind the socket where the
 snap-in needs a clean 2.00 mm panel. `back_cut_a` takes any angle if you
 want to explore it.
+
+### Edge treatment
+
+`edges` finishes the outer shell three ways. The geometry underneath is
+the same in all three, and the cavity, socket cutout and magnet pockets
+are subtracted *afterwards* in every case, so no fit changes.
+
+| `edges` | what it does | tris |
+|---|---|---|
+| `crisp` | as designed — flat facets, plan corners at r4 | 1680 |
+| `sharp` | plan corners to zero as well: nothing but flat facets on hard lines | 1420 |
+| `soft` | every outer edge broken by `soft_r` = 1.2 | 3800 |
+
+`soft` is not a chamfer pass. The outer shell is a convex solid, so it
+is shrunk by `soft_r` on every face and a sphere of that radius is
+Minkowski-summed back on — which returns each face to *exactly* its
+original plane and rounds only the edges between them. The outside
+dimensions therefore do not move: measured 63.095 × 95.095 × 35.254
+against the standard's 63.100 × 95.100 × 35.257, the 5 µm being the
+48-facet sphere.
+
+Two details make it printable. The result is trimmed at z ≥ 0, so the
+bed face stays flat and full-size and its edge stays crisp — that edge
+is what the module's bezel seats against, and rounding it would have
+eaten into the 1.45 mm of seat. And because every rounded edge is
+convex and upward-facing, the overhang audit is unchanged across all
+three: same 2000 mm², same z range, nothing new below 45°.
 
 ### The socket opening
 
