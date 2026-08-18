@@ -73,6 +73,18 @@ wall     = is_orig ? o_wall   : g_wall;
 edges    = "crisp";
 soft_r   = 1.20;
 
+// Faceted side panels. Splits each +/-Y end into TWO slopes meeting at a
+// crease instead of one, which adds a hard angle change down each side.
+// Both planes go into the cavity as well as the outer solid - the shell
+// is the gap between the two, so a plane added to only one of them would
+// thin or breach the 2.5 mm wall. Cutting into the outer alone is not an
+// option here: there is only 2.5 mm to give before the cavity, which is
+// why this is done as roof geometry rather than as a surface treatment.
+end_facet   = false;
+ang_end_lo  = 80.00;  // lower slope, near-vertical flank
+end_crease_z= 24.00;  // height of the crease - the shoulder line
+ang_end_hi  = 35.00;  // upper slope, folding hard away from it
+
 r_out    = (edges == "sharp") ? 0 : (is_orig ? o_r_out : g_r_out);
 r_in     = is_orig ? o_r_in   : g_r_in;
 relief   = is_orig ? o_relief : g_relief;
@@ -234,6 +246,12 @@ screws     = [52.25, 84.50];   // corner insert grid, from the wall mount
 outer   = [body[0] + 2*wall[0], body[1] + 2*wall[1]];
 ztop    = skirt_h + 2*max(outer[0], outer[1]);   // scratch height
 
+// Crease point of the faceted ends: where the lower slope has got to by
+// end_crease_z, which is where the upper slope starts from.
+end_d_lo    = sin(ang_end_lo)*outer[1]/2 + cos(ang_end_lo)*skirt_h;
+end_yc      = (end_d_lo - cos(ang_end_lo)*end_crease_z) / sin(ang_end_lo);
+
+
 // apex of the two X-facing planes (ridge line height and position)
 apex_dz = outer[0] / (1/tan(ang_front) + 1/tan(ang_back));
 apex_x  = outer[0]/2 - apex_dz/tan(ang_front);
@@ -307,8 +325,15 @@ module wedge(foot, r, inset = 0, z0 = 0, pan = -1) {
         translate([0, 0, z0]) linear_extrude(ztop - z0) rrect(foot[0], foot[1], r);
                          halfspace_x(outer[0]/2 - inset/sin(ang_front), skirt_h, ang_front);
         mirror([1,0,0])  halfspace_x(outer[0]/2 - inset/sin(ang_back),  skirt_h, ang_back);
-        rotate([0,0, 90]) halfspace_x(outer[1]/2 - inset/sin(ang_end),  skirt_h, ang_end);
-        rotate([0,0,-90]) halfspace_x(outer[1]/2 - inset/sin(ang_end),  skirt_h, ang_end);
+        // NB one plane per if - braces would group them, and a group
+        // inside intersection() is the UNION of its children, which
+        // silently stops them cutting anything.
+        if (!end_facet) rotate([0,0, 90]) halfspace_x(outer[1]/2 - inset/sin(ang_end), skirt_h, ang_end);
+        if (!end_facet) rotate([0,0,-90]) halfspace_x(outer[1]/2 - inset/sin(ang_end), skirt_h, ang_end);
+        if ( end_facet) rotate([0,0, 90]) halfspace_x(outer[1]/2 - inset/sin(ang_end_lo), skirt_h, ang_end_lo);
+        if ( end_facet) rotate([0,0,-90]) halfspace_x(outer[1]/2 - inset/sin(ang_end_lo), skirt_h, ang_end_lo);
+        if ( end_facet) rotate([0,0, 90]) halfspace_x(end_yc - inset/sin(ang_end_hi), end_crease_z, ang_end_hi);
+        if ( end_facet) rotate([0,0,-90]) halfspace_x(end_yc - inset/sin(ang_end_hi), end_crease_z, ang_end_hi);
         // fifth plane uses the panel's own thickness, not roof_t
         // fifth plane, positioned by a point on it so any angle works
         if (back_flat)

@@ -65,6 +65,16 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
             scad/screen_stand/stand.scad 2>&1 \
             | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
     done
+    echo "== stl/screen_stand_jc3248w535_softer.stl"
+    openscad -o stl/screen_stand_jc3248w535_softer.stl \
+        -D 'variant="parallel"' -D 'edges="soft"' -D 'soft_r=3.0' \
+        scad/screen_stand/stand.scad 2>&1 \
+        | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
+    echo "== stl/screen_stand_jc3248w535_lowpoly_faceted.stl"
+    openscad -o stl/screen_stand_jc3248w535_lowpoly_faceted.stl \
+        -D 'variant="parallel"' -D 'edges="sharp"' -D 'end_facet=true' \
+        scad/screen_stand/stand.scad 2>&1 \
+        | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then

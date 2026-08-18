@@ -7,6 +7,8 @@ All from `scad/screen_stand/stand.scad`:
 | `screen_stand_jc3248w535.stl` | **the standard** — back parallel to the screen, stable at both angles |
 | `..._lowpoly.stl` | standard, every plan corner taken to zero — all flat facets |
 | `..._soft.stl` | standard, every outer edge broken by 1.2 mm |
+| `..._softer.stl` | same, broken by 3.0 mm |
+| `..._lowpoly_faceted.stl` | low-poly with each side panel split into two slopes |
 | `..._flat45.stl` | earlier variant, panel vertical sitting at 45° |
 | `..._upright.stl` | earlier variant, panel vertical standing at 57.3° |
 
@@ -16,7 +18,7 @@ module. Screen sits **landscape** (module long axis horizontal), which
 is the same module→wedge mapping the original uses.
 
 ```bash
-./render.sh stl                       # all five, or one at a time:
+./render.sh stl                       # all seven, or one at a time:
 openscad -o stl/screen_stand_jc3248w535.stl \
     -D 'variant="parallel"' -D 'edges="crisp"' scad/screen_stand/stand.scad
 python3 scripts/stl2bin.py stl/*.stl   # OpenSCAD writes ASCII
@@ -208,6 +210,7 @@ are subtracted *afterwards* in every case, so no fit changes.
 | `crisp` | as designed — flat facets, plan corners at r4 | 1680 |
 | `sharp` | plan corners to zero as well: nothing but flat facets on hard lines | 1420 |
 | `soft` | every outer edge broken by `soft_r` = 1.2 | 3800 |
+| `soft`, `soft_r = 3.0` | as far as the radius can go before the socket's flat seat gets tight | 3268 |
 
 `soft` is not a chamfer pass. The outer shell is a convex solid, so it
 is shrunk by `soft_r` on every face and a sphere of that radius is
@@ -223,6 +226,32 @@ is what the module's bezel seats against, and rounding it would have
 eaten into the 1.45 mm of seat. And because every rounded edge is
 convex and upward-facing, the overhang audit is unchanged across all
 three: same 2000 mm², same z range, nothing new below 45°.
+
+### Faceted side panels
+
+`end_facet` splits each ±Y end into **two** slopes instead of one — a
+near-vertical 80° flank up to a shoulder at z 24, then a hard fold to a
+shallow 35° above it. It reads as a deliberate architectural break down
+each side rather than the single 57.78° plane.
+
+It has to be done as roof geometry, not as a surface treatment. There is
+only 2.5 mm between the outer skin and the cavity, so cutting a facet
+into the outer alone would thin or breach the wall within about 1.5 mm —
+nowhere near enough to see. Instead both new planes go into the cavity
+too, exactly like the other five, and the shell thickness comes out of
+the shared `inset` as usual.
+
+Costs, measured: bounding box unchanged; the flat back narrows 62.0 →
+57.7 mm, still far more than the 13.6 mm socket needs; tipping margins
+7.7/7.2 → 7.5/6.9. The upper 35° slope puts its inner face at 35° from
+horizontal — 0.29 mm of step per 0.2 mm layer, the same order as the
+32.7° panel ceiling the `upright` variant already prints.
+
+One OpenSCAD trap worth recording: the alternative planes were first
+written as `if (...) { A; B; } else { C; D; }` inside `intersection()`.
+Braces make a **group**, and a group inside `intersection()` is the
+*union* of its children — so the planes silently stopped cutting and the
+flat back came out full width. One plane per `if`, no braces.
 
 ### The socket opening
 
