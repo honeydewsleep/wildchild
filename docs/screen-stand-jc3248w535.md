@@ -86,8 +86,8 @@ back is a closed roof with nothing to screw against.
 | rim wall | 2.00 | wall mount |
 | roof | 2.500 | original |
 | face angles | 45.00° / 57.32° / 57.78° | original, held constant |
-| flat back | 26.0 mm (`flat45`) / 16.0 mm (`upright`) | squares off the apex |
-| USB-C socket | 13.60 × 5.50 cutout, 8.95 up the flat back | copied from the 45° base STL |
+| flat back | 26.0 / 16.0 / 20.0 mm by variant | squares off the apex |
+| USB-C socket | 13.60 × 5.50 cutout | copied from the 45° base STL |
 | magnet bosses | 4 × Ø6.2 × 3.0, seat z 7.00 | corner insert grid |
 
 Angles are held rather than scaled: they are what the stand *is*, and
@@ -113,7 +113,7 @@ The donor routes its cable through a 10 mm trough cut clean through the
 **rectangular snap-in panel-mount USB-C socket** sits in a flat back
 panel, and a short jumper inside the shell feeds the module.
 
-### The flat back, and why there are two variants
+### The flat back, and why there are three variants
 
 The wedge's apex is the corner where the 45° and 57.3° faces meet, and
 it lies *on the desk* in whichever position the stand is in. Truncating
@@ -125,7 +125,8 @@ Cut that plane **perpendicular to one of the rest faces** and the panel
 comes out exactly vertical when the stand sits on that face, which is
 what puts the socket square-on and its cable horizontal. But a plane
 can only be perpendicular to one of them: the two rest faces are
-**77.68° apart**. Hence a variant per position.
+**77.68° apart**. Hence a variant per position, plus a third that is
+square to neither and works in both.
 
 | | `flat45` | `upright` | `parallel` |
 |---|---|---|---|
@@ -150,7 +151,7 @@ behind the patch. Cutting perpendicular to the *back* face instead runs
 nearly parallel to it, so it barely shortens it — 42.2 mm — while doing
 the same trimming job on the front face that `flat45` did on the back.
 
-Both variants keep the display pocket, magnets, closed rim and socket
+All three variants keep the display pocket, magnets, closed rim and socket
 opening identical. Each stands in *both* positions; what differs is
 which one the socket is usable in, since the panel lies nearly flat
 against the desk in the other.
