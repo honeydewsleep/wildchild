@@ -71,6 +71,21 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     sstand lowpoly_faceted -D 'edges="sharp"'  -D 'end_facet=true'   # + faceted sides
     sstand flat45          -D 'edges="crisp"'  -D 'variant="flat45"'
     sstand upright         -D 'edges="crisp"'  -D 'variant="upright"'
+    # Cheap Yellow Display forks. Same wedge, same soft r3.0 finish, but
+    # a bare PCB instead of a finished module: each is a two-part print,
+    # the tub plus a face piece that provides the bezel and traps the
+    # board. See docs/screen-stand-jc3248w535.md.
+    cyd() {  # cyd <board>
+        for pt in stand face; do
+            n="screen_stand_$1${pt:+$([ "$pt" = face ] && echo _face)}"
+            echo "== stl/$n.stl"
+            openscad -o "stl/$n.stl" -D "display=\"$1\"" -D "part=\"$pt\"" \
+                scad/screen_stand/stand.scad 2>&1 \
+                | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
+        done
+    }
+    cyd cyd28      # 2.8" ESP32-2432S028R
+    cyd cyd40      # 4.0" ESP32-4832S040
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then

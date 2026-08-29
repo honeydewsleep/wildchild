@@ -56,8 +56,88 @@ o_relief = [61.00, 108.15];   // Ø6.8 corner reliefs at +/-30.5, +/-54.075
 
 is_orig  = (display == "orig43");
 
-body     = is_orig ? o_body   : g_body;
+// Sunton/QDtech "Cheap Yellow Display" boards. Unlike the Guition
+// these are BARE PCBs - the LCD is bonded to the front and there is no
+// bezel to land on a rim - so they need a separate face piece, and the
+// board is held by screws through its own four mounting holes rather
+// than by the pocket walls.
+//
+// Every number below is off the maker's own LCM OUTLINE drawing
+// (ShenZhen QDtech), not measured or inferred:
+//   2.8" ESP32-2432S028R = QDtech E32R28T, drawing rev V1.0 2024-08-31
+//   4.0" ESP32-4832S040  = QDtech E32R40T, drawing rev V1.0 2025-04-15
+// Cross-checked against the user's Front_Panel__Symmetrical_Bezel.stl,
+// which is cut for the 2.8": its screw grid measures 78.4 x 42.0 against
+// the drawing's 78.00 x 42.00, and its window sits 2.90 mm off the panel
+// centre - exactly the drawing's active-area offset. Independent
+// agreement on the one number the whole bezel hangs off.
+//
+//   pcb    PCB outline                     [across, along]
+//   hole   mounting-hole grid, 4 x Ø3.20, centred on the PCB both ways
+//   glass  LCD BL outline - the glass the face piece lands on
+//   vis    RTP VA, the visible window. The aperture may not go inside
+//          this or it crops what the user can see.
+//   off    the ONE asymmetry: the display sits this far toward the
+//          ESP32 end of the PCB, so the board centre is -off from the
+//          screen centre. Everything across the short axis is centred.
+//   stack  [pcb_t, front total, max SMD height on the back]
+c28_pcb   = [50.00,  86.00];   c40_pcb   = [60.88, 111.11];
+c28_hole  = [42.00,  78.00];   c40_hole  = [53.28, 104.11];
+c28_glass = [50.00,  69.20];   c40_glass = [60.88,  94.57];
+c28_vis   = [45.20,  59.45];   c40_vis   = [56.88,  85.22];
+c28_off   =   2.90;            c40_off   =   2.875;
+c28_stack = [1.60, 5.60, 5.09];  c40_stack = [1.60, 5.65, 5.09];
+
+is_cyd   = (display == "cyd28" || display == "cyd40");
+is_c40   = (display == "cyd40");
+c_pcb    = is_c40 ? c40_pcb   : c28_pcb;
+c_hole   = is_c40 ? c40_hole  : c28_hole;
+c_glass  = is_c40 ? c40_glass : c28_glass;
+c_vis    = is_c40 ? c40_vis   : c28_vis;
+c_off    = is_c40 ? c40_off   : c28_off;
+c_stack  = is_c40 ? c40_stack : c28_stack;
+pcb_t    = c_stack[0];      // 1.60
+stack_t  = c_stack[1];      // front face of PCB to front of glass + pcb
+glass_h  = stack_t - pcb_t; // how far the glass stands proud of the PCB
+smd_h    = c_stack[2];
+
+// Board centre relative to the FRAME centre. The frame is centred on
+// the screen (that is what makes the bezel symmetric), so the board
+// hangs off toward its ESP32/USB end by exactly the display offset.
+board_dy = -c_off;
+
+/* -------------------------------------------------------------- */
+/* thin symmetrical bezel                                          */
+/* -------------------------------------------------------------- */
+// The whole point of the CYD variants. "Symmetrical" here means
+// opposite pairs match - left = right, top = bottom - with each pair
+// squeezed to its own minimum, rather than one uniform frame all round
+// (which the long axis would force out to ~18 mm on every edge).
+//
+// Two things set the minimum, and nothing else is free:
+//   inner edge  the aperture cannot go inside the visible area, so it
+//               is vis + 2*ap_clr and no smaller.
+//   outer edge  the frame must still cover the PCB. Centred on the
+//               screen, the board reaches pcb/2 + off on its far side,
+//               so the half-width is that plus clearance plus wall.
+// Everything between those two is bezel, and it falls out - there is
+// no bezel width parameter to tune, which is the point.
+ap_clr   = 0.20;   // per side, aperture vs visible area
+pcb_clr  = 0.25;   // per side, PCB vs pocket wall
+aperture = [c_vis[0] + 2*ap_clr, c_vis[1] + 2*ap_clr];
+ap_r     = 1.50;   // aperture corner radius
+ap_cham  = 0.60;   // chamfer round the front of the window
+
+
+
 wall     = is_orig ? o_wall   : g_wall;
+// CYD: the outer is derived from the board and the offset, then the
+// pocket falls out of it - the reverse of the Guition path, where the
+// module's known body sets the pocket and the outer follows.
+cyd_outer = [c_pcb[0] + 2*(pcb_clr + wall[0]),
+             c_pcb[1] + 2*(pcb_clr + wall[1]) + 2*c_off];
+body     = is_cyd  ? [cyd_outer[0] - 2*wall[0], cyd_outer[1] - 2*wall[1]]
+         : is_orig ? o_body : g_body;
 // Edge treatment. The geometry is identical in all three; only how the
 // OUTER solid's edges are finished differs. Cavity, socket cutout and
 // magnet pockets are subtracted afterwards either way, so every fit is
@@ -99,7 +179,13 @@ relief   = is_orig ? o_relief : g_relief;
 /* -------------------------------------------------------------- */
 /* shell - all of these are held constant from the original        */
 /* -------------------------------------------------------------- */
-skirt_h    = 9.00;    // pocket depth / height of the vertical skirt
+// Pocket depth / height of the vertical skirt. The Guition module is a
+// finished 7.25 mm body so 9.00 holds it; a CYD is a stack - glass
+// proud of the PCB, the PCB, then up to 5.09 mm of SMD on its back -
+// and the screw posts have to finish inside the skirt too, so it is
+// driven rather than chosen: stack_t + smd_h = 10.69 to clear the
+// board, stack_t + post_h = 11.60 to contain the posts.
+skirt_h    = is_cyd ? 12.00 : 9.00;
 roof_t     = 2.50;    // roof wall thickness, measured along its normal
 ang_front  = 45.00;   // +X face - the shallow rest face (45 deg tilt)
 ang_back   = 57.32;   // -X face - the upright rest face  (57 deg tilt)
@@ -182,10 +268,21 @@ trough_on  = is_orig;
 // panel-mount socket in the flat back, nothing needs to pass through
 // the rim, so the skirt stays unbroken all the way round. Set true if
 // you ever need a jumper to reach a connector on the module's edge.
-port_on    = false;
-port_w     = 13.00;
-port_h     = skirt_h; // full skirt height
+// A thin bezel leaves no room inside for a panel-mount socket and its
+// internal lead - the pocket wall sits 0.25 mm off the board edge - so
+// the CYDs give up the flat-back socket and use the board's own USB-C,
+// straight through the end wall it already sits against. That end is
+// the -Y one: the board hangs that way by c_off, so its tail is right
+// up against the wall while the +Y end carries the slack. Centred on
+// the board width, per the drawing's back view.
+cyd_port_w = 13.00;
+cyd_port_h =  7.50;
+cyd_port_z = stack_t + 0.90 - cyd_port_h/2;   // straddles the connector
+port_on    = is_cyd;
+port_w     = is_cyd ? cyd_port_w : 13.00;
+port_h     = is_cyd ? cyd_port_h : skirt_h;
 port_x     = 0.00;    // offset along the edge from centre
+port_z     = is_cyd ? cyd_port_z : 0.00;   // bottom of the opening
 port_end   = -1;      // -1 = -Y wall, +1 = +Y wall
 
 /* -------------------------------------------------------------- */
@@ -205,7 +302,7 @@ port_end   = -1;      // -1 = -Y wall, +1 = +Y wall
 // That donor panel is 2.00 mm where our roof is 2.50, and a snap-in
 // socket grips a panel thickness rather than clamping any thickness
 // like a nut does - so the flat back is thinned to 2.00 to match.
-usb_on     = !is_orig;
+usb_on     = !is_orig && !is_cyd;   // CYD feeds through the end wall
 usb_cut    = [13.60, 5.50];  // [across the panel, up the panel]
 usb_cut_r  =  1.20;
 // Socket height up the panel. The square-cut variants take the donor's
@@ -229,7 +326,7 @@ back_pan_t =  2.00;   // flat back wall thickness (donor's panel)
 // can't reach them", since the screws are fitted with the module in
 // hand and never touched again. The heads are then the ferrous targets
 // for these four magnets.
-mag_on     = !is_orig;
+mag_on     = !is_orig && !is_cyd;   // CYD is screwed, not magnetic
 mag_d      =  6.00;
 mag_l      =  3.00;
 mag_clr    =  0.20;   // pocket diameter = mag_d + mag_clr
@@ -246,6 +343,37 @@ ret_head_h =  1.65;   // M3 button head, ISO 7380. Pan head = 2.1,
                       // magnet toward the 45 deg roof, so drop mag_l
                       // to 2.00 if you use a socket cap screw.
 screws     = [52.25, 84.50];   // corner insert grid, from the wall mount
+
+/* -------------------------------------------------------------- */
+/* face piece and screw posts (CYD only)                           */
+/* -------------------------------------------------------------- */
+// The face piece is NOT a separate object bolted onto the front - it
+// is the front slice of the same solid. The outer is extruded from
+// z = -face_t instead of z = 0 and then cut at z = 0, so the plate
+// carries the identical rounded-rect outline and the identical soft
+// edge, and the parting line lands flush all the way round. Building
+// it as its own part would mean matching the Minkowski result by hand.
+//
+// The z >= z_front trim that keeps the bed face flat now applies to
+// the plate's front instead of the body's rim, so the screen face is
+// flat and crisp - which is what you want around a window - and every
+// other edge stays soft.
+face_t   = 2.40;                  // visible plate thickness
+z_front  = is_cyd ? -face_t : 0;  // where the solid starts
+
+// Assembly stack, from the plate's back face at z = 0:
+//   0 .. glass_h    the LCD standing proud of the PCB; the plate lands
+//                   on the glass, and a collar at each screw carries
+//                   the load down to the PCB so tightening cannot bow
+//                   the plate across the 4 mm air gap.
+//   .. stack_t      the PCB
+//   stack_t ..      the post, which the screw threads into.
+col_d    = 6.50;   // collar OD on the back of the face piece
+scr_clr  = 3.40;   // M3 clearance through plate and collar
+scr_head = 6.00;   // M3 countersunk head, 90 deg
+post_d   = 6.50;
+post_h   = 6.00;   // thread engagement
+post_pilot = 2.50; // M3 self-tapping pilot
 
 /* -------------------------------------------------------------- */
 /* derived                                                         */
@@ -303,6 +431,14 @@ usb_x   = facet_fx - usb_up*cos(back_cut_a);
 usb_z   = facet_fz - usb_up*sin(back_cut_a);
 
 echo(str("outer = ", outer, "  apex z = ", apex_z, "  apex x = ", apex_x));
+if (is_cyd) echo(str("CYD ", display,
+    ": outer = ", outer, "  aperture = ", aperture,
+    "  bezel [across, along] = [", (outer[0]-aperture[0])/2, ", ",
+                                   (outer[1]-aperture[1])/2, "]",
+    "  glass overlap = [", (c_glass[0]-aperture[0])/2, ", ",
+    "near ", (c_glass[1]/2 + board_dy) - aperture[1]/2, "]",
+    "  screws at y = ", board_dy + c_hole[1]/2, " / ",
+                        board_dy - c_hole[1]/2));
 echo(str("magnet seat z = ", mag_face_z, "  usb bore centre = [", usb_x, ",", usb_y, ",", usb_z, "]"));
 
 /* -------------------------------------------------------------- */
@@ -406,13 +542,87 @@ module outer_solid() {
             minkowski() {
                 wedge([outer[0] - 2*soft_r, outer[1] - 2*soft_r],
                       max(0.01, r_out - soft_r),
-                      inset = soft_r, pan = soft_r);
+                      inset = soft_r, z0 = z_front, pan = soft_r);
                 sphere(r = soft_r, $fn = 48);
             }
-            translate([-BIG/2, -BIG/2, 0]) cube(BIG);
+            translate([-BIG/2, -BIG/2, z_front]) cube(BIG);
         }
     else
-        wedge(outer, r_out);
+        wedge(outer, r_out, z0 = z_front);
+}
+
+/* -------------------------------------------------------------- */
+/* CYD screw posts and face piece                                  */
+/* -------------------------------------------------------------- */
+// Post pad. Same trick as the magnet bosses: the seat sits 4 mm inboard
+// of the pocket wall, and everything below it is PCB, so it cannot grow
+// up from the floor. Hulling it out to a foot in EACH wall turns the
+// span into a bridge anchored at both ends instead of a cantilever, and
+// its underside at z = stack_t prints as a flat bridge rather than a
+// sagging ramp.
+module post_pad(sx, sy) {
+    cx = sx*c_hole[0]/2;   cy = board_dy + sy*c_hole[1]/2;
+    ax = sx*(body[0]/2 + wall[0]/2);
+    ay = sy*(body[1]/2 + wall[1]/2);
+    hull() {
+        translate([cx, cy]) circle(d = post_d);
+        translate([ax, cy]) circle(d = 3);
+        translate([cx, ay]) circle(d = 3);
+    }
+}
+
+module posts() {
+    intersection() {
+        translate([0, 0, stack_t])
+            linear_extrude(post_h)
+                for (sx = [-1, 1], sy = [-1, 1]) post_pad(sx, sy);
+        outer_solid();
+    }
+}
+
+module post_pilots() {
+    for (sx = [-1, 1], sy = [-1, 1])
+        translate([sx*c_hole[0]/2, board_dy + sy*c_hole[1]/2, stack_t - EPS])
+            cylinder(h = post_h - 1.0 + EPS, d = post_pilot);
+}
+
+// Window, with a chamfer round its front lip.
+module aperture_cut() {
+    translate([0, 0, z_front - 1])
+        linear_extrude(-z_front + glass_h + 2)
+            rrect(aperture[0], aperture[1], ap_r);
+    hull() {
+        translate([0, 0, z_front - EPS]) linear_extrude(EPS)
+            rrect(aperture[0] + 2*ap_cham, aperture[1] + 2*ap_cham,
+                  ap_r + ap_cham);
+        translate([0, 0, z_front + ap_cham]) linear_extrude(EPS)
+            rrect(aperture[0], aperture[1], ap_r);
+    }
+}
+
+module face_piece() {
+  translate([0, 0, -z_front])       // prints as exported: window face down
+  difference() {
+    union() {
+        intersection() {
+            outer_solid();
+            translate([-BIG/2, -BIG/2, z_front]) cube([BIG, BIG, -z_front]);
+        }
+        // collars down to the PCB, so the screws clamp a solid stack
+        for (sx = [-1, 1], sy = [-1, 1])
+            translate([sx*c_hole[0]/2, board_dy + sy*c_hole[1]/2, 0])
+                cylinder(h = glass_h, d = col_d);
+    }
+    aperture_cut();
+    for (sx = [-1, 1], sy = [-1, 1])
+        translate([sx*c_hole[0]/2, board_dy + sy*c_hole[1]/2, 0]) {
+            translate([0, 0, z_front - 1])
+                cylinder(h = -z_front + glass_h + 2, d = scr_clr);
+            translate([0, 0, z_front - EPS])          // 90 deg countersink
+                cylinder(h = (scr_head - scr_clr)/2 + EPS,
+                         d1 = scr_head, d2 = scr_clr);
+        }
+  }
 }
 
 /* -------------------------------------------------------------- */
@@ -422,6 +632,7 @@ module stand() {
   difference() {
     union() {
       if (mag_on) mag_bosses();
+      if (is_cyd)  posts();
       difference() {
         outer_solid();
 
@@ -450,14 +661,27 @@ module stand() {
         if (port_on)
             translate([port_x - port_w/2,
                        port_end > 0 ? body[1]/2 - 1 : -outer[1]/2 - 1,
-                       -EPS])
-                cube([port_w, wall[1] + 2, port_h + EPS]);
+                       port_z])
+                cube([port_w, wall[1] + 2, port_h]);
       }
     }
 
     if (mag_on) mag_pockets();
+    if (is_cyd) post_pilots();
     if (usb_on) usb_bore();
   }
 }
 
-stand();
+/* -------------------------------------------------------------- */
+/* part selection                                                  */
+/* -------------------------------------------------------------- */
+// "stand" - the tub. "face" - the bezel plate (CYD only); the Guition
+// module brings its own bezel and needs no face piece.
+part = "stand";
+
+if (part == "face") {
+    if (is_cyd) face_piece();
+    else echo("part=\"face\" only exists for the CYD displays");
+} else if (is_cyd) {
+    intersection() { stand(); translate([-BIG/2, -BIG/2, 0]) cube(BIG); }
+} else stand();

@@ -373,3 +373,188 @@ The shipped part was then checked at the mesh level by ray-casting: rim
 solid all round except the trough and the port notch, pocket open over
 the full module footprint, roof intact either side of the trough band
 and closed left of the apex, 0 OpenSCAD warnings.
+
+---
+
+# Cheap Yellow Display forks — 2.8" and 4.0"
+
+Same source file (`display = "cyd28" | "cyd40"`), same wedge, same soft
+r3.0 finish, same `parallel` flat back. What changes is what is being
+held. The Guition is a finished module: it has its own bezel, so the
+stand is a tray and the module's frame lands on the rim. A CYD is a bare
+PCB with the LCD bonded to its front — nothing to land on a rim, nothing
+to hold it in — so each of these is a **two-part print**: the tub, plus a
+face piece that provides the bezel and traps the board.
+
+## Board data
+
+Every number is off the manufacturer's own LCM OUTLINE drawing, not
+measured off a photo and not inferred from the diagonal:
+
+- 2.8" ESP32-2432S028R = QDtech **E32R28T**, rev V1.0, 2024-08-31
+- 4.0" ESP32-4832S040 = QDtech **E32R40T**, rev V1.0, 2025-04-15
+
+| | 2.8" | 4.0" |
+|---|---|---|
+| PCB | 50.00 × 86.00 × 1.60 | 60.88 × 111.11 × 1.60 |
+| hole grid, 4 × Ø3.20 | 42.00 × 78.00 | 53.28 × 104.11 |
+| LCD glass (BL) | 50.00 × 69.20 | 60.88 × 94.57 |
+| visible window (RTP VA) | 45.20 × 59.45 | 56.88 × 85.22 |
+| active area (LCD AA) | 43.20 × 57.60 | 55.68 × 83.52 |
+| front stack / max SMD on back | 5.60 / 5.09 | 5.65 / 5.09 |
+| display offset from PCB centre | 2.90 | 2.875 |
+
+Across the short axis everything on these boards is centred — hole grid,
+glass, visible area, active area all share the PCB centreline. Along the
+long axis only the **hole grid and the glass** are centred; the visible
+and active areas are not. They sit toward the ESP32 end, because the
+bottom of the board has to carry the LCD's own flex tail as well as the
+USB-C and the two buttons. That single offset is the whole reason the
+bezel problem is interesting.
+
+The 2.8" numbers were confirmed independently. The user supplied
+`Front_Panel__Symmetrical_Bezel.stl`, a commercial face piece cut for
+this board; tearing it down gives a screw grid of 78.4 × 42.0 against the
+drawing's 78.00 × 42.00, and its window centre sits 2.90 mm off its screw
+grid centre — exactly the drawing's active-area offset, arrived at from a
+completely different direction.
+
+## Minimum symmetrical bezel
+
+"Symmetrical" here means opposite pairs match — left = right, top =
+bottom — each pair squeezed to its own minimum. Not one uniform frame all
+round: the long axis would force *every* edge out to ~18 mm, and the
+stand would grow with it.
+
+Centre the frame on the **screen**, not on the board. Then only two
+things set the bezel, and neither is a free choice:
+
+- **inner edge** — the aperture may not go inside the visible area or it
+  crops what the user can see. So aperture = VA + 2 × `ap_clr` (0.20 per
+  side) and no smaller.
+- **outer edge** — the frame still has to cover the PCB. Centred on the
+  screen, the board reaches `pcb/2 + offset` on its far side, so the
+  half-width is that plus `pcb_clr` (0.25) plus `wall` (2.00).
+
+Everything between the two is bezel. It falls out of those numbers;
+there is no bezel-width parameter to tune, which is the point.
+
+| | 2.8" | 4.0" |
+|---|---|---|
+| outer | 54.50 × 96.30 | 65.38 × 121.36 |
+| aperture | 45.60 × 59.85 | 57.28 × 85.62 |
+| **bezel across / along** | **4.45 / 18.23** | **4.05 / 17.87** |
+| glass overlap, thinnest edge | 2.20 / 1.78 | 1.80 / 1.60 |
+
+For scale, the commercial 2.8" panel is 100.0 × 58.4 with a 61.2 × 45.6
+window — bezels of 19.4 and 6.4. This is 1.2 mm thinner per side along
+and 1.9 mm thinner across, and it gets there by shrinking the *outer*
+rather than by opening the window wider.
+
+The along-axis figure is ~18 mm on both boards and cannot be improved
+without giving something up. It is not slack: it is the board's own tail
+— ESP32, USB-C, buttons — being covered on one side, and mirrored on the
+other so the frame stays symmetric. Options if it ever matters: let the
+tail poke out through a slot in the end wall (thin frame, visible board),
+or accept an asymmetric frame.
+
+## The face piece is a slice, not a separate object
+
+The plate is not modelled as its own part and bolted on. The outer solid
+is extruded from `z = -face_t` instead of `z = 0` and then cut at
+`z = 0`. So the plate carries the identical rounded-rect outline and the
+identical Minkowski soft edge as the tub, and the parting line lands
+flush all the way round by construction. Drawing it separately would mean
+reproducing a Minkowski result by hand.
+
+The `z >= z_front` trim that keeps the bed face flat now applies to the
+plate's front rather than the tub's rim. That is deliberate: the screen
+face comes out flat and crisp, which is what you want framing a window,
+and every other edge on the assembly stays soft.
+
+## The assembly stack
+
+Measured from the plate's back face at `z = 0`:
+
+| z | what |
+|---|---|
+| 0 → `glass_h` (4.00 / 4.05) | the LCD standing proud of the PCB |
+| → `stack_t` (5.60 / 5.65) | the PCB |
+| `stack_t` → +6.00 | the screw post |
+
+The plate lands on the **glass**, not on the PCB — on these boards the
+glass runs the full board width, so there is no PCB shoulder to press on.
+Away from the glass the plate is 4 mm above the board, so a screw pulled
+down at the corners would bow it. Hence the four collars on the plate's
+back: they carry the load down to the PCB, and the screw clamps a solid
+stack of plate → collar → PCB → post.
+
+The posts have the same problem the magnet bosses had on the Guition:
+the seat sits ~4 mm inboard of the pocket wall and everything below it
+is PCB, so a post cannot grow up from the floor. Same fix — hull the pad
+out to a foot in *each* wall, so the span is a bridge anchored at both
+ends rather than a cantilever, and its underside at `z = stack_t` prints
+as a flat bridge instead of a sagging ramp.
+
+`skirt_h` goes 9.00 → 12.00 for these. It is driven, not chosen:
+`stack_t + smd_h` = 10.69 to clear the components on the back of the
+board, and `stack_t + post_h` = 11.60 to contain the posts.
+
+## Power: no panel-mount socket
+
+The CYDs give up the flat-back socket. A thin bezel leaves no room for
+one — the pocket wall sits 0.25 mm off the board edge, and a panel-mount
+socket needs its internal lead plugged into the board, which wants ~10 mm
+that simply is not there. Keeping the socket would mean growing the
+bezel, i.e. giving up the thing that was asked for.
+
+Instead the board's own USB-C is used, straight through the end wall it
+already sits against. That end is the −Y one: the board hangs that way by
+the display offset, so its tail is hard against the wall while the +Y end
+carries all the slack. The opening is 13.00 × 7.50, centred on the board
+width per the drawing's back view, straddling the connector at
+`stack_t + 0.90`.
+
+The flat back stays — it is what gives the second resting angle and it is
+the shape the design is built around. It just has no hole in it now.
+
+## Verification
+
+Five renders, **0 warnings** each. Everything below is read off the
+meshes, not eyeballed.
+
+- **Guition regression** — the shipped 3.5" part re-rendered after all of
+  this: 3268 tris, 1634 vertices, max coordinate deviation **0.001 mm**
+  against the committed STL. The fork changed nothing underneath it.
+- **Outer** — 54.487 × 96.287 and 65.367 × 121.347 against targets of
+  54.50 × 96.30 and 65.38 × 121.36. The −0.013 is the soft edge's facet
+  approximation, the same residual the Guition part carries.
+- **Face piece** — thickness exactly 6.400 / 6.450 (`face_t + glass_h`);
+  window open on axis; material confirmed present immediately outside
+  the aperture on both axes; all four screw bores clear through.
+- **Posts** — all eight pilot bores probed 0.37 mm off the mesh seam
+  (on-seam probes returned odd crossing counts, which are meaningless):
+  0 crossings down the bore, 1 through the post wall beside it. Open
+  bores, solid posts.
+- **USB port** — open through the −Y wall at the connector height, solid
+  wall 6 mm below it.
+- **Tipping**, both rest positions, plastic + board mass:
+
+| | 45° rest | 57.3° rest |
+|---|---|---|
+| 2.8" assembled (61 g) | 17.0 / 10.7 | 11.1 / 12.2 |
+| 4.0" assembled (89 g) | 22.2 / 14.9 | 14.6 / 16.5 |
+
+Both are comfortably stable in both positions, and better than the
+Guition's 28.4/6.7 and 6.0/23.5 — the face piece and the board put mass
+low and forward, which centres the load over the contact patch instead
+of hanging it off one end.
+
+## Bill of materials, per stand
+
+- 4 × M3 countersunk machine screw, ~12 mm, into the printed posts
+  (`post_pilot` 2.50 is a self-tapping pilot; drill/tap M3 if preferred)
+- the board itself; no inserts, no magnets, no panel-mount socket
+
+Print both parts as exported: the tub on its rim face, the face piece on
+its window face. Both are flat on the bed and need no supports.

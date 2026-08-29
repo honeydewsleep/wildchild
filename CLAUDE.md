@@ -15,9 +15,13 @@ is workflow knowledge for agents working in the repo.
   prints. `shell.scad`, `chassis.scad`, `ring_ds.scad`,
   `stem_locknut.scad`, `shapes_preview.scad` (mockups only).
 - `scad/*.scad` (root) — Series A generic design. Stable; rarely touched.
-- `scad/screen_stand/` — **unrelated part**: a display wedge stand
-  (Guition JC3248W535C), reverse-engineered from a donor 4.3" STL. Does
-  not share `params.scad`. See `docs/screen-stand-jc3248w535.md`.
+- `scad/screen_stand/` — **unrelated part**: a display wedge stand,
+  reverse-engineered from a donor 4.3" STL. Does not share
+  `params.scad`. One file, four displays via `display=`: the Guition
+  JC3248W535C (`jc3248w535`, the standard — soft r3.0, `parallel` back),
+  the donor replica (`orig43`), and the Cheap Yellow Displays
+  (`cyd28`, `cyd40`), which are two-part prints — add `part="face"` for
+  the bezel plate. See `docs/screen-stand-jc3248w535.md`.
 - `scad/fit_check.scad` — boolean interference checks (see below).
 - `stl/` — exported binary STLs, committed. `render.sh` — batch pipeline.
 - `docs/` — handoff specs for planned work.
