@@ -70,8 +70,15 @@ wall     = is_orig ? o_wall   : g_wall;
 //             for a convex solid that returns each face to exactly its
 //             original plane and rounds only the edges between them, so
 //             the outside dimensions do not move.
-edges    = "crisp";
-soft_r   = 1.20;
+//
+// SOFT AT r3.0 IS THE FINAL DESIGN - it is what the main STL builds and
+// what every derived board variant inherits. r3.0 is close to the
+// practical ceiling: the flat back is 17.5 x 89.5 at this radius and the
+// socket needs 13.6 x 5.5 of it, so going much rounder starts running
+// the socket flange off the flat. "crisp"/"sharp" are kept for the
+// low-poly alternates and for the orig43 verification replica.
+edges    = "soft";
+soft_r   = 3.00;
 
 // Faceted side panels. Splits each +/-Y end into TWO slopes meeting at a
 // crease instead of one, which adds a hard angle change down each side.

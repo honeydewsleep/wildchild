@@ -54,27 +54,23 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
         | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
     # display wedge stand (separate part, not the lamp) - see
     # docs/screen-stand-jc3248w535.md
-    stl screen_stand_jc3248w535         screen_stand/stand.scad variant parallel
-    stl screen_stand_jc3248w535_flat45  screen_stand/stand.scad variant flat45
-    stl screen_stand_jc3248w535_upright screen_stand/stand.scad variant upright
-    # same standard geometry, different edge finish
-    for e in sharp:lowpoly soft:soft; do
-        echo "== stl/screen_stand_jc3248w535_${e#*:}.stl"
-        openscad -o "stl/screen_stand_jc3248w535_${e#*:}.stl" \
-            -D 'variant="parallel"' -D "edges=\"${e%:*}\"" \
-            scad/screen_stand/stand.scad 2>&1 \
+    #
+    # FINAL DESIGN: edges="soft", soft_r=3.0, variant="parallel" - these
+    # are the defaults in stand.scad, so the main file needs no flags.
+    # Every alternate below pins the edge treatment explicitly so that
+    # changing the default can never silently restyle them.
+    sstand() {  # sstand <suffix-or-empty> [extra -D flags...]
+        n="screen_stand_jc3248w535${1:+_$1}"; shift
+        echo "== stl/$n.stl"
+        openscad -o "stl/$n.stl" "$@" scad/screen_stand/stand.scad 2>&1 \
             | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
-    done
-    echo "== stl/screen_stand_jc3248w535_softer.stl"
-    openscad -o stl/screen_stand_jc3248w535_softer.stl \
-        -D 'variant="parallel"' -D 'edges="soft"' -D 'soft_r=3.0' \
-        scad/screen_stand/stand.scad 2>&1 \
-        | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
-    echo "== stl/screen_stand_jc3248w535_lowpoly_faceted.stl"
-    openscad -o stl/screen_stand_jc3248w535_lowpoly_faceted.stl \
-        -D 'variant="parallel"' -D 'edges="sharp"' -D 'end_facet=true' \
-        scad/screen_stand/stand.scad 2>&1 \
-        | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
+    }
+    sstand ""                                                        # the standard
+    sstand soft            -D 'edges="soft"'   -D 'soft_r=1.2'       # milder break
+    sstand lowpoly         -D 'edges="sharp"'                        # all hard edges
+    sstand lowpoly_faceted -D 'edges="sharp"'  -D 'end_facet=true'   # + faceted sides
+    sstand flat45          -D 'edges="crisp"'  -D 'variant="flat45"'
+    sstand upright         -D 'edges="crisp"'  -D 'variant="upright"'
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then
