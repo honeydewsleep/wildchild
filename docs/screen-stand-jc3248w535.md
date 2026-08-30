@@ -530,23 +530,35 @@ the lip deepens into a stop, so the board cannot drift toward the slack
 `stack_t + smd_h` = 10.69 to clear the components on the back of the
 board, and `stack_t + post_h` = 11.60 to contain the posts.
 
-## Power: no panel-mount socket
+## Power — the same flat-back socket as the Guition
 
-The CYDs give up the flat-back socket. A thin bezel leaves no room for
-one — the pocket wall sits 0.25 mm off the board edge, and a panel-mount
-socket needs its internal lead plugged into the board, which wants ~10 mm
-that simply is not there. Keeping the socket would mean growing the
-bezel, i.e. giving up the thing that was asked for.
+Same snap-in panel-mount socket, same 13.60 × 5.50 opening with its
+1.20 corner radius, square through the flat back, on the same
+`back_pan_t` 2.00 panel. Nothing about the cable system differs between
+the three displays, which is the point — one type of chassis port across
+the whole family.
 
-Instead the board's own USB-C is used, straight through the end wall it
-already sits against. That end is the −Y one: the board hangs that way by
-the display offset, so its tail is hard against the wall while the +Y end
-carries all the slack. The opening is 13.00 × 7.50, centred on the board
-width per the drawing's back view, straddling the connector at
-`stack_t + 0.90`.
+The end wall is unbroken. `port_on` still exists and still opens onto the
+board's own USB-C on the −Y edge if you would rather plug straight in
+than run an internal lead, but it is off everywhere.
 
-The flat back stays — it is what gives the second resting angle and it is
-the shape the design is built around. It just has no hole in it now.
+**One thing to know before wiring.** The socket needs its inner end
+connected to the board, and on a CYD the board's USB-C is on that −Y
+edge with the pocket wall **0.25 mm** in front of it. There is no room to
+insert a plug there — a USB-C plug needs something like 8 mm of axial
+clearance even at right angles. That gap is the direct cost of the thin
+bezel: the board's tail is hard against the wall precisely because the
+frame is centred on the screen rather than the board.
+
+So the internal connection is wires, not a plug: take 5 V and GND from
+the socket to the board's 5 V/GND pins (the UART connector carries both).
+The roof cavity above the board is wide open, so the run itself is easy —
+it is only the final axial insertion that has nowhere to go.
+
+If you would rather plug in, the fix is to grow both ±Y ends by ~9 mm,
+which takes the along-axis bezel from 18.23 to about 27 and the 2.8"
+stand from 96.30 to 114.30 long. It has to be both ends, not just the
+one that needs it, or the frame stops being symmetric.
 
 ## Verification
 
@@ -568,6 +580,13 @@ meshes, not eyeballed.
   front face along each of the four magnet axes hits solid material, so
   the pockets really are blind and the face really is unbroken; a ray
   from inside each collar and each post finds its pocket floor.
+- **Socket** — the opening sections at exactly 13.600 × 5.500 mid-panel
+  on both boards, the same as the Guition's. The flat back around it
+  measures 21.585 × 70.965 (2.8") and 21.585 × 87.671 (4.0"), so the
+  smallest margin from the opening to a facet edge is ~7 mm. A ray down
+  the bore axis passes straight through; 9 mm to the side it meets the
+  panel. The −Y end wall reads solid at the height the old cable port
+  used to be.
 - **Interference** — the tub and the face piece, booleaned together in
   their assembled positions, intersect in nothing. The lip, the stop and
   the four collars all clear the pocket.
@@ -590,7 +609,9 @@ of hanging it off one end.
 - 8 × Ø5 × 3 mm disc magnet — four into the face piece's collars, four
   into the tub's posts, all the same way round in each part so the pairs
   attract. Note these are **Ø5**, not the Ø6 × 3 the Guition build uses.
-- the board itself; no screws, no inserts, no panel-mount socket
+- 1 × snap-in panel-mount USB-C socket, 13.60 × 5.50 — the same part the
+  Guition build uses
+- the board itself; no screws, no inserts
 
 Assembly: magnets into all eight pockets, board down onto the posts, face
 piece on. The lip drops into the pocket and the magnets pull the plate

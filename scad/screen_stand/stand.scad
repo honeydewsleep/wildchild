@@ -268,17 +268,19 @@ trough_on  = is_orig;
 // panel-mount socket in the flat back, nothing needs to pass through
 // the rim, so the skirt stays unbroken all the way round. Set true if
 // you ever need a jumper to reach a connector on the module's edge.
-// A thin bezel leaves no room inside for a panel-mount socket and its
-// internal lead - the pocket wall sits 0.25 mm off the board edge - so
-// the CYDs give up the flat-back socket and use the board's own USB-C,
-// straight through the end wall it already sits against. That end is
-// the -Y one: the board hangs that way by c_off, so its tail is right
-// up against the wall while the +Y end carries the slack. Centred on
-// the board width, per the drawing's back view.
+// Optional cable relief through an end wall. OFF everywhere: every
+// build feeds from the panel-mount socket in the flat back, so the
+// skirt stays unbroken all the way round.
+//
+// Set true on a CYD and it opens onto the board's own USB-C, which sits
+// on the -Y edge - the board hangs that way by c_off, so its tail is
+// hard against that wall while the +Y end carries the slack. Centred on
+// the board width, per the drawing's back view. Useful if you would
+// rather plug straight into the board than run an internal lead.
 cyd_port_w = 13.00;
 cyd_port_h =  7.50;
 cyd_port_z = stack_t + 0.90 - cyd_port_h/2;   // straddles the connector
-port_on    = is_cyd;
+port_on    = false;
 port_w     = is_cyd ? cyd_port_w : 13.00;
 port_h     = is_cyd ? cyd_port_h : skirt_h;
 port_x     = 0.00;    // offset along the edge from centre
@@ -302,7 +304,7 @@ port_end   = -1;      // -1 = -Y wall, +1 = +Y wall
 // That donor panel is 2.00 mm where our roof is 2.50, and a snap-in
 // socket grips a panel thickness rather than clamping any thickness
 // like a nut does - so the flat back is thinned to 2.00 to match.
-usb_on     = !is_orig && !is_cyd;   // CYD feeds through the end wall
+usb_on     = !is_orig;
 usb_cut    = [13.60, 5.50];  // [across the panel, up the panel]
 usb_cut_r  =  1.20;
 // Socket height up the panel. The square-cut variants take the donor's
