@@ -482,12 +482,13 @@ Measured from the plate's back face at `z = 0`:
 | → `stack_t` (5.60 / 5.65) | the PCB |
 | `stack_t` → +6.00 | the screw post |
 
-The plate lands on the **glass**, not on the PCB — on these boards the
-glass runs the full board width, so there is no PCB shoulder to press on.
-Away from the glass the plate is 4 mm above the board, so a screw pulled
-down at the corners would bow it. Hence the four collars on the plate's
-back: they carry the load down to the PCB, and the screw clamps a solid
-stack of plate → collar → PCB → post.
+Away from the glass the plate is 4 mm above the board, so the four
+collars on its back carry that gap: each reaches down to the PCB front
+face and holds a magnet. The plate's own back would otherwise land on
+the **glass** — on these boards the glass runs the full board width, so
+there is no PCB shoulder for it to press on — and the collars stand
+0.05 mm proud (`col_bear`) specifically so they touch the PCB first and
+the glass carries no clamping load at all.
 
 The posts have the same problem the magnet bosses had on the Guition:
 the seat sits ~4 mm inboard of the pocket wall and everything below it
@@ -495,6 +496,35 @@ is PCB, so a post cannot grow up from the floor. Same fix — hull the pad
 out to a foot in *each* wall, so the span is a bridge anchored at both
 ends rather than a cantilever, and its underside at `z = stack_t` prints
 as a flat bridge instead of a sagging ramp.
+
+## Magnetic attachment — nothing breaks the front face
+
+The face piece has no fasteners through it. Four magnet pairs face each
+other **through the PCB**: one in each collar on the plate's back, one in
+each post below, coaxial with the board's own mounting holes. FR4 is not
+magnetic and the Ø3.20 hole sits directly between them, so the only real
+separation is the board's 1.60 mm. The same pull clamps the board.
+
+Where they can go is not a free choice. The only clear band on the front
+of these boards is between the glass edge and the PCB edge — 8.40 mm on
+the 2.8", 8.27 mm on the 4.0" — and that is exactly where the maker put
+the mounting holes, because it is the only place left. Checked against
+the glass edge, the PCB edge and the pocket wall at all four corners on
+both boards, the collar caps out at **Ø7.0**, which is why these take
+**Ø5 × 3** magnets rather than the Ø6 × 3 the Guition uses. The pockets
+are blind: 1 mm of collar plus the full 2.40 mm of plate stays in front
+of each one, so the front face is unbroken apart from the window.
+
+Fit all eight the same way round in each part, or the pairs will repel.
+
+Magnets alone would let the plate wander before they snapped it into
+place, and because the plate's silhouette *is* the tub's silhouette, any
+offset shows on the outline. So the plate's back carries a registration
+lip that drops into the pocket at each ±Y end — the two places the glass
+leaves clear — running the full pocket width, so it picks up the ±X walls
+as well and locates x, y and rotation together. Past the board's far edge
+the lip deepens into a stop, so the board cannot drift toward the slack
++Y end while you are assembling it.
 
 `skirt_h` goes 9.00 → 12.00 for these. It is driven, not chosen:
 `stack_t + smd_h` = 10.69 to clear the components on the back of the
@@ -528,22 +558,27 @@ meshes, not eyeballed.
   against the committed STL. The fork changed nothing underneath it.
 - **Outer** — 54.487 × 96.287 and 65.367 × 121.347 against targets of
   54.50 × 96.30 and 65.38 × 121.36. The −0.013 is the soft edge's facet
-  approximation, the same residual the Guition part carries.
-- **Face piece** — thickness exactly 6.400 / 6.450 (`face_t + glass_h`);
-  window open on axis; material confirmed present immediately outside
-  the aperture on both axes; all four screw bores clear through.
-- **Posts** — all eight pilot bores probed 0.37 mm off the mesh seam
-  (on-seam probes returned odd crossing counts, which are meaningless):
-  0 crossings down the bore, 1 through the post wall beside it. Open
-  bores, solid posts.
+  approximation, the same residual the Guition part carries. Face pieces
+  come out 7.800 and 7.850 deep (plate, plus the stop section of the
+  lip) on the same outline.
+- **Face piece** — window open on axis; material confirmed present
+  immediately outside the aperture on both axes.
+- **Magnet pockets** — probed 0.3 mm off the mesh seam, since on-seam
+  probes return meaningless odd crossing counts. A ray fired at the
+  front face along each of the four magnet axes hits solid material, so
+  the pockets really are blind and the face really is unbroken; a ray
+  from inside each collar and each post finds its pocket floor.
+- **Interference** — the tub and the face piece, booleaned together in
+  their assembled positions, intersect in nothing. The lip, the stop and
+  the four collars all clear the pocket.
 - **USB port** — open through the −Y wall at the connector height, solid
   wall 6 mm below it.
 - **Tipping**, both rest positions, plastic + board mass:
 
 | | 45° rest | 57.3° rest |
 |---|---|---|
-| 2.8" assembled (61 g) | 17.0 / 10.7 | 11.1 / 12.2 |
-| 4.0" assembled (89 g) | 22.2 / 14.9 | 14.6 / 16.5 |
+| 2.8" assembled (64 g) | 16.7 / 11.0 | 11.4 / 11.9 |
+| 4.0" assembled (93 g) | 21.9 / 15.2 | 15.0 / 16.1 |
 
 Both are comfortably stable in both positions, and better than the
 Guition's 28.4/6.7 and 6.0/23.5 — the face piece and the board put mass
@@ -552,9 +587,14 @@ of hanging it off one end.
 
 ## Bill of materials, per stand
 
-- 4 × M3 countersunk machine screw, ~12 mm, into the printed posts
-  (`post_pilot` 2.50 is a self-tapping pilot; drill/tap M3 if preferred)
-- the board itself; no inserts, no magnets, no panel-mount socket
+- 8 × Ø5 × 3 mm disc magnet — four into the face piece's collars, four
+  into the tub's posts, all the same way round in each part so the pairs
+  attract. Note these are **Ø5**, not the Ø6 × 3 the Guition build uses.
+- the board itself; no screws, no inserts, no panel-mount socket
+
+Assembly: magnets into all eight pockets, board down onto the posts, face
+piece on. The lip drops into the pocket and the magnets pull the plate
+down until the collars land on the PCB.
 
 Print both parts as exported: the tub on its rim face, the face piece on
 its window face. Both are flat on the bed and need no supports.

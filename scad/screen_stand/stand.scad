@@ -368,12 +368,43 @@ z_front  = is_cyd ? -face_t : 0;  // where the solid starts
 //                   the plate across the 4 mm air gap.
 //   .. stack_t      the PCB
 //   stack_t ..      the post, which the screw threads into.
-col_d    = 6.50;   // collar OD on the back of the face piece
-scr_clr  = 3.40;   // M3 clearance through plate and collar
-scr_head = 6.00;   // M3 countersunk head, 90 deg
-post_d   = 6.50;
-post_h   = 6.00;   // thread engagement
-post_pilot = 2.50; // M3 self-tapping pilot
+// Magnetic attachment - nothing breaks the front face. The plate is
+// pulled onto the tub by four magnet pairs that face each other THROUGH
+// the PCB: one in a collar on the plate's back, one in a post below,
+// coaxial with the board's own mounting holes. FR4 is not magnetic and
+// the Ø3.20 hole sits right between them, so the only real gap is the
+// board's 1.60 mm. The same force clamps the board.
+//
+// Where they can go is not a free choice. On the front of these boards
+// the ONLY clear band is between the glass edge and the PCB edge -
+// 8.40 mm on the 2.8", 8.27 mm on the 4.0" - which is exactly where the
+// maker put the mounting holes. That caps the collar at Ø7.0 (checked
+// against the glass edge, the PCB edge and the pocket wall on both
+// boards, all four corners), so these are Ø5 magnets, not the Ø6 the
+// Guition uses. Fit all eight the same way round in each part so the
+// pairs attract.
+cyd_mag_d = 5.00;
+cyd_mag_l = 3.00;
+cyd_mag_clr = 0.20;   // pocket = mag_d + clr
+col_d    = 7.00;   // collar OD - Ø5.2 pocket leaves 0.9 mm of wall
+post_d   = 7.60;   // the post has the pocket walls to itself, so beefier
+post_h   = 6.00;
+// The collar stands 0.05 proud of the glass height, so it lands on the
+// PCB just before the plate's lip would land on the glass. The glass
+// carries no clamping load.
+col_bear = 0.05;
+
+// Registration. Magnets alone would let the plate wander before they
+// snap; the plate's silhouette is the tub's silhouette so any offset
+// shows. A lip on the plate's back drops into the pocket at each ±Y
+// end - the only two places the glass leaves clear - and picks up the
+// ±X pocket walls across its width, which locates x, y and rotation.
+lip_h    = 1.50;
+lip_clr  = 0.15;   // per side, lip vs pocket wall
+lip_gap  = 0.60;   // lip stands off the glass edge by this
+// Beyond the PCB's far edge the lip deepens into a stop, so the board
+// cannot slide toward the slack +Y end during assembly.
+stop_gap = 0.35;
 
 /* -------------------------------------------------------------- */
 /* derived                                                         */
@@ -580,10 +611,10 @@ module posts() {
     }
 }
 
-module post_pilots() {
+module post_mag_pockets() {
     for (sx = [-1, 1], sy = [-1, 1])
         translate([sx*c_hole[0]/2, board_dy + sy*c_hole[1]/2, stack_t - EPS])
-            cylinder(h = post_h - 1.0 + EPS, d = post_pilot);
+            cylinder(h = cyd_mag_l + EPS, d = cyd_mag_d + cyd_mag_clr);
 }
 
 // Window, with a chamfer round its front lip.
@@ -600,6 +631,20 @@ module aperture_cut() {
     }
 }
 
+// Glass and PCB edges in frame coordinates - these bound everything on
+// the back of the plate.
+glass_t  = board_dy + c_glass[1]/2;   glass_b = board_dy - c_glass[1]/2;
+pcb_t_y  = board_dy + c_pcb[1]/2;     pcb_b_y = board_dy - c_pcb[1]/2;
+
+// One ±Y band of the plate's back, clipped to the pocket outline.
+module lip_band(y0, y1, h) {
+    intersection() {
+        linear_extrude(h)
+            rrect(body[0] - 2*lip_clr, body[1] - 2*lip_clr, r_in);
+        translate([-BIG/2, y0, -EPS]) cube([BIG, y1 - y0, h + 2*EPS]);
+    }
+}
+
 module face_piece() {
   translate([0, 0, -z_front])       // prints as exported: window face down
   difference() {
@@ -608,20 +653,24 @@ module face_piece() {
             outer_solid();
             translate([-BIG/2, -BIG/2, z_front]) cube([BIG, BIG, -z_front]);
         }
-        // collars down to the PCB, so the screws clamp a solid stack
+        // registration lip at each end, clear of the glass
+        lip_band(glass_t + lip_gap,  body[1]/2, lip_h);
+        lip_band(-body[1]/2, glass_b - lip_gap, lip_h);
+        // and its deeper section past the board, as a board stop
+        lip_band(pcb_t_y + stop_gap, body[1]/2, stack_t - 0.20);
+        // collars carrying the magnets down to the PCB
         for (sx = [-1, 1], sy = [-1, 1])
             translate([sx*c_hole[0]/2, board_dy + sy*c_hole[1]/2, 0])
-                cylinder(h = glass_h, d = col_d);
+                cylinder(h = glass_h + col_bear, d = col_d);
     }
     aperture_cut();
+    // magnet pockets, opening at the collar face. Blind: 1 mm of collar
+    // plus the full plate thickness stays in front of them, so the
+    // front face is unbroken apart from the window.
     for (sx = [-1, 1], sy = [-1, 1])
-        translate([sx*c_hole[0]/2, board_dy + sy*c_hole[1]/2, 0]) {
-            translate([0, 0, z_front - 1])
-                cylinder(h = -z_front + glass_h + 2, d = scr_clr);
-            translate([0, 0, z_front - EPS])          // 90 deg countersink
-                cylinder(h = (scr_head - scr_clr)/2 + EPS,
-                         d1 = scr_head, d2 = scr_clr);
-        }
+        translate([sx*c_hole[0]/2, board_dy + sy*c_hole[1]/2,
+                   glass_h + col_bear - cyd_mag_l])
+            cylinder(h = cyd_mag_l + EPS, d = cyd_mag_d + cyd_mag_clr);
   }
 }
 
@@ -667,7 +716,7 @@ module stand() {
     }
 
     if (mag_on) mag_pockets();
-    if (is_cyd) post_pilots();
+    if (is_cyd) post_mag_pockets();
     if (usb_on) usb_bore();
   }
 }
