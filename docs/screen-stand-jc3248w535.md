@@ -751,3 +751,46 @@ back plate that a closed wedge cannot have. Four corner pads bridge the
 pocket corners at the board's back plane. Corners are the safest place
 to touch a populated board, but they are unverified against this board's
 rear components. B does not need them — its lip does that job.
+
+## Using the reference case itself as the face piece
+
+`display = "w550ref"` builds **only a base**, designed to mate to the
+"5IN Display Holder" (MakerWorld 981775) exactly as it prints. Nothing
+is cut into that part: its sloped front, its board seat and its corner
+alignment pockets all stay its own business, which is the point — it is
+already known to fit the board.
+
+Everything needed for the joint is measured off its mesh:
+
+| feature | measured, in the base's frame |
+|---|---|
+| back face outline | 135.890 × 86.360, corner r ≈ 6.10 |
+| back bore | 82.804 × 134.517, centre offset +0.762 in X |
+| corner holes | **Ø3.80**, 9.6 deep, grid 129.540 × 62.484 |
+
+The base's outer is set to that outline so the two are flush at the
+joint, and four pegs drop into the corner holes. Those holes are the
+heat-set insert holes the case's own back plate used, so they are
+already positioned, already deep, and already aligned — the base needs
+no fasteners at all.
+
+**Two things the clash check caught**, both by booleaning the base
+against the actual uploaded mesh rather than against my model of it:
+
+- **No spigot into the back bore.** The bore reads 82.804 × 134.517 as a
+  bounding box but it is not a rectangle: its boundary carries four
+  inward lobes where the corner bosses meet the wall, which is why its
+  section area is 10319 against a true rectangle's 11138. A plain ring
+  spigot ploughed straight through them — 854 mm³ of interference. The
+  pegs alone give a 129.540 × 62.484 datum, which is a better locator
+  than a spigot would have been anyway.
+- **The corner holes are round, not square.** Their section reads
+  3.800 × 3.800 because that is a circle's bounding box. Square pegs of
+  3.70 left 2.47 mm² of corner outside the circle, and over four pegs
+  5 mm long that is 49.4 mm³ — the exact residual the second clash check
+  returned. Round Ø3.70 pegs clear it.
+
+The base is otherwise the standard soft r3.0 `parallel` wedge with the
+flat-back socket, and it prints pegs-down: four short posts, then the
+rim. Because the reference part carries the whole board, this base needs
+no pocket, no backstop and only a 6 mm skirt.

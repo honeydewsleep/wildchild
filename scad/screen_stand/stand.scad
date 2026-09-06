@@ -120,6 +120,40 @@ w55_pcb_t  =   1.60;
 w55_smd    =   5.00;
 
 is_w55   = (display == "jc8048w550");
+// 5.0" JC8048W550C, using the reference case ITSELF as the face piece.
+// Rather than re-model the front, this mode builds only a base that
+// mates to "5IN Display Holder" (MakerWorld 981775) exactly as printed:
+// the board, the sloped front, the seat and its corner alignment
+// pockets all stay that part's business. Measured off its mesh:
+//
+//   back face outline   135.890 x 86.360, corner r ~6.10
+//   back bore           134.517 x 82.804, centred 0.762 off the outline
+//   4 corner holes      3.800 square, 9.6 deep, on a 129.540 x 62.484
+//                       grid - the heat-set insert holes its own back
+//                       plate used, which is exactly what a base wants
+//
+// So the base needs no fasteners at all: a shallow spigot into the bore
+// locates it, and four pegs into those holes hold it. Nothing is cut
+// into the reference part.
+//
+// Axes swap: the reference's long axis is its x, ours is y.
+w55r_outer  = [ 86.360, 135.890];
+w55r_r_out  =   6.10;
+w55r_bore   = [ 82.804, 134.517];
+w55r_bore_x =   0.762;   // bore centre is off the outline centre in X
+w55r_peg    = [ 62.484, 129.540];
+// The corner holes are ROUND Ø3.80, not square - their section reads
+// 3.800 x 3.800 only because that is a circle's bounding box. A square
+// peg of 3.70 leaves 2.47 mm2 of corner sticking out of the circle,
+// which over four pegs 5 mm long is 49.4 mm3 - the exact figure the
+// clash check against the real mesh returned before this was fixed.
+w55r_peg_sz =   3.70;    // Ø, in a Ø3.80 hole: 0.05 per side
+w55r_peg_l  =   5.00;
+w55r_spig_h =   2.00;
+w55r_clr    =   0.30;    // spigot vs bore, per side
+w55r_wall   =   2.50;
+is_w55r  = (display == "w550ref");
+
 // boards that arrive as a bare PCB and therefore need a face piece
 is_bare  = is_cyd || is_w55;
 // how the face piece is held on. Both are invisible from the front.
@@ -184,14 +218,16 @@ ap_cham  = 0.60;   // chamfer round the front of the window
 // The snap boards need a thicker wall: it is split into a standing
 // inner wall and the skirt that closes over it.
 snap_wall = (retain == "cap") ? 2.00 : 3.00;
-wall     = is_w55  ? [snap_wall, snap_wall]
+wall     = is_w55r ? [w55r_wall, w55r_wall]
+         : is_w55  ? [snap_wall, snap_wall]
          : is_orig ? o_wall : g_wall;
 // CYD: the outer is derived from the board and the offset, then the
 // pocket falls out of it - the reverse of the Guition path, where the
 // module's known body sets the pocket and the outer follows.
 cyd_outer = [c_pcb[0] + 2*(pcb_clr + wall[0]),
              c_pcb[1] + 2*(pcb_clr + wall[1]) + 2*c_off];
-body     = is_w55  ? w55_pocket
+body     = is_w55r ? [w55r_outer[0] - 2*w55r_wall, w55r_outer[1] - 2*w55r_wall]
+         : is_w55  ? w55_pocket
          : is_cyd  ? [cyd_outer[0] - 2*wall[0], cyd_outer[1] - 2*wall[1]]
          : is_orig ? o_body : g_body;
 // Edge treatment. The geometry is identical in all three; only how the
@@ -228,7 +264,7 @@ ang_end_lo  = 80.00;  // lower slope, near-vertical flank
 end_crease_z= 24.00;  // height of the crease - the shoulder line
 ang_end_hi  = 35.00;  // upper slope, folding hard away from it
 
-r_out    = (edges == "sharp") ? 0 : (is_orig ? o_r_out : g_r_out);
+r_out    = (edges == "sharp") ? 0 : is_w55r ? w55r_r_out : (is_orig ? o_r_out : g_r_out);
 // Square, exactly like the reference pocket. A rounded pocket corner
 // has MORE material at the corner than a square one, so rounding it
 // could only reduce the corner clearance that is proven to work.
@@ -244,7 +280,9 @@ relief   = is_orig ? o_relief : g_relief;
 // and the screw posts have to finish inside the skirt too, so it is
 // driven rather than chosen: stack_t + smd_h = 10.69 to clear the
 // board, stack_t + post_h = 11.60 to contain the posts.
-skirt_h    = is_w55 ? 10.00 : is_cyd ? 12.00 : 9.00;
+// The reference part holds the board, so this base only needs enough
+// skirt to carry the joint and the wiring.
+skirt_h    = is_w55r ? 6.00 : is_w55 ? 10.00 : is_cyd ? 12.00 : 9.00;
 roof_t     = 2.50;    // roof wall thickness, measured along its normal
 ang_front  = 45.00;   // +X face - the shallow rest face (45 deg tilt)
 ang_back   = 57.32;   // -X face - the upright rest face  (57 deg tilt)
@@ -815,6 +853,35 @@ module cap_lip() {
     }
 }
 
+// Pegs that enter the reference case's back. They live in FRONT of the
+// rim (negative z), so the base prints pegs-down: four short posts
+// first, then the rim proper.
+//
+// There is NO spigot into the back bore, and that is deliberate. The
+// bore reads 82.804 x 134.517 as a bounding box, but it is not a
+// rectangle - its boundary carries four inward lobes where the
+// peg-hole bosses meet the wall, which is why its section area is
+// 10319 against a true rectangle's 11138. A plain ring spigot ploughs
+// straight through them: 854 mm3 of interference, which is exactly
+// what the first clash check against the real mesh reported. The pegs
+// on their own give a 129.540 x 62.484 alignment grid, which is a far
+// better datum than a spigot anyway.
+module w55r_spigot_UNUSED() {
+    translate([w55r_bore_x, 0, -w55r_spig_h])
+        linear_extrude(w55r_spig_h + EPS)
+            difference() {
+                rrect(w55r_bore[0] - 2*w55r_clr,
+                      w55r_bore[1] - 2*w55r_clr, 3.0);
+                rrect(w55r_bore[0] - 2*w55r_clr - 5.0,
+                      w55r_bore[1] - 2*w55r_clr - 5.0, 2.0);
+            }
+}
+module w55r_pegs() {
+    for (sx = [-1, 1], sy = [-1, 1])
+        translate([sx*w55r_peg[0]/2, sy*w55r_peg[1]/2, -w55r_peg_l])
+            cylinder(h = w55r_peg_l + EPS, d = w55r_peg_sz, $fn = 48);
+}
+
 // ---- snap-skirt geometry ---------------------------------------
 // Profiles, all as rounded rects concentric with the pocket:
 //   iw  tub's standing inner wall, outer face
@@ -955,6 +1022,7 @@ module stand() {
     union() {
       if (mag_on) mag_bosses();
       if (is_cyd)  posts();
+      if (is_w55r) w55r_pegs();
       if (retain == "snap" && is_bare) snap_bead_ring();
       if (retain == "snap" && is_bare) seat_pads();
       difference() {

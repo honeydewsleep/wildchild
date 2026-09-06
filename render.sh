@@ -103,6 +103,12 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     }
     w550 ""    snap
     w550 cap   cap
+    # base that mates to the reference case itself (MakerWorld 981775),
+    # which stays the face piece unmodified
+    echo "== stl/screen_stand_w550ref.stl"
+    openscad -o stl/screen_stand_w550ref.stl -D 'display="w550ref"' \
+        scad/screen_stand/stand.scad 2>&1 \
+        | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then
