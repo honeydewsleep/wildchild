@@ -86,6 +86,23 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     }
     cyd cyd28      # 2.8" ESP32-2432S028R
     cyd cyd40      # 4.0" ESP32-4832S040
+    # 5.0" Guition JC8048W550C. No mounting holes and no room for a
+    # magnet collar, so the face piece is held by a snap instead - twice
+    # over: "snap" splits the wall, "cap" moves the joint behind the
+    # board and keeps the wall at 2.00 for a 1 mm thinner frame.
+    w550() {  # w550 <suffix-or-empty> <retain>
+        for pt in stand face; do
+            n="screen_stand_jc8048w550${1:+_$1}"
+            [ "$pt" = face ] && n="${n}_face"
+            echo "== stl/$n.stl"
+            openscad -o "stl/$n.stl" -D 'display="jc8048w550"' \
+                -D "retain=\"$2\"" -D "part=\"$pt\"" \
+                scad/screen_stand/stand.scad 2>&1 \
+                | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
+        done
+    }
+    w550 ""    snap
+    w550 cap   cap
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then

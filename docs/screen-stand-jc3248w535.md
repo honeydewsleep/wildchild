@@ -619,3 +619,135 @@ down until the collars land on the PCB.
 
 Print both parts as exported: the tub on its rim face, the face piece on
 its window face. Both are flat on the bed and need no supports.
+
+---
+
+# 5.0" Guition JC8048W550C
+
+Third architecture in the family. The Guition 3.5" is a finished module
+that drops into a tray; the CYDs are bare PCBs held by magnets through
+their own mounting holes; this one is a bare PCB with **no mounting
+holes at all**, and a glass that leaves only a 1.46 mm shoulder on the
+long sides — nowhere to put a magnet collar. So it is snapped together
+instead, and there are two builds of the snap to compare.
+
+## Board data, and where it came from
+
+There is no manufacturer drawing for this board and Guition publish only
+the diagonal. What there is instead is a case the user confirms fits the
+board perfectly — "5IN Display Holder", MakerWorld 981775 — so its front
+geometry is copied verbatim rather than re-derived:
+
+| feature | measured off the reference |
+|---|---|
+| board pocket | 123.952 × 81.280 |
+| window | 121.032 × 76.378, square corners |
+| seat, front face to board front | 5.283 |
+| board + rear components | 6.35 |
+
+That window back-solves. Subtract it from the pocket and the ledge is
+1.460 per side on the long axis, 2.451 on the short. The standard 5.0"
+800×480 panel outline of 120.70 × 75.80 leaves exactly that shoulder on
+a ~123.5 × 80.8 PCB — agreement to a tenth, from a direction the case
+designer had no reason to arrange. Active area is 108.00 × 64.80.
+
+## The window is the glass, not the image
+
+Unlike the CYDs, the aperture here is the **glass**, and that is
+deliberate on three counts:
+
+- It is the thinnest plastic bezel available. A smaller aperture would
+  only cover screen, and the bezel is measured from the aperture edge
+  outward — opening it up makes the frame narrower, not wider.
+- The plate then lands on the PCB shoulder exactly as the reference
+  does, instead of clamping the glass.
+- It sidesteps the one number no source gives: where the active area
+  sits *inside* the glass. On both CYDs the glass was centred while the
+  image inside it was not, by 2.9 mm. Nothing available here could have
+  settled that either way, and a wrong guess is a visibly lopsided
+  screen.
+
+## Two snaps, because the wall is the whole argument
+
+The bezel is `ledge + wall`, and the ledge is fixed by the board. So the
+wall is the only lever there is, and the two builds differ in whether
+the joint has to live inside it.
+
+**A — `retain="snap"`.** The plate's outer edge continues as a skirt
+that drops inside the tub wall. That wall has to hold a standing wall,
+a clearance and the skirt, so it goes 2.00 → 3.00.
+
+**B — `retain="cap"`.** The user's suggestion, and the better one: move
+the joint *behind* the board, where there is room to spare. The plate
+becomes a deep cap that carries the pocket itself — the board goes into
+the plate from behind and lands on its front ledge — and the tub's lip
+stands up inside the cap. The bead is on the plate's bore and the groove
+is in the lip, the reverse of A. Because the overlap is now inboard of
+the pocket rather than inside the wall, the wall stays 2.00.
+
+| | A `snap` | B `cap` |
+|---|---|---|
+| wall | 3.00 | 2.00 |
+| outer | 87.280 × 129.952 | 85.280 × 127.952 |
+| **bezel across / along** | **5.45 / 4.46** | **4.45 / 3.46** |
+| parting line | at the screen face | 8.00 mm behind it |
+| board backstop | four corner pads | the tub's lip |
+
+B is a millimetre thinner on every edge — the thinnest frame in the
+whole family, against the 3.5"'s 2.00 wall on a module that brought its
+own bezel.
+
+**B's cost, and it is real.** The tub prints lip-down, so its outer wall
+appears all at once at the parting plane, leaving an annular overhang of
+`wall + cap_clr` = 2.25 mm right at the visible seam. A has the same
+transition but only 1.50 mm of it, and A's seam is at the screen face
+where the plate's edge covers it. Which of those matters more is a
+question about how they look in the hand, which is why both are built.
+
+## Retention numbers
+
+Bead 0.45 proud against 0.30 clearance in A, 0.25 in B — 0.15 and 0.20
+of bite, the same order as the diffuser snaps this repo already has
+test-printed. In both the bead's 45° ramp faces the direction its mate
+arrives from, and the flat retaining face points back toward the screen.
+
+That direction is not cosmetic. In A the tub prints rim-down, so the
+ramp is also the downward-facing side; putting it the other way round
+would leave an unsupported ledge exactly where the snap needs to be
+crisp.
+
+A thumbnail catch sits in the plate's −X edge at the joint — that edge
+is against the desk in both rest positions, so it is out of sight.
+
+## Verification
+
+Six renders, **0 warnings** each.
+
+- **Regressions** — the Guition and the CYD face piece both re-render to
+  within 0.001 mm of their committed STLs, so none of this disturbed
+  what came before.
+- **Cap engagement, off the mesh** — the plate's bore reads 81.280 ×
+  123.952 below the bead and 80.380 × 123.052 through it; the lip reads
+  80.780 outer with a groove floor at 79.880. The bead therefore sits
+  inside the groove with the lip flexing 0.20 per side to get there.
+- **Snap engagement** — at z = 2.50 the tub's bead measures 84.980,
+  which is 0.35 of its 0.45 ramp, exactly on the slope. The plate's
+  skirt bore reads 84.880 and opens to 85.780 through the groove.
+- **Interference** — both builds intersect their own face piece in
+  nothing. A's first attempt did not: the seat pads' wall feet reached
+  42.89 where the skirt travels to 42.44, a 0.45 mm clash over exactly
+  the z range the intersection reported. The pads are now clamped to the
+  standing wall's footprint rather than to `outer_solid()`.
+
+## Bill of materials
+
+Nothing. No screws, no magnets, no inserts — the board is a friction fit
+and the plate snaps on. The flat-back panel-mount socket is unchanged
+from the rest of the family.
+
+The one feature with no proven original is A's board backstop: the
+reference case has none, because it clamps the board with a separate
+back plate that a closed wedge cannot have. Four corner pads bridge the
+pocket corners at the board's back plane. Corners are the safest place
+to touch a populated board, but they are unverified against this board's
+rear components. B does not need them — its lip does that job.

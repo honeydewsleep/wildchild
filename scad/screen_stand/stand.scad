@@ -89,6 +89,51 @@ c28_off   =   2.90;            c40_off   =   2.875;
 c28_stack = [1.60, 5.60, 5.09];  c40_stack = [1.60, 5.65, 5.09];
 
 is_cyd   = (display == "cyd28" || display == "cyd40");
+// 5.0" Guition JC8048W550C. Different again: the PCB has no mounting
+// holes at all, and the glass leaves only a 1.46 mm shoulder on the
+// long sides - nowhere to put a magnet collar. So this one is retained
+// by a snap skirt instead, and its front geometry is copied verbatim
+// from a case the user confirms fits the board perfectly
+// ("5IN Display Holder", MakerWorld 981775), rather than re-derived:
+//
+//   board pocket   123.952 x 81.280   (proven fit)
+//   window         121.032 x 76.378   (square corners, no radius)
+//   seat           5.283 below the front face - the board's front
+//                  border lands here and the glass stands in the window
+//
+// That window back-solves to the standard 5.0" 800x480 panel outline of
+// 120.70 x 75.80: subtract it from the pocket and the ledge is 1.460 /
+// 2.451 per side, which is the shoulder that outline leaves on a
+// ~123.5 x 80.8 PCB to within a tenth. Active area is 108.00 x 64.80.
+//
+// The window is deliberately the GLASS, not the active area. That is
+// the thinnest plastic bezel available - a smaller aperture would only
+// cover screen - and it means the plate lands on the PCB shoulder like
+// the reference does instead of clamping the glass. It also sidesteps
+// the one number no source gives: where the active area sits inside the
+// glass. On both CYDs the glass was centred while the image inside it
+// was not, and nothing here could have told us either way.
+w55_pocket = [ 81.280, 123.952];
+w55_win    = [ 76.378, 121.032];
+w55_seat   =   5.283;
+w55_pcb_t  =   1.60;
+w55_smd    =   5.00;
+
+is_w55   = (display == "jc8048w550");
+// boards that arrive as a bare PCB and therefore need a face piece
+is_bare  = is_cyd || is_w55;
+// how the face piece is held on. Both are invisible from the front.
+// "magnet" - CYD: magnet pairs through the board's mounting holes
+// "snap"   - 5": plate's skirt closes over a standing wall in the tub.
+//            Costs 1 mm of wall each side, because the 2.00 wall has to
+//            become 3.00 to hold standing wall + clearance + skirt.
+// "cap"    - 5": the same joint moved BEHIND the board, where there is
+//            room to spare. The wall stays 2.00 and the frame loses a
+//            millimetre per side; the plate holds the board and sleeves
+//            a lip that stands up inside the tub. Override with
+//            -D 'retain="cap"'.
+retain   = is_w55 ? "snap" : "magnet";
+
 is_c40   = (display == "cyd40");
 c_pcb    = is_c40 ? c40_pcb   : c28_pcb;
 c_hole   = is_c40 ? c40_hole  : c28_hole;
@@ -96,15 +141,21 @@ c_glass  = is_c40 ? c40_glass : c28_glass;
 c_vis    = is_c40 ? c40_vis   : c28_vis;
 c_off    = is_c40 ? c40_off   : c28_off;
 c_stack  = is_c40 ? c40_stack : c28_stack;
-pcb_t    = c_stack[0];      // 1.60
-stack_t  = c_stack[1];      // front face of PCB to front of glass + pcb
-glass_h  = stack_t - pcb_t; // how far the glass stands proud of the PCB
-smd_h    = c_stack[2];
+pcb_t    = is_w55 ? w55_pcb_t : c_stack[0];
+// stack_t is the plane the board's BACK sits at, measured from the
+// plate's back face. On a CYD the plate rides on the glass so the glass
+// height is in there too; on the 5" the plate lands straight on the PCB
+// front, so it is just the board thickness.
+stack_t  = is_w55 ? w55_pcb_t : c_stack[1];
+glass_h  = is_w55 ? 0 : stack_t - pcb_t;
+smd_h    = is_w55 ? w55_smd : c_stack[2];
 
 // Board centre relative to the FRAME centre. The frame is centred on
 // the screen (that is what makes the bezel symmetric), so the board
 // hangs off toward its ESP32/USB end by exactly the display offset.
-board_dy = -c_off;
+// The 5" board is concentric with its pocket - the reference case's
+// window and pocket share a centre, and it fits - so no offset.
+board_dy = is_w55 ? 0 : -c_off;
 
 /* -------------------------------------------------------------- */
 /* thin symmetrical bezel                                          */
@@ -124,19 +175,24 @@ board_dy = -c_off;
 // no bezel width parameter to tune, which is the point.
 ap_clr   = 0.20;   // per side, aperture vs visible area
 pcb_clr  = 0.25;   // per side, PCB vs pocket wall
-aperture = [c_vis[0] + 2*ap_clr, c_vis[1] + 2*ap_clr];
-ap_r     = 1.50;   // aperture corner radius
+aperture = is_w55 ? w55_win : [c_vis[0] + 2*ap_clr, c_vis[1] + 2*ap_clr];
+ap_r     = is_w55 ? 0.00 : 1.50;   // the 5" window is square, like its glass
 ap_cham  = 0.60;   // chamfer round the front of the window
 
 
 
-wall     = is_orig ? o_wall   : g_wall;
+// The snap boards need a thicker wall: it is split into a standing
+// inner wall and the skirt that closes over it.
+snap_wall = (retain == "cap") ? 2.00 : 3.00;
+wall     = is_w55  ? [snap_wall, snap_wall]
+         : is_orig ? o_wall : g_wall;
 // CYD: the outer is derived from the board and the offset, then the
 // pocket falls out of it - the reverse of the Guition path, where the
 // module's known body sets the pocket and the outer follows.
 cyd_outer = [c_pcb[0] + 2*(pcb_clr + wall[0]),
              c_pcb[1] + 2*(pcb_clr + wall[1]) + 2*c_off];
-body     = is_cyd  ? [cyd_outer[0] - 2*wall[0], cyd_outer[1] - 2*wall[1]]
+body     = is_w55  ? w55_pocket
+         : is_cyd  ? [cyd_outer[0] - 2*wall[0], cyd_outer[1] - 2*wall[1]]
          : is_orig ? o_body : g_body;
 // Edge treatment. The geometry is identical in all three; only how the
 // OUTER solid's edges are finished differs. Cavity, socket cutout and
@@ -173,7 +229,10 @@ end_crease_z= 24.00;  // height of the crease - the shoulder line
 ang_end_hi  = 35.00;  // upper slope, folding hard away from it
 
 r_out    = (edges == "sharp") ? 0 : (is_orig ? o_r_out : g_r_out);
-r_in     = is_orig ? o_r_in   : g_r_in;
+// Square, exactly like the reference pocket. A rounded pocket corner
+// has MORE material at the corner than a square one, so rounding it
+// could only reduce the corner clearance that is proven to work.
+r_in     = is_w55 ? 0.00 : is_orig ? o_r_in : g_r_in;
 relief   = is_orig ? o_relief : g_relief;
 
 /* -------------------------------------------------------------- */
@@ -185,7 +244,7 @@ relief   = is_orig ? o_relief : g_relief;
 // and the screw posts have to finish inside the skirt too, so it is
 // driven rather than chosen: stack_t + smd_h = 10.69 to clear the
 // board, stack_t + post_h = 11.60 to contain the posts.
-skirt_h    = is_cyd ? 12.00 : 9.00;
+skirt_h    = is_w55 ? 10.00 : is_cyd ? 12.00 : 9.00;
 roof_t     = 2.50;    // roof wall thickness, measured along its normal
 ang_front  = 45.00;   // +X face - the shallow rest face (45 deg tilt)
 ang_back   = 57.32;   // -X face - the upright rest face  (57 deg tilt)
@@ -328,7 +387,7 @@ back_pan_t =  2.00;   // flat back wall thickness (donor's panel)
 // can't reach them", since the screws are fitted with the module in
 // hand and never touched again. The heads are then the ferrous targets
 // for these four magnets.
-mag_on     = !is_orig && !is_cyd;   // CYD is screwed, not magnetic
+mag_on     = !is_orig && !is_bare;  // bare boards use their own retention
 mag_d      =  6.00;
 mag_l      =  3.00;
 mag_clr    =  0.20;   // pocket diameter = mag_d + mag_clr
@@ -360,8 +419,11 @@ screws     = [52.25, 84.50];   // corner insert grid, from the wall mount
 // the plate's front instead of the body's rim, so the screen face is
 // flat and crisp - which is what you want around a window - and every
 // other edge stays soft.
-face_t   = 2.40;                  // visible plate thickness
-z_front  = is_cyd ? -face_t : 0;  // where the solid starts
+// Plate thickness. On the 5" this is the reference case's own bezel
+// depth, so the glass sits in the window exactly as far proud as it
+// does in the part the user says fits perfectly.
+face_t   = is_w55 ? w55_seat : 2.40;
+z_front  = is_bare ? -face_t : 0;  // where the solid starts
 
 // Assembly stack, from the plate's back face at z = 0:
 //   0 .. glass_h    the LCD standing proud of the PCB; the plate lands
@@ -395,6 +457,70 @@ post_h   = 6.00;
 // PCB just before the plate's lip would land on the glass. The glass
 // carries no clamping load.
 col_bear = 0.05;
+
+// ---- snap skirt (retain == "snap") ----------------------------
+// The plate's outer edge continues downward as a skirt that drops
+// inside the tub wall, so the outside surface runs straight through the
+// joint with no step and nothing shows from the front. The wall is
+// split three ways: a standing inner wall on the tub, a clearance, and
+// the skirt itself.
+//
+// A triangular bead runs round the tub's standing wall and drops into a
+// groove in the skirt. The skirt has to flex
+// (snap_bead - snap_clr) = 0.15 per side to get past it, which is the
+// bite this repo has already calibrated for its diffuser snaps.
+//
+// The bead's lead-in faces the rim, which is the direction the skirt
+// arrives from - and on the tub, printed rim-down, that same face is
+// the downward-facing one, so it has to be the 45 deg ramp rather than
+// the flat. Getting that backwards would put an unsupported ledge right
+// where the snap needs to be crisp.
+snap_iw   = 1.50;                              // tub's standing wall
+snap_clr  = 0.30;                              // per side
+snap_t    = snap_wall - snap_iw - snap_clr;    // 1.20 skirt thickness
+snap_d    = 4.00;                              // skirt depth
+snap_bead = 0.45;
+snap_z    = 2.60;                              // bead centre below the rim
+snap_top  = 0.30;                              // flat on top of the bead
+// Thumbnail catch so a snapped plate can still be opened. It sits on
+// the -X edge, which is the one against the desk in both rest
+// positions, so it is out of sight.
+pry_r     = 6.00;
+pry_d     = 0.90;
+
+// ---- deep cap (retain == "cap") --------------------------------
+// The joint moves behind the board. The plate becomes a deep cap that
+// carries the pocket itself: the board goes into the PLATE from behind,
+// lands on the plate's own front ledge, and the tub's lip then stands
+// up inside the cap and backs the board off. Because the overlap
+// happens inboard of the pocket rather than inside the wall, the wall
+// never has to be split, which is the whole point - it stays 2.00 and
+// every bezel is 1 mm thinner than the "snap" build.
+//
+// The bead is on the plate's inner face and the groove is in the lip,
+// the reverse of "snap". The lip enters from the open end, so the
+// bead's ramp faces that way and its flat retaining face points back
+// toward the screen.
+//
+// The cost, and it is a real one: the tub prints lip-down, so its outer
+// wall appears all at once at the parting plane, leaving an annular
+// overhang of wall + cap_clr = 2.25 mm right at the visible seam. The
+// "snap" build has the same transition but only 1.50 mm of it.
+cap_d    = 8.00;    // parting plane, clear of the board's rear parts
+cap_clr  = 0.25;    // per side, lip vs the plate's bore
+cap_lt   = 0.90;    // lip thickness
+cap_p    = 0.45;    // bead proud of the bore
+cap_bz   = 4.60;    // the bead's flat retaining face
+z_split  = (retain == "cap") ? cap_d : 0;   // where the two parts meet
+
+// Board backstop. The reference case has none - it clamps the board
+// with a separate back plate, which a closed wedge cannot do - so this
+// is the one feature here with no proven original. Four pads bridge the
+// pocket corners at the board's back plane. Corners are the safest
+// place to touch a populated board, but they are unverified against
+// this board's rear components; move or delete them from here.
+seat_pad_d = 8.00;
+seat_pad_h = 2.50;
 
 // Registration. Magnets alone would let the plate wander before they
 // snap; the plate's silhouette is the tub's silhouette so any offset
@@ -647,32 +773,177 @@ module lip_band(y0, y1, h) {
     }
 }
 
+// Bead on the plate's bore: flat face toward the screen, 45 deg ramp
+// toward the open end so the lip rides over it.
+module cap_bead_ring() {
+    ci = [body[0] - 2*cap_p, body[1] - 2*cap_p];
+    ri = max(0.01, r_in - cap_p);
+    difference() {
+        translate([0, 0, cap_bz]) linear_extrude(cap_p + cap_p)
+            rrect(body[0], body[1], r_in);
+        union() {
+            translate([0, 0, cap_bz - EPS]) linear_extrude(cap_p + 2*EPS)
+                rrect(ci[0], ci[1], ri);
+            hull() {
+                translate([0, 0, cap_bz + cap_p]) linear_extrude(EPS)
+                    rrect(ci[0], ci[1], ri);
+                translate([0, 0, cap_bz + 2*cap_p]) linear_extrude(EPS)
+                    rrect(body[0], body[1], r_in);
+            }
+        }
+    }
+}
+
+// The tub's lip: stands up inside the cap from the board's back plane,
+// so its top face is also what stops the board going any deeper.
+module cap_lip() {
+    lo = [body[0] - 2*cap_clr,            body[1] - 2*cap_clr];
+    li = [lo[0]  - 2*cap_lt,              lo[1]  - 2*cap_lt];
+    difference() {
+        translate([0, 0, stack_t]) linear_extrude(cap_d - stack_t)
+            rrect(lo[0], lo[1], max(0.01, r_in - cap_clr));
+        translate([0, 0, stack_t - 1]) linear_extrude(cap_d - stack_t + 2)
+            rrect(li[0], li[1], max(0.01, r_in - cap_clr - cap_lt));
+        // groove the bead drops into
+        difference() {
+            translate([0, 0, cap_bz - 0.15]) linear_extrude(cap_p + 0.60)
+                rrect(lo[0], lo[1], max(0.01, r_in - cap_clr));
+            translate([0, 0, cap_bz - 0.30]) linear_extrude(cap_p + 0.90)
+                rrect(lo[0] - 2*cap_p, lo[1] - 2*cap_p,
+                      max(0.01, r_in - cap_clr - cap_p));
+        }
+    }
+}
+
+// ---- snap-skirt geometry ---------------------------------------
+// Profiles, all as rounded rects concentric with the pocket:
+//   iw  tub's standing inner wall, outer face
+//   ig  skirt inner face  = iw + clearance
+//   og  groove floor      = ig + bead
+snap_iw_sz = [body[0] + 2*snap_iw,               body[1] + 2*snap_iw];
+snap_ig_sz = [body[0] + 2*(snap_iw + snap_clr),  body[1] + 2*(snap_iw + snap_clr)];
+snap_og_sz = [snap_ig_sz[0] + 2*snap_bead,       snap_ig_sz[1] + 2*snap_bead];
+
+// Wall rebate on the tub: everything outboard of the standing wall,
+// from the rim down past the skirt tip.
+module snap_rebate() {
+    difference() {
+        translate([0, 0, -EPS]) linear_extrude(snap_d + 0.20 + EPS)
+            rrect(outer[0], outer[1], r_out);
+        translate([0, 0, -2*EPS]) linear_extrude(snap_d + 0.60)
+            rrect(snap_iw_sz[0], snap_iw_sz[1], r_in);
+    }
+}
+
+// Retaining bead on the standing wall. Ramps outward as z increases so
+// its only overhanging face is the 45 deg lead-in.
+module snap_bead_ring() {
+    difference() {
+        union() {
+            hull() {
+                translate([0, 0, snap_z - snap_bead]) linear_extrude(EPS)
+                    rrect(snap_iw_sz[0], snap_iw_sz[1], r_in);
+                translate([0, 0, snap_z]) linear_extrude(EPS)
+                    rrect(snap_iw_sz[0] + 2*snap_bead,
+                          snap_iw_sz[1] + 2*snap_bead, r_in + snap_bead);
+            }
+            translate([0, 0, snap_z]) linear_extrude(snap_top)
+                rrect(snap_iw_sz[0] + 2*snap_bead,
+                      snap_iw_sz[1] + 2*snap_bead, r_in + snap_bead);
+        }
+        translate([0, 0, -1]) linear_extrude(snap_d + 4)
+            rrect(snap_iw_sz[0], snap_iw_sz[1], r_in);
+    }
+}
+
+// Board backstop: four pads bridging the pocket corners at the board's
+// back plane, each hulled to a foot in both walls so its underside is a
+// bridge rather than a cantilever.
+module seat_pad(sx, sy) {
+    cx = sx*(body[0]/2 - seat_pad_d/2);
+    cy = sy*(body[1]/2 - seat_pad_d/2);
+    hull() {
+        translate([cx, cy]) circle(d = seat_pad_d);
+        translate([sx*(body[0]/2 + snap_iw*0.5), cy]) circle(d = 3);
+        translate([cx, sy*(body[1]/2 + snap_iw*0.5)]) circle(d = 3);
+    }
+}
+module seat_pads() {
+    // Clamped to the standing wall's footprint, NOT to outer_solid():
+    // the wall outboard of it is rebated away for the skirt, so a pad
+    // foot that strayed out there would sit exactly where the skirt has
+    // to travel.
+    intersection() {
+        translate([0, 0, stack_t]) linear_extrude(seat_pad_h)
+            for (sx = [-1, 1], sy = [-1, 1]) seat_pad(sx, sy);
+        translate([0, 0, -1]) linear_extrude(skirt_h + 2)
+            rrect(snap_iw_sz[0], snap_iw_sz[1], r_in);
+    }
+}
+
+// The plate's skirt, and the groove the bead drops into.
+module skirt() {
+    difference() {
+        // taken off outer_solid so the skirt's outside is the same
+        // softened surface as the tub's, not a hair proud of it
+        intersection() {
+            outer_solid();
+            translate([-BIG/2, -BIG/2, -EPS]) cube([BIG, BIG, snap_d + EPS]);
+        }
+        translate([0, 0, -2*EPS]) linear_extrude(snap_d + 4*EPS)
+            rrect(snap_ig_sz[0], snap_ig_sz[1], r_in);
+    }
+}
+module skirt_groove() {
+    translate([0, 0, snap_z - snap_bead - 0.15])
+        linear_extrude(snap_bead + snap_top + 0.30)
+            rrect(snap_og_sz[0], snap_og_sz[1], r_in + snap_clr + snap_bead);
+}
+// Thumbnail catch in the plate's -X edge, straddling the joint.
+module pry_dish() {
+    translate([-outer[0]/2 - pry_r + pry_d, 0, z_split])
+        rotate([90, 0, 0]) cylinder(h = 30, r = pry_r, center = true, $fn = 64);
+}
+
 module face_piece() {
   translate([0, 0, -z_front])       // prints as exported: window face down
+  union() {
   difference() {
     union() {
         intersection() {
             outer_solid();
-            translate([-BIG/2, -BIG/2, z_front]) cube([BIG, BIG, -z_front]);
+            translate([-BIG/2, -BIG/2, z_front])
+                cube([BIG, BIG, z_split - z_front]);
         }
+        if (retain == "snap") skirt();
         // registration lip at each end, clear of the glass
-        lip_band(glass_t + lip_gap,  body[1]/2, lip_h);
-        lip_band(-body[1]/2, glass_b - lip_gap, lip_h);
+        if (retain == "magnet") lip_band(glass_t + lip_gap,  body[1]/2, lip_h);
+        if (retain == "magnet") lip_band(-body[1]/2, glass_b - lip_gap, lip_h);
         // and its deeper section past the board, as a board stop
-        lip_band(pcb_t_y + stop_gap, body[1]/2, stack_t - 0.20);
+        if (retain == "magnet") lip_band(pcb_t_y + stop_gap, body[1]/2, stack_t - 0.20);
         // collars carrying the magnets down to the PCB
-        for (sx = [-1, 1], sy = [-1, 1])
-            translate([sx*c_hole[0]/2, board_dy + sy*c_hole[1]/2, 0])
-                cylinder(h = glass_h + col_bear, d = col_d);
+        if (retain == "magnet")
+            for (sx = [-1, 1], sy = [-1, 1])
+                translate([sx*c_hole[0]/2, board_dy + sy*c_hole[1]/2, 0])
+                    cylinder(h = glass_h + col_bear, d = col_d);
     }
     aperture_cut();
     // magnet pockets, opening at the collar face. Blind: 1 mm of collar
     // plus the full plate thickness stays in front of them, so the
     // front face is unbroken apart from the window.
-    for (sx = [-1, 1], sy = [-1, 1])
-        translate([sx*c_hole[0]/2, board_dy + sy*c_hole[1]/2,
-                   glass_h + col_bear - cyd_mag_l])
-            cylinder(h = cyd_mag_l + EPS, d = cyd_mag_d + cyd_mag_clr);
+    if (retain == "magnet")
+        for (sx = [-1, 1], sy = [-1, 1])
+            translate([sx*c_hole[0]/2, board_dy + sy*c_hole[1]/2,
+                       glass_h + col_bear - cyd_mag_l])
+                cylinder(h = cyd_mag_l + EPS, d = cyd_mag_d + cyd_mag_clr);
+    if (retain == "snap") skirt_groove();
+    if (retain != "magnet") pry_dish();
+    // the cap carries the pocket itself: the board goes in from behind
+    if (retain == "cap")
+        translate([0, 0, -EPS]) linear_extrude(z_split + 2*EPS)
+            rrect(body[0], body[1], r_in);
+  }
+  if (retain == "cap") cap_bead_ring();
   }
 }
 
@@ -684,6 +955,8 @@ module stand() {
     union() {
       if (mag_on) mag_bosses();
       if (is_cyd)  posts();
+      if (retain == "snap" && is_bare) snap_bead_ring();
+      if (retain == "snap" && is_bare) seat_pads();
       difference() {
         outer_solid();
 
@@ -696,6 +969,9 @@ module stand() {
             wedge(body, r_in, inset = roof_t, z0 = skirt_h,
                   pan = back_pan_t);
         }
+
+        // the wall rebate the plate's skirt closes over
+        if (retain == "snap" && is_bare) snap_rebate();
 
         // corner reliefs so the module's corner bosses drop in clean
         if (relief_on)
@@ -731,8 +1007,14 @@ module stand() {
 part = "stand";
 
 if (part == "face") {
-    if (is_cyd) face_piece();
+    if (is_bare) face_piece();
     else echo("part=\"face\" only exists for the CYD displays");
-} else if (is_cyd) {
-    intersection() { stand(); translate([-BIG/2, -BIG/2, 0]) cube(BIG); }
+} else if (is_bare) {
+    union() {
+        intersection() {
+            stand();
+            translate([-BIG/2, -BIG/2, z_split]) cube(BIG);
+        }
+        if (retain == "cap") cap_lip();
+    }
 } else stand();

@@ -20,8 +20,10 @@ is workflow knowledge for agents working in the repo.
   `params.scad`. One file, four displays via `display=`: the Guition
   JC3248W535C (`jc3248w535`, the standard — soft r3.0, `parallel` back),
   the donor replica (`orig43`), and the Cheap Yellow Displays
-  (`cyd28`, `cyd40`), which are two-part prints — add `part="face"` for
-  the bezel plate. See `docs/screen-stand-jc3248w535.md`.
+  (`cyd28`, `cyd40`) and the 5" `jc8048w550`, which are two-part prints
+  — add `part="face"` for the bezel plate. The 5" has two joint styles,
+  `retain="snap"` and `retain="cap"`. See
+  `docs/screen-stand-jc3248w535.md`.
 - `scad/fit_check.scad` — boolean interference checks (see below).
 - `stl/` — exported binary STLs, committed. `render.sh` — batch pipeline.
 - `docs/` — handoff specs for planned work.
