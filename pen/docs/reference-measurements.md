@@ -81,6 +81,16 @@ Every cut's walls lean: the opening is ~3° per side wider at the bore
 - `Pen Upper Housing`: hexagon **11.0 across flats / 12.7 across
   corners** (sharp corners), 85.5 long; bore r 3.75 at the front, r 4.5
   (Ø9.0) behind; internal click-mechanism ramps z 31-62.
+- `Pen Upper Housing`, more detail: round Ø11 collar z 0-5.6; hex
+  from 5.6; bore r 3.75 to z 18 (female thread zone z 8-18, flanks
+  r 3.73-4.50), r 4.5 from z 18; two opposite through-slots ~4 mm wide
+  (centred 0° and 180°, on flats) z 31-62; click cam ramps on the inner
+  surface z 70-85, reaching r 5.08 (helical); rear corners chamfered
+  z 82-85.5.
+- `Pen Clip`: a round ring (Ø11.0 bore, 6.1 outer radius, 6 mm tall)
+  that sits on the housing's front collar, plus a 40 mm arm 2 mm thick,
+  4.5 wide, whose tip bump reaches in to r 5.55 (just touching the
+  original 11 AF flats).
 - `Pen Cap`: Ø7.2 × 21.65, bore Ø5.5.
 
 The user's verdict: the knurl grip is the best they have had on a

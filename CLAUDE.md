@@ -119,5 +119,9 @@ re-download unless something new is needed.
   region cell-for-cell; compare the bore-surface map.
 - Renders are fast here (~10 s per part, CGAL) — no need for
   background batching, but still convert STLs to binary before commit.
+- `pen/ref/` holds the one third-party mesh we derive from directly
+  (`Pen_Upper_Housing.stl`); `click_housing_slim.scad` intersects it
+  with an envelope — the front collar (clip ring seat) and the rear cam
+  section (0.4 mm wall) must stay original.
 - Version 2 (planned): same body with the click pen's diamond-knurl grip
   (parameters measured, see the reference doc).

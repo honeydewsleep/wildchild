@@ -9,6 +9,7 @@ filt() { grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simp
 if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     echo "== stl/body_hex.stl"; openscad -o stl/body_hex.stl -D 'part="body"' scad/body.scad 2>&1 | filt
     echo "== stl/plunger.stl";  openscad -o stl/plunger.stl scad/plunger.scad 2>&1 | filt
+    echo "== stl/click_housing_slim.stl"; openscad -o stl/click_housing_slim.stl scad/click_housing_slim.scad 2>&1 | filt
     python3 ../scripts/stl2bin.py stl/*.stl      # OpenSCAD 2021 writes ASCII; commit binary only
 fi
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then

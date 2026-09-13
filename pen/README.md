@@ -92,6 +92,33 @@ radial ray-casting:
   slot EMPTY, pin engages the plunger hole NON-empty. All pass, zero
   OpenSCAD warnings.
 
+## Click pen: slim upper housing (`stl/click_housing_slim.stl`)
+
+The click pen's hex upper housing re-cut so the knurled grip reads as
+(nearly) flush. `scad/click_housing_slim.scad` intersects the original
+mesh (`ref/Pen_Upper_Housing.stl`) with a smaller envelope, so bore,
+thread, the two long slots and the click-mechanism cam ramps are
+byte-for-byte the original (verified: inner surface within 0.0004 mm).
+
+| region (from the front) | original | slim | why |
+|---|---|---|---|
+| 0 – 5.6 mm, round collar | Ø11.0 | Ø11.0 (kept) | the pen clip is a ring that snaps onto exactly this collar |
+| 5.6 – 68.7 mm, hex | 11.0 AF / 12.7 AC sharp | **10.4 AF / 11.64 AC**, corners r 1.2 | wall over the Ø9.0 bore is 0.70 mm at the flats |
+| 68.7 – 69.5 mm | – | 45° step | transition |
+| 69.5 – 85.5 mm, rear | 11.0 AF | 11.0 AF (kept) | the click cam ramps inside reach r 5.08; only ~0.4 mm of wall is left under the original flats already |
+
+Relative to the grip (knurl valleys Ø10.0, crests Ø11.0): the new flats
+sit 0.2 mm above the valleys and 0.3 mm below the crests; the softened
+corners are 0.32 mm proud of the crests (the original corners were
+0.85 mm proud). `ch_af` and `ch_corner_r` in the file are the knobs;
+10.0 AF would be exactly flush with the valleys but leaves a 0.5 mm wall,
+which is not worth printing.
+
+Print with 0.4 nozzle and 0.35 mm line width (2 perimeters in the
+0.70 mm flats). Side effect for the clip: its tip used to just touch the
+original flats at 5.5 mm radius; on the slim hex it hovers 0.3 mm above
+the flat, so it will hold thin pockets a little less firmly.
+
 ## Next: v2
 
 Same pen with the click pen's diamond-knurl grip (the user's favourite
