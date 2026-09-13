@@ -6,6 +6,9 @@ is workflow knowledge for agents working in the repo.
 
 ## Layout
 
+- `pen/` — **separate project**: bolt-action pen remixes (see `pen/README.md`
+  and the *Pen project* section at the end of this file).
+
 - `scad/params.scad` — ALL shared parameters, both series. Edit here first.
 - `scad/lib/threads.scad` — thread primitives (twist-extrusion, printable
   45° flanks). `use`'d files can't see includer variables, so the lib
@@ -88,3 +91,33 @@ never "improve" them:
   periodic check-ins/polling (a previous hourly PR-watch loop burned
   ~20% of their credits overnight), don't re-render parts that didn't
   change, and don't render PNG previews unless asked.
+
+## Pen project (`pen/`)
+
+Bolt-action pen remixes. Reference models live in the user's Google
+Drive (*The Rabbit Hole › 3D Print Files › Pens › Favorites*), reachable
+through the Google Drive connector (`search_files` by title, then
+`download_file_content`; large results land in a tool-results file —
+decode the base64 `content` field to get the binary STL). Measurements
+already taken are in `pen/docs/reference-measurements.md`; do not
+re-download unless something new is needed.
+
+- `pen/scad/params.scad` holds every dimension. INTERIOR values are the
+  reference pen's and must not change (they fit the user's refills).
+- Pen bodies export **upright, not inverted**: z=0 is the back rim on
+  the bed, tip up. Mesh z = design z.
+- The bolt track is cut with `wall_cut()` in `pen/scad/body.scad`: a
+  lofted polyhedron between an outline on the reference bore surface
+  (r 4.2) and one on the reference outer surface (r 5.75), extended
+  inward/outward, so the cut is independent of the hex wall thickness.
+  The reference cuts lean ~3°/side (wider at the bore); the hook ramp
+  leans ~30°. Outline winding is normalised inside the module; keep
+  `inner` and `outer` outlines vertex-for-vertex matched.
+- Verify against the reference by ray-casting the exported mesh
+  (interior radius per z, and an unrolled through/wall map of the
+  track), not by eye. A hex exterior can never match the leaning-ramp
+  region cell-for-cell; compare the bore-surface map.
+- Renders are fast here (~10 s per part, CGAL) — no need for
+  background batching, but still convert STLs to binary before commit.
+- Version 2 (planned): same body with the click pen's diamond-knurl grip
+  (parameters measured, see the reference doc).

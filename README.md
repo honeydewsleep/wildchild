@@ -1,5 +1,7 @@
 # Energy Ring Remix — WLED Notification Light
 
+> Also in this repo: `pen/` — a hex "pencil" remix of a bolt-action pen (see `pen/README.md`).
+
 A fully parametric OpenSCAD rebuild of the
 [ENERGY RING (ESP32 + WLED)](https://makerworld.com/en/models/2045449-energy-ring-esp32-wled)
 desk lamp by DSL Design, with three revisions for use as a fleet of
