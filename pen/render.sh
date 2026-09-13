@@ -10,9 +10,17 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     echo "== stl/body_hex.stl"; openscad -o stl/body_hex.stl -D 'part="body"' scad/body.scad 2>&1 | filt
     echo "== stl/plunger.stl";  openscad -o stl/plunger.stl scad/plunger.scad 2>&1 | filt
     echo "== stl/click_housing_slim.stl"; openscad -o stl/click_housing_slim.stl scad/click_housing_slim.scad 2>&1 | filt
+    echo "== stl/v2_barrel.stl";        openscad -o stl/v2_barrel.stl -D 'part="barrel"' scad/v2_barrel.scad 2>&1 | filt
+    echo "== stl/v2_barrel_window.stl"; openscad -o stl/v2_barrel_window.stl -D 'part="barrel_window"' scad/v2_barrel.scad 2>&1 | filt
+    echo "== stl/v2_grip.stl";          openscad -o stl/v2_grip.stl scad/v2_grip.scad 2>&1 | filt
     python3 ../scripts/stl2bin.py stl/*.stl      # OpenSCAD 2021 writes ASCII; commit binary only
 fi
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then
+    for m in j_clearance j_engagement plunger_pass; do
+        echo "== v2 fit check: $m"
+        openscad -o /tmp/pen_v2fit_$m.stl -D "mode=\"$m\"" scad/v2_fit_check.scad 2>&1 | grep -iE 'empty|warning|error' || true
+        ls -la /tmp/pen_v2fit_$m.stl 2>/dev/null || true
+    done
     for m in clearance pin_clearance pin_engagement; do
         echo "== fit check: $m  (clearance modes must be EMPTY, engagement NON-empty)"
         openscad -o /tmp/pen_fit_$m.stl -D "mode=\"$m\"" scad/fit_check.scad 2>&1 | grep -iE 'empty|warning|error' || true

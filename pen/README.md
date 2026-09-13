@@ -117,8 +117,46 @@ so it seats in the same place as before (first 6 mm) and its arm lands
 over a flat. The clip tip now hovers ~0.15 mm above the flat instead of
 touching it; if it holds thin pockets too loosely, shave `clip_clr`.
 
-## Next: v2
+## v2: two-piece bolt pen (`stl/v2_grip.stl` + `stl/v2_barrel.stl` / `stl/v2_barrel_window.stl`)
 
-Same pen with the click pen's diamond-knurl grip (the user's favourite
-grip). The knurl was measured; parameters are in
-`docs/reference-measurements.md` under *Click pen grip*.
+The bolt pen rebuilt in the click pen's silhouette: a knurled round grip
+that screws into a hex barrel. Same refill, spring and plunger as v1
+(reuse `stl/plunger.stl` or an original Bolt Base).
+
+**Grip** (`scad/v2_grip.scad`, prints standing on its thread end, tip up)
+- 15.2° straight taper tip, then the click pen's diamond knurl: Ø10
+  valleys / Ø11 crests, 30 + 30 V-grooves 0.5 deep, 11.8° helix, from
+  10.6 to 45.5 mm from the tip — the grooves run out into the taper
+  exactly like the original grip.
+- Interior = the v1 bolt body's tip interior, verbatim: Ø2.92 exit,
+  Ø3.72 refill-cone bore, Ø5.52 spring seat, Ø6.88 refill bore. Ø6.6
+  under the thread (the click pen uses Ø6.5 there; the refill passes).
+- Male thread: root Ø8.0, depth 0.6, pitch 1.5, 7.5 mm (5 turns), 45°
+  printable flanks, tapered start.
+
+**Barrel** (`scad/v2_barrel.scad`, prints on its sealed back face)
+- Sealed back: 1.5 mm wall, perfectly round Ø10 bed face with a 45°
+  chamfer up into the 10.4 AF / 11.64 AC rounded hex. Insignia: either
+  skip the first layer of a graphic in the slicer, or set `v2_insignia`
+  to an SVG file name in `scad/` and it is cut 0.2 mm into the face.
+- Bolt track identical to v1 (same distances from the back face).
+- Front: round Ø11 neck (= knurl crest, so the joint has no step and
+  needs no clocking) 8 mm long carrying the female thread, blended into
+  the hex over the next 10 mm.
+- Bore Ø8.4 all the way to the thread: the plunger goes in from the
+  FRONT (drop it in, push the pin through the main slot), then the grip
+  screws on. That is what makes a sealed back possible.
+- `barrel_window`: two 3.5 × 30 mm ink windows on opposite flats
+  (90° and 270°, 30–60 mm from the back) to see the refill.
+- Overall length 125.05: v1's 124.3 plus `v2_stretch = 0.75` between
+  the tip and the bolt track (v1 was 0.5–1 mm short there).
+
+**Assembly**: refill + spring into the grip; plunger into the barrel
+from the front, pin through the main slot into the plunger; screw the
+grip on until its shoulder meets the barrel face.
+
+**Verification** (mesh-level): see the table in the PR description.
+
+## Next
+- Test-print v2; if the thread is tight or loose, change `j_clr`
+  (validated 0.30 from the lamp threads is the default).

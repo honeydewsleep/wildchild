@@ -72,3 +72,49 @@ pl_sock_chamfer = 0.5;  // 45° lead-in at the socket mouth
 
 // ------------------------------------------------------- helpers
 function polar(r, a, z) = [r*cos(a), r*sin(a), z];
+
+// ================================================================ v2
+// Two-piece bolt pen: knurled round grip (tip end) threaded into a hex
+// barrel (bolt track, sealed round-faced back). Looks like the click
+// pen; takes the same refill, spring and plunger as v1.
+v2_stretch    = 0.75;   // extra length between tip and bolt track (v1 was 0.5-1 mm short)
+v2_len        = body_len + v2_stretch;   // 125.05 overall, tip face to back face
+v2_back_wall  = 1.5;    // sealed back wall (insignia relief goes into its outer face)
+v2_back_face_r = 5.0;   // radius of the perfectly round bed face; 45° chamfer up to the hex from there
+
+// grip (all from the TIP face, like the click pen's grip)
+g_knurl_start = 10.6;   // knurl grooves start (they run out into the taper)
+g_knurl_end   = 45.5;   // knurl ends = shoulder = joint face (click pen value)
+g_knurl_r     = 5.5;    // knurl crest radius (Ø11.0)
+g_knurl_depth = 0.5;    // groove depth (valleys Ø10.0)
+g_knurl_n     = 30;     // grooves per helix family
+g_knurl_lead  = 165;    // mm per turn -> 11.8° helix (click pen)
+g_knurl_land  = 5.5;    // deg of flat land between grooves (at the crest)
+g_thread_bore_r = 3.30; // Ø6.6 bore under the male thread (click pen uses Ø6.5; refill passes)
+
+// joint thread (grip male, barrel female), 45° flanks, single start
+j_root_r  = 4.0;        // male root radius (wall to the Ø6.6 bore = 0.70)
+j_depth   = 0.6;        // crest r 4.6
+j_pitch   = 1.5;
+j_len     = 7.5;        // 5 turns
+j_clr     = 0.30;       // validated print clearance from the lamp threads
+j_crest_deg = 12;
+
+// barrel (from the BACK face)
+b_hex_af     = hex_af;      // 10.4 like v1
+b_hex_corner = hex_corner_r;
+b_neck_len   = 8.0;         // round Ø11 neck at the front that carries the female thread
+b_blend_len  = 10.0;        // round -> hex blend behind the neck
+b_joint_z    = v2_len - g_knurl_end;   // 79.55: barrel front face / grip shoulder
+b_bore_r     = bore_r_plunger;         // Ø8.4 all the way to the thread (plunger goes in from the front)
+
+// ink windows (barrel_window variant): two opposite slots on the flats
+w_angles = [90, 270];
+w_z0     = 30;
+w_z1     = 60;
+w_width  = 3.5;
+
+// insignia: an SVG file name (in scad/) cut 1 layer deep into the back face; "" = none
+v2_insignia      = "";
+v2_insignia_size = 8.0;     // mm, longest side
+v2_insignia_depth = 0.2;

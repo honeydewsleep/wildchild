@@ -123,5 +123,11 @@ re-download unless something new is needed.
   (`Pen_Upper_Housing.stl`); `click_housing_slim.scad` intersects it
   with an envelope — the front collar (clip ring seat) and the rear cam
   section (0.4 mm wall) must stay original.
-- Version 2 (planned): same body with the click pen's diamond-knurl grip
-  (parameters measured, see the reference doc).
+- v2 is two-piece: `v2_grip.scad` (z from the TIP) + `v2_barrel.scad` (z
+  from the BACK; bolt-track z values identical to v1 via `lib/track.scad`).
+  The joint is a round Ø11 neck + 45°-flank thread from `scad/lib/threads.scad`
+  (root r 4.0, depth 0.6, pitch 1.5, clr 0.30). The knurl is the
+  intersection of two twisted extrusions of a 30-notch disc (CGAL-slow:
+  minutes). Plunger loads from the front through the female thread
+  (bore Ø8.4 to the thread) — never reintroduce a Ø6.88 section in the
+  barrel or a sealed back becomes un-assemblable.
