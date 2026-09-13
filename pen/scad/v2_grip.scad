@@ -48,7 +48,7 @@ module knurl_keep() {   // material to keep: both families in the knurl zone, ev
 module male_thread() {
     translate([0, 0, g_knurl_end - EPS])
         intersection() {
-            thread_male(j_root_r, j_depth, j_pitch, j_len + EPS, 1, 0, 240, 120, j_crest_deg);
+            thread_male(j_root_r, j_depth, j_pitch, j_len + EPS, 1, 0, 96, 48, j_crest_deg);
             thread_tip_taper(j_root_r, j_depth, j_len + EPS, 1.2);
         }
 }

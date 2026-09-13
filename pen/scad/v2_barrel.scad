@@ -40,16 +40,15 @@ module bore() {
     translate([0, 0, v2_back_wall]) cylinder(h = b_joint_z - v2_back_wall + 1, r = b_bore_r);
     // female thread cavity, mouth at the joint face
     translate([0, 0, b_joint_z]) mirror([0, 0, 1]) {
-        thread_female_cavity(j_root_r, j_depth, j_pitch, j_len, j_clr, 1, 0, 240, 120, j_crest_deg);
+        thread_female_cavity(j_root_r, j_depth, j_pitch, j_len, j_clr, 1, 0, 96, 48, j_crest_deg);
         thread_mouth_chamfer(j_root_r, j_depth, j_clr, 0.6);
     }
 }
 
-module ink_windows() {
-    for (a = w_angles) rotate([0, 0, a]) rotate([0, -90, 0])   // slot lying in the (radial x, z) plane at angle a
-        translate([-(w_z1 + w_z0) / 2, 0, -8]) linear_extrude(16)
-            hull() { translate([-(w_z1 - w_z0) / 2 + w_width / 2, 0]) circle(d = w_width);
-                     translate([ (w_z1 - w_z0) / 2 - w_width / 2, 0]) circle(d = w_width); }
+module ink_windows() {   // rounded slots on the flats, cut radially through the wall
+    for (a = w_angles) rotate([0, 0, a])
+        hull() for (z = [w_z0 + w_width / 2, w_z1 - w_width / 2])
+            translate([0, 0, z]) rotate([0, 90, 0]) cylinder(h = 9, d = w_width, $fn = 48);
 }
 
 module insignia() {

@@ -155,7 +155,12 @@ that screws into a hex barrel. Same refill, spring and plunger as v1
 from the front, pin through the main slot into the plunger; screw the
 grip on until its shoulder meets the barrel face.
 
-**Verification** (mesh-level): see the table in the PR description.
+**Verification** (mesh-level, exported STLs): grip interior vs the v1
+reference tip interior within 0.031 mm; barrel bolt track at the bore
+surface 1.26 % of cells differ from the original (same as v1, i.e. the
+leaning-ramp region); thread fit checks pass (male-in-female clearance
+EMPTY, engagement NON-empty, plunger passes the female thread EMPTY);
+back wall solid; zero OpenSCAD warnings.
 
 ## Next
 - Test-print v2; if the thread is tight or loose, change `j_clr`
