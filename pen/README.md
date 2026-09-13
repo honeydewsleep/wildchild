@@ -92,32 +92,30 @@ radial ray-casting:
   slot EMPTY, pin engages the plunger hole NON-empty. All pass, zero
   OpenSCAD warnings.
 
-## Click pen: slim upper housing (`stl/click_housing_slim.stl`)
+## Click pen: slim upper housing (`stl/click_housing_slim.stl`) + clip
 
-The click pen's hex upper housing re-cut so the knurled grip reads as
-(nearly) flush. `scad/click_housing_slim.scad` intersects the original
-mesh (`ref/Pen_Upper_Housing.stl`) with a smaller envelope, so bore,
-thread, the two long slots and the click-mechanism cam ramps are
-byte-for-byte the original (verified: inner surface within 0.0004 mm).
+The click pen's hex upper housing re-shaped so the knurled grip flows
+into it. `scad/click_housing_slim.scad` unions/intersects the original
+mesh (`ref/Pen_Upper_Housing.stl`) with a new envelope, so bore, thread,
+the two long slots and the click-mechanism cam ramps are the original
+(verified: inner surface within 0.0004 mm).
 
-| region (from the front) | original | slim | why |
-|---|---|---|---|
-| 0 – 5.6 mm, round collar | Ø11.0 | Ø11.0 (kept) | the pen clip is a ring that snaps onto exactly this collar |
-| 5.6 – 68.7 mm, hex | 11.0 AF / 12.7 AC sharp | **10.4 AF / 11.64 AC**, corners r 1.2 | wall over the Ø9.0 bore is 0.70 mm at the flats |
-| 68.7 – 69.5 mm | – | 45° step | transition |
-| 69.5 – 85.5 mm, rear | 11.0 AF | 11.0 AF (kept) | the click cam ramps inside reach r 5.08; only ~0.4 mm of wall is left under the original flats already |
+| z from the front | exterior |
+|---|---|
+| 0 | round Ø11.0, = the grip's knurl crests: no step at the joint in any direction. (Grip and housing are threaded, so their rotation is not indexed; a round joint face is the only one that always lines up.) |
+| 0 → 10 | smooth blend, circle → rounded hexagon 10.4 across flats / 11.64 across corners |
+| 10 → 70 | hexagon grows to 11.0 across flats, 0.3 mm per side over 60 mm (0.3°, invisible) |
+| 70 → 85.5 | 11.0 across flats, corners rounded r 1.27. Cannot be smaller: the click cam ramps inside reach r 5.08 and leave ~0.4 mm of wall under the flats already |
 
-Relative to the grip (knurl valleys Ø10.0, crests Ø11.0): the new flats
-sit 0.2 mm above the valleys and 0.3 mm below the crests; the softened
-corners are 0.32 mm proud of the crests (the original corners were
-0.85 mm proud). `ch_af` and `ch_corner_r` in the file are the knobs;
-10.0 AF would be exactly flush with the valleys but leaves a 0.5 mm wall,
-which is not worth printing.
+Wall at the flats over the Ø9.0 bore: 0.70 mm at the front, 1.0 mm at
+the rear. Print with 0.4 nozzle and 0.35 mm line width (2 perimeters).
 
-Print with 0.4 nozzle and 0.35 mm line width (2 perimeters in the
-0.70 mm flats). Side effect for the clip: its tip used to just touch the
-original flats at 5.5 mm radius; on the slim hex it hovers 0.3 mm above
-the flat, so it will hold thin pockets a little less firmly.
+The knurled grip is unchanged. The clip (`stl/click_clip_slim.stl`,
+`scad/click_clip_slim.scad`) keeps the original arm but its ring is a
+0.9 mm shell around the housing's blend surface with 0.15 mm clearance,
+so it seats in the same place as before (first 6 mm) and its arm lands
+over a flat. The clip tip now hovers ~0.15 mm above the flat instead of
+touching it; if it holds thin pockets too loosely, shave `clip_clr`.
 
 ## Next: v2
 
