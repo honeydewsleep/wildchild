@@ -36,6 +36,7 @@ pen/
   scad/plunger.scad    the plunger
   scad/fit_check.scad  boolean checks (see render.sh)
   stl/body_hex.stl     print this
+  stl/body_hex_slot075.stl   same body, bolt track 0.75 mm closer to the tip (track_dz = 0.75)
   stl/plunger.stl      print this (or reuse an original Bolt Base)
   docs/reference-measurements.md   what was measured on the original meshes + the click pen
   render.sh            stl | check | png
@@ -63,6 +64,7 @@ pen/
 | `tip_half_angle`| 15.2    | taper angle (click pen value) |
 | `tip_r_exit`    | 2.20    | outer radius at the very tip (0.74 mm wall around the exit hole) |
 | `back_chamfer`  | 0.5     | chamfer on the back rim |
+| `track_dz`      | 0       | shifts the whole bolt track (slot, hook, window) toward the tip. `body_hex_slot075.stl` uses 0.75 |
 
 Across-corners for the default is 11.64 mm; the original barrel was
 Ø11.52. If you want the whole thing inside the original envelope, set

@@ -8,6 +8,7 @@ filt() { grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simp
 
 if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     echo "== stl/body_hex.stl"; openscad -o stl/body_hex.stl -D 'part="body"' scad/body.scad 2>&1 | filt
+    echo "== stl/body_hex_slot075.stl"; openscad -o stl/body_hex_slot075.stl -D 'part="body"' -D 'track_dz=0.75' scad/body.scad 2>&1 | filt
     echo "== stl/plunger.stl";  openscad -o stl/plunger.stl scad/plunger.scad 2>&1 | filt
     echo "== stl/click_housing_slim.stl"; openscad -o stl/click_housing_slim.stl scad/click_housing_slim.scad 2>&1 | filt
     echo "== stl/v2_barrel.stl";        openscad -o stl/v2_barrel.stl -D 'part="barrel"' scad/v2_barrel.scad 2>&1 | filt

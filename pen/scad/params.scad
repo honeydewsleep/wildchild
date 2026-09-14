@@ -45,6 +45,8 @@ tip_r_exit     = 2.20;  // outer radius at the tip face (wall 0.74 around the Ø
 // radial: every cut is ~3° wider (per side) at the bore surface than
 // at the outer surface, i.e. the walls lean outward — that is what the
 // pin (Ø2.75) actually rides on.
+track_dz     = 0;       // shift the whole bolt track (slot, hook, window) toward the tip, mm.
+                        // body_hex_slot075.stl is rendered with -D 'track_dz=0.75'
 slot_r_in    = 4.20;    // reference bore radius the inner outline lives on
 slot_r_out   = 5.75;    // reference outer radius the outer outline lives on
 slot_angle   = 270;     // main slot centre (deg)

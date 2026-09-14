@@ -46,7 +46,7 @@ module wall_cut(center, out_pts_raw, in_pts_raw) {
         // caps (fans)
         [for (k = [0:n-1]) [2*n, k, (k + 1) % n]],
         [for (k = [0:n-1]) [2*n + 1, n + ((k + 1) % n), n + k]]);
-    polyhedron(points = pts, faces = faces, convexity = 6);
+    translate([0, 0, track_dz]) polyhedron(points = pts, faces = faces, convexity = 6);
 }
 
 // --- outlines -------------------------------------------------------
