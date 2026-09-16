@@ -88,3 +88,16 @@ never "improve" them:
   periodic check-ins/polling (a previous hourly PR-watch loop burned
   ~20% of their credits overnight), don't re-render parts that didn't
   change, and don't render PNG previews unless asked.
+
+## `counter/` — Pillow Blower Counter (separate project)
+
+CYD (ESP32-2432S028R) pillow counter: `counter/firmware` (PlatformIO,
+`pio run -e cyd`; copy `include/config.h.example` to `config.h` first),
+`counter/backend` (Apps Script `Code.gs` + `Dashboard.html`; the HTML
+renders with demo data when opened locally), `counter/enclosure`
+(`cyd_counter_case.scad`, parts `fit_test|box|bezel|assembly`; STLs in
+`counter/enclosure/stl/`, binary-converted like the lamp STLs). Bezel
+exports inverted (face down) — Y is flipped in mesh probes, same as the
+lamp shells. CYD board dims in the SCAD are unverified against a real
+board: `fit_test` exists for that. Firmware compiles clean; nothing has
+run on hardware yet.
