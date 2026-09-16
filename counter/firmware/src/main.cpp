@@ -102,7 +102,7 @@ static void beginStartFlow() {
     uplinkGetLists(ops, types);
     pickPage = 0;
     screen = SCR_PICK_OP;
-    uiDrawPicker("Who is running this blower?", ops, pickPage, st.lastOp, true);
+    uiDrawPicker("Who is running?", ops, pickPage, st.lastOp, true);
 }
 
 static void startBatch(const String& op, const String& type) {
@@ -173,11 +173,11 @@ static void onButton(int id) {
         int pages = uiPickerPages(items.size());
         if (id == BTN_BACK) {
             if (screen == SCR_PICK_TYPE) { screen = SCR_PICK_OP; pickPage = 0;
-                uiDrawPicker("Who is running this blower?", ops, pickPage, st.lastOp, true); }
+                uiDrawPicker("Who is running?", ops, pickPage, st.lastOp, true); }
             else showIdle();
         } else if (id == BTN_PREV || id == BTN_NEXT) {
             pickPage = (pickPage + (id == BTN_NEXT ? 1 : pages - 1)) % pages;
-            uiDrawPicker(screen == SCR_PICK_OP ? "Who is running this blower?" : "Which pillow?",
+            uiDrawPicker(screen == SCR_PICK_OP ? "Who is running?" : "Which pillow?",
                          items, pickPage, screen == SCR_PICK_OP ? st.lastOp : st.lastType, true);
         } else if (id >= BTN_ITEM0) {
             size_t idx = pickPage * 9 + (id - BTN_ITEM0);
