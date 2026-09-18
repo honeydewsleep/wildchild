@@ -108,20 +108,39 @@ the Events tab fast (it moves rows older than 60 days to `Events_Archive`).
 
 ### 2. Firmware
 
+**Easiest: flash from a browser, no toolchain.** Each release build is a
+single image (`counter/firmware/dist/pillow-counter-cyd.bin`, or the
+`-st7789` one for the newer 2-USB boards). In Chrome or Edge:
+
+1. Plug the CYD into USB. Open https://espressif.github.io/esptool-js/
+2. *Connect*, pick the board's serial port (on Windows the CH340 driver
+   may be needed first), set the flash address to `0x0`, choose the
+   `.bin`, *Program*. Takes about a minute. Press the board's RST button.
+3. On first boot the screen goes to **SETUP MODE**: on a phone join the
+   WiFi hotspot `PillowCounter-blower-1`, a page opens (or browse to
+   `192.168.4.1`), pick your WiFi and type the Apps Script URL, the API
+   key, the station id (`blower-2`, …) and its display name. Save.
+
+The device remembers all of that. To change it later, hold the **−**
+button (or the screen) while powering on. If the panel shows inverted
+colours you have the ST7789 variant: flash the other image.
+
+**From source** (needed to change pins, timing or the UI):
+
 ```bash
 cd counter/firmware
-cp include/config.h.example include/config.h   # WiFi, SHEET_URL, API_KEY, STATION_ID, pins
+cp include/config.h.example include/config.h   # optional: compile-in WiFi/URL defaults, pins
 pio run -e cyd -t upload          # original CYD (ILI9341)
-pio run -e cyd_st7789 -t upload   # newer 2-USB boards if colours look inverted
+pio run -e cyd_st7789 -t upload   # newer 2-USB boards
 pio device monitor -b 115200
 ```
 
-Change `STATION_ID`/`STATION_NAME` per device before each flash. Touch
-mapping constants live in `include/pins.h`; build with
+`./merge_bin.sh` rebuilds both single-file images into `dist/`.
+Touch mapping constants live in `include/pins.h`; build with
 `-D SERIAL_TOUCH_DEBUG` to print raw touch coordinates if taps land off.
 The device talks to Google over TLS with certificate checking disabled
-(`setInsecure()`), which is the usual trade-off on ESP32 for Google's
-rotating certificate chain; the shared `API_KEY` is what gates writes.
+(`setInsecure()`), the usual trade-off on ESP32 for Google's rotating
+certificate chain; the shared `API_KEY` is what gates writes.
 
 ### 3. Enclosure
 

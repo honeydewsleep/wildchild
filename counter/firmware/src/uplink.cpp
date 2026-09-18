@@ -1,6 +1,8 @@
 #include "uplink.h"
 #include "config.h"
+#include "settings.h"
 #include <WiFi.h>
+#include <esp_wifi.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <LittleFS.h>
@@ -92,7 +94,7 @@ static bool httpRequest(const char* method, const String& url, const String& bod
 }
 
 static bool fetchConfig() {
-    String url = String(SHEET_URL) + "?action=config&key=" + API_KEY + "&station=" + STATION_ID;
+    String url = settings.sheetUrl + "?action=config&key=" + settings.apiKey + "&station=" + settings.stationId;
     String resp;
     if (!httpRequest("GET", url, "", resp)) return false;
     applyConfigJson(resp, true);
@@ -105,8 +107,9 @@ static bool flushOnce() {
     lock();
     size_t n = min(queue.size(), (size_t)POST_BATCH);
     String hb = heartbeat;
-    if (n == 0 && hb.isEmpty()) { unlock(); return true; }
-    String body = "{\"key\":\"" API_KEY "\",\"station\":\"" STATION_ID "\",\"name\":\"" STATION_NAME "\",\"up\":";
+    if ((n == 0 && hb.isEmpty()) || !settingsComplete()) { unlock(); return true; }
+    String body = "{\"key\":\"" + settings.apiKey + "\",\"station\":\"" + settings.stationId +
+                  "\",\"name\":\"" + settings.stationName + "\",\"up\":";
     body += millis();
     body += ",\"events\":[";
     for (size_t i = 0; i < n; i++) { if (i) body += ','; body += queue[i]; }
@@ -116,7 +119,7 @@ static bool flushOnce() {
     unlock();
 
     String resp;
-    if (!httpRequest("POST", SHEET_URL, body, resp)) return false;
+    if (!httpRequest("POST", settings.sheetUrl, body, resp)) return false;
     JsonDocument doc;
     if (deserializeJson(doc, resp) || !doc["ok"].as<bool>()) {
         Serial.printf("[uplink] server rejected: %s\n", resp.c_str());
@@ -134,7 +137,13 @@ static bool flushOnce() {
 static void uplinkTask(void*) {
     WiFi.mode(WIFI_STA);
     WiFi.setSleep(false);
-    WiFi.begin(WIFI_SSID, WIFI_PASS);
+    if (WiFi.status() != WL_CONNECTED) {
+        // Credentials saved by the setup portal live in the WiFi NVS; fall
+        // back to the compile-time pair when nothing has been saved yet.
+        wifi_config_t wc; esp_wifi_get_config(WIFI_IF_STA, &wc);
+        if (wc.sta.ssid[0]) WiFi.begin();
+        else if (strlen(WIFI_SSID)) WiFi.begin(WIFI_SSID, WIFI_PASS);
+    }
     configTzTime(TZ_INFO, "pool.ntp.org", "time.google.com");
 
     uint32_t lastCfg = 0, backoff = 1000, nextTry = 0;

@@ -14,6 +14,10 @@
 #include "uplink.h"
 #include "ui.h"
 #include "buttons.h"
+#include "settings.h"
+#include <WiFi.h>
+#include <esp_wifi.h>
+#include <WiFiManager.h>
 
 static BatchState st;
 static Screen screen = SCR_IDLE;
@@ -112,7 +116,7 @@ static void startBatch(const String& op, const String& type) {
     strlcpy(st.lastType, st.type, sizeof st.lastType);
     st.running = true; st.count = 0; st.defects = 0;
     st.startEpoch = uplinkEpoch(); st.startUp = millis();
-    snprintf(st.batchId, sizeof st.batchId, "%s-%lu-%lu", STATION_ID,
+    snprintf(st.batchId, sizeof st.batchId, "%s-%lu-%lu", settings.stationId.c_str(),
              (unsigned long)(st.startEpoch ? st.startEpoch : millis()), (unsigned long)st.seq + 1);
     uplinkEnqueue(makeEvent("batch_start"));
     stateSave(st);
@@ -228,11 +232,48 @@ static void pollPhysical() {
     }
 }
 
+// --------------------------------------------------------------- setup portal
+// Hotspot + web page for WiFi, sheet URL, API key and station identity.
+// Blocking; runs before the uplink task starts.
+static void runSetupPortal() {
+    String ap = "PillowCounter-" + settings.stationId;
+    uiDrawSetup(ap.c_str());
+    WiFiManager wm;
+    wm.setTitle("Pillow Counter setup");
+    wm.setConfigPortalTimeout(SETUP_PORTAL_TIMEOUT_S);
+    wm.setBreakAfterConfig(true);          // keep the other fields even if WiFi fails
+    WiFiManagerParameter pUrl("url", "Google Apps Script URL (ends in /exec)", settings.sheetUrl.c_str(), 200);
+    WiFiManagerParameter pKey("key", "API key (same as in Code.gs)", settings.apiKey.c_str(), 64);
+    WiFiManagerParameter pId("sid", "Station id, no spaces (blower-1)", settings.stationId.c_str(), 24);
+    WiFiManagerParameter pName("sname", "Station name shown on screen", settings.stationName.c_str(), 24);
+    wm.addParameter(&pUrl); wm.addParameter(&pKey); wm.addParameter(&pId); wm.addParameter(&pName);
+    bool wifiOk = wm.startConfigPortal(ap.c_str());
+    String url = pUrl.getValue(); url.trim();
+    String key = pKey.getValue(); key.trim();
+    String sid = pId.getValue();  sid.trim(); sid.replace(" ", "-");
+    String nm  = pName.getValue(); nm.trim();
+    if (!url.isEmpty()) settings.sheetUrl = url;
+    if (!key.isEmpty()) settings.apiKey = key;
+    if (!sid.isEmpty()) settings.stationId = sid;
+    if (!nm.isEmpty())  settings.stationName = nm;
+    settingsSave();
+    Serial.printf("[setup] wifi %s, station %s, sheet %s\n", wifiOk ? "ok" : "not connected",
+                  settings.stationId.c_str(), settingsComplete() ? "configured" : "missing");
+    uiDrawSetupResult(wifiOk, settingsComplete());
+    delay(2500);
+}
+
+static bool wifiCredentialsSaved() {
+    WiFi.mode(WIFI_STA);
+    wifi_config_t wc; esp_wifi_get_config(WIFI_IF_STA, &wc);
+    return wc.sta.ssid[0] != 0;
+}
+
 // ------------------------------------------------------------------ main
 void setup() {
     Serial.begin(115200);
     delay(100);
-    Serial.println("\n[pbc] Pillow Blower Counter " STATION_ID);
+    Serial.println("\n[pbc] Pillow Blower Counter");
     pinMode(PIN_LED_R, OUTPUT); pinMode(PIN_LED_G, OUTPUT); pinMode(PIN_LED_B, OUTPUT);
     led(false, false, true);
 
@@ -242,9 +283,19 @@ void setup() {
     btnBatch.begin(PIN_BTN_BATCH, BTN_BATCH_LATCHING ? 1500 : 30);
 
     stateLoad(st);
+    settingsLoad();
+    Serial.printf("[pbc] station %s (%s)\n", settings.stationId.c_str(), settings.stationName.c_str());
     st.startUp = millis();
+    uiBegin(settings.stationName.c_str());
+    uiDrawBoot();
+
+    // Setup gesture: hold the - button or press the screen during boot.
+    uint32_t touchMs = 0;
+    for (int i = 0; i < 60; i++) { btnSub.pressed(); if (uiTouchDown()) touchMs += 30; delay(30); }
+    bool wantSetup = btnSub.held() || touchMs >= 900;
+    bool wifiSaved = wifiCredentialsSaved() || strlen(WIFI_SSID) > 0;
+    if (wantSetup || !wifiSaved || !settingsComplete()) runSetupPortal();
     uplinkBegin();
-    uiBegin();
 
     // Latching switch: trust the switch position over the saved state.
     for (int i = 0; i < 60; i++) { btnBatch.pressed(); delay(30); }

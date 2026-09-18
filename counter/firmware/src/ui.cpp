@@ -24,6 +24,7 @@ struct Btn { int16_t x, y, w, h; int id; };
 static Btn btns[16];
 static int nBtns = 0;
 static Screen cur = SCR_IDLE;
+static String stationName = "Counter";
 
 static const int PICK_COLS = 3, PICK_ROWS = 3, PICK_PER_PAGE = 9;
 
@@ -42,11 +43,12 @@ static void header() {
     tft.setTextDatum(ML_DATUM);
     tft.setTextColor(C_TEXT, C_PANEL);
     tft.setTextPadding(0);
-    tft.drawString(STATION_NAME, 8, 15, 4);
+    tft.drawString(stationName, 8, 15, 4);
 }
 
 // ------------------------------------------------------------------ init
-void uiBegin() {
+void uiBegin(const char* name) {
+    stationName = name;
     pinMode(TFT_BL, OUTPUT); digitalWrite(TFT_BL, HIGH);
     tft.init();
     tft.setRotation(1);
@@ -229,4 +231,53 @@ void uiDrawStatus(const StatusInfo& st) {
 void uiFlash(uint16_t color) {
     tft.drawRect(0, 0, 320, 240, color);
     tft.drawRect(1, 1, 318, 238, color);
+}
+
+bool uiTouchDown() { return ts.tirqTouched() && ts.touched(); }
+
+void uiDrawBoot() {
+    nBtns = 0;
+    tft.fillScreen(C_BG);
+    header();
+    tft.setTextDatum(MC_DATUM);
+    tft.setTextColor(C_TEXT, C_BG);
+    tft.drawString("Pillow Counter", 160, 90, 4);
+    tft.setTextColor(C_MUTED, C_BG);
+    tft.drawString("starting...", 160, 125, 2);
+    tft.drawString("hold the screen or the - button for setup", 160, 200, 2);
+}
+
+void uiDrawSetup(const char* ap) {
+    nBtns = 0;
+    tft.fillScreen(C_BG);
+    tft.fillRect(0, 0, 320, 30, C_BLUE);
+    tft.setTextDatum(MC_DATUM);
+    tft.setTextColor(C_TEXT, C_BLUE);
+    tft.drawString("SETUP MODE", 160, 15, 4);
+    tft.setTextDatum(ML_DATUM);
+    tft.setTextColor(C_TEXT, C_BG);
+    tft.drawString("1. On a phone, join the WiFi network:", 8, 52, 2);
+    tft.setTextColor(C_YELLOW, C_BG);
+    tft.drawString(ap, 28, 74, 4);
+    tft.setTextColor(C_TEXT, C_BG);
+    tft.drawString("2. A setup page opens (or go to", 8, 104, 2);
+    tft.setTextColor(C_YELLOW, C_BG);
+    tft.drawString("http://192.168.4.1", 28, 124, 2);
+    tft.setTextColor(C_TEXT, C_BG);
+    tft.drawString("3. Enter your WiFi, the sheet link,", 8, 152, 2);
+    tft.drawString("   the API key and this station's name.", 8, 170, 2);
+    tft.setTextColor(C_MUTED, C_BG);
+    tft.drawString("Closes by itself after 10 minutes.", 8, 210, 2);
+}
+
+void uiDrawSetupResult(bool wifiOk, bool sheetOk) {
+    nBtns = 0;
+    tft.fillScreen(C_BG);
+    tft.setTextDatum(MC_DATUM);
+    tft.setTextColor(wifiOk ? C_GREEN_L : C_ORANGE, C_BG);
+    tft.drawString(wifiOk ? "WiFi connected" : "WiFi not connected", 160, 90, 4);
+    tft.setTextColor(sheetOk ? C_GREEN_L : C_ORANGE, C_BG);
+    tft.drawString(sheetOk ? "Sheet link saved" : "No sheet link - counting offline", 160, 130, 2);
+    tft.setTextColor(C_MUTED, C_BG);
+    tft.drawString("hold - at power-on to change settings", 160, 200, 2);
 }

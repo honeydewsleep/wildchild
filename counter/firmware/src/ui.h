@@ -14,7 +14,11 @@ enum ButtonId {
 
 struct StatusInfo { bool online; size_t pending; const char* clock; };
 
-void uiBegin();
+void uiBegin(const char* stationName);
+bool uiTouchDown();                          // raw: is the panel pressed right now
+void uiDrawBoot();
+void uiDrawSetup(const char* apName);
+void uiDrawSetupResult(bool wifiOk, bool sheetOk);
 bool uiTouch(int16_t& x, int16_t& y);         // true once per new tap
 int  uiHit(int16_t x, int16_t y);             // ButtonId under the tap
 
