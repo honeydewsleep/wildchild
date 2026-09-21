@@ -98,7 +98,15 @@ renders with demo data when opened locally), `counter/enclosure`
 (`cyd_counter_case.scad` wall case, parts `fit_test|box|bezel|assembly`;
 `cyd_desk_stand.scad` 32° desk stand with 3 up-facing 16 mm buttons on
 a flat top, parts `base|bezel|btn_test|assembly|check_buttons|check_bosses`
-— the `check_*` parts must render EMPTY; STLs in
+— the `check_*` parts must render EMPTY; `cyd_desk_stand_v2.scad` grafts
+the same flat button top onto the ORIGINAL "CYD Desk Buddy" mesh
+(`counter/enclosure/src/*.stl`, imported; keeps its hidden fixing and
+symmetrical bezel — use the source Front Panel STL as-is; ~1 min render.
+Lessons: union the imported mesh with new geometry FIRST and cut
+afterwards — CGAL's union asserts on a mesh that was already cut; and
+keep new faces 0.02 mm inside the mesh's faces, never exactly
+coincident. Its screw pattern is offset +2.9 mm like the PCB, not
+symmetric); STLs in
 `counter/enclosure/stl/`, binary-converted like the lamp STLs). CYD board
 dims live in `counter/enclosure/cyd_board.scad`, included by both files —
 they are unverified against a real board: `fit_test` exists for that.

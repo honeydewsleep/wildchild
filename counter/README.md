@@ -214,6 +214,48 @@ python3 ../../scripts/stl2bin.py stl/desk_stand_*.stl
   (button bodies and screw bosses against the board envelope) and must
   render empty.
 
+#### Desk stand v2 - the "CYD Desk Buddy" with a flat button top (`cyd_desk_stand_v2.scad`)
+
+The second variant keeps the original **CYD Desk Buddy** base (MakerWorld
+model 2787810, 32° / symmetrical-bezel variant, files in `enclosure/src/`)
+exactly as downloaded - centred screen, symmetrical bezel, no screws or
+cable openings on the front or sides, hidden screws along the screen's
+tilt axis, rounded corners - and grafts a flat-topped rear section onto
+it so three 16 mm chassis-mount buttons can face up. The SCAD imports the
+source mesh; only the sloped top wall is removed. **Use the supplied
+Front Panel STL unchanged.** No labels on the buttons.
+
+```bash
+cd counter/enclosure
+openscad -o stl/desk_stand_v2_base.stl     -D 'part="base"'     cyd_desk_stand_v2.scad   # ~1 min
+openscad -o stl/desk_stand_v2_btn_test.stl -D 'part="btn_test"' cyd_desk_stand_v2.scad
+python3 ../../scripts/stl2bin.py stl/desk_stand_v2_*.stl
+```
+
+- Same footprint width and height as the original (102.8 × 62 mm); depth
+  grows from 45 to 71 mm. The top runs flat from the original top-front
+  edge back to a new vertical back wall with the original's 3 mm corner
+  rounding; the side fillets continue straight through because the rear
+  section is extruded from the original body's own cross-section.
+- Buttons: three 16.3 mm holes on a 30 mm pitch, 2.4 mm top, nuts inside.
+  They sit in a rear compartment behind the original back wall (now an
+  internal partition that also supports the top bridge). The compartment
+  is **open underneath** - that is how you reach the nuts and the two
+  upper hidden screws.
+- Hidden screws: unchanged. Two come up through the original floor slots.
+  The two that entered through the old back wall now go in through Ø7
+  access holes in the new back wall, on the same axis, into the original
+  countersinks in the partition (long driver, screw on the tip). Note the
+  source's screw pattern is offset 2.9 mm to the right like its PCB, so
+  the two access holes are not symmetric - that is correct.
+- USB-C: the original 13.6 × 5.5 mm panel-mount slot is repeated in the
+  new back wall; the cable runs through the partition's original slot.
+  A 20 × 8 mm notch at the top of the partition passes the button wires
+  over to the CYD (`wire_notch = [0, 0]` to omit).
+- Prints floor down without supports, like the original.
+- The source model is MakerWorld's; check its licence before sharing
+  these derived files outside this private repo.
+
 ## Data model (the Sheet)
 
 - **Events** – one row per action: server time, device time, station,
