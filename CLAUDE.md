@@ -95,9 +95,16 @@ CYD (ESP32-2432S028R) pillow counter: `counter/firmware` (PlatformIO,
 `pio run -e cyd`; copy `include/config.h.example` to `config.h` first),
 `counter/backend` (Apps Script `Code.gs` + `Dashboard.html`; the HTML
 renders with demo data when opened locally), `counter/enclosure`
-(`cyd_counter_case.scad`, parts `fit_test|box|bezel|assembly`; STLs in
-`counter/enclosure/stl/`, binary-converted like the lamp STLs). Bezel
-exports inverted (face down) — Y is flipped in mesh probes, same as the
-lamp shells. CYD board dims in the SCAD are unverified against a real
-board: `fit_test` exists for that. Firmware compiles clean; nothing has
-run on hardware yet.
+(`cyd_counter_case.scad` wall case, parts `fit_test|box|bezel|assembly`;
+`cyd_desk_stand.scad` 32° desk stand with 3 up-facing 16 mm buttons on
+a flat top, parts `base|bezel|btn_test|assembly|check_buttons|check_bosses`
+— the `check_*` parts must render EMPTY; STLs in
+`counter/enclosure/stl/`, binary-converted like the lamp STLs). CYD board
+dims live in `counter/enclosure/cyd_board.scad`, included by both files —
+they are unverified against a real board: `fit_test` exists for that.
+Both bezels export inverted (face down) — Y is flipped in mesh probes,
+same as the lamp shells. The desk stand's top depth is derived from the
+button nut/body and the board envelope (`stack`), not set directly.
+OpenSCAD is not preinstalled in the remote sandbox; `apt-get update &&
+apt-get install -y openscad xvfb` works (2021.01). Firmware compiles
+clean; nothing has run on hardware yet.

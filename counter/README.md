@@ -176,6 +176,44 @@ board revision – adjust and re-render before printing the box.
 Mounting on a vibrating machine: use the keyholes with rubber washers, or
 zip-tie to a guard/handle, and route the USB cable with strain relief.
 
+#### Desk stand variant (`cyd_desk_stand.scad`)
+
+A remix of the common "32° CYD desk stand" for stations that sit on a
+bench: same 32° screen tilt and flush front panel in a pocket, but the top
+runs straight back (horizontal) and carries **three 16 mm chassis-mount
+buttons facing up**, so an operator in gloves can hit them from above.
+The top depth is derived from the button nut and the board envelope, so
+it grows or shrinks with `btn_nut_d` / `btn_body_d` / `under_pcb`.
+Footprint ~107 × 75 × 62 mm.
+
+```bash
+cd counter/enclosure
+openscad -o stl/desk_stand_btn_test.stl -D 'part="btn_test"' cyd_desk_stand.scad
+openscad -o stl/desk_stand_base.stl     -D 'part="base"'     cyd_desk_stand.scad
+openscad -o stl/desk_stand_bezel.stl    -D 'part="bezel"'    cyd_desk_stand.scad
+python3 ../../scripts/stl2bin.py stl/desk_stand_*.stl
+```
+
+- `desk_stand_btn_test.stl` – 30 mm square with one 16.3 mm hole on the
+  3.2 mm top thickness: check your buttons and nuts on it first.
+- `desk_stand_base.stl` prints as modelled (floor down), no supports; the
+  flat top is a ~40 mm bridge. Bezel pocket with an opening for the
+  board behind it, four Ø6.5 screw bosses at the panel corners, USB slot
+  in the right wall (`usb_side = -1` for the left), optional `aux_hole_d`
+  grommet in the back.
+- `desk_stand_bezel.stl` prints face-down (already flipped). 104 × 58.4 mm
+  plate, chamfered window, four Ø6 posts behind the PCB holes with blind
+  Ø2.6 holes: screw the CYD to the bezel **from behind** (4× M3×6
+  self-tapping), then drop the pair into the pocket and fix it with 4×
+  M3×10 countersunk into the base bosses.
+- Buttons: drop through the top, nut inside (reach in through the front
+  opening before the bezel goes on). Labels **+ − BATCH** are engraved
+  in front of the holes. The same firmware pins apply as for the wall
+  case; the BATCH button can be latching or momentary.
+- `check_buttons` / `check_bosses` parts are boolean interference checks
+  (button bodies and screw bosses against the board envelope) and must
+  render empty.
+
 ## Data model (the Sheet)
 
 - **Events** – one row per action: server time, device time, station,
