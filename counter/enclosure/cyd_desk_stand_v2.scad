@@ -22,13 +22,12 @@
 //
 // Assembly: as the original - CYD screwed to the panel posts, panel
 // drops into the pocket, two screws come in through the floor slots
-// and two through the (former) back wall, now an internal partition;
-// those two are reached through matching access holes in the new back
-// wall (a long driver, screw on the tip). Buttons drop through the top
-// and take their nuts from inside the rear compartment, which is open
-// underneath. The USB-C panel-mount slot is repeated in the new back
-// wall; its cable (and the button wires) pass through the partition's
-// original slot or the wire notch at the top of the partition.
+// and two through the (former) back wall. That wall is cut down to two
+// pads that carry its countersunk holes plus a bottom strip, so the
+// rear compartment is open to the front (fit the button nuts through
+// the bezel opening) and open underneath. The two rear screws go in
+// through matching access holes in the new back wall on the same axes.
+// The USB-C panel-mount slot is repeated in the new back wall.
 //
 // Coordinates: the source mesh's own frame (x 383.8..486.6, front face
 // toward -y, back face y = 150.7, z up); the exported part is centred
@@ -68,8 +67,10 @@ top_t     = 2.4;                     // new flat top thickness (original walls a
 D_ext     = wall + btn_nut_d + 2 * btn_clr;          // partition -> new back face (26)
 y_back    = y_back0 + D_ext;
 y_btn     = y_back0 + (D_ext - wall) / 2;
-wire_notch = [20, 8];                // pass-through at the top of the partition (0 = none)
-corner_r  = 3;                       // rear vertical edges + top-back edge, as the original
+pad_w     = 8;                       // partition kept this far beyond each countersunk hole
+strip_h   = 13;                      // partition kept below this height (floor, USB slot)
+corner_r  = 6.2;                     // new rear vertical + top-back edges = the original's
+                                     // top-side / front-corner fillet radius (rear verticals were 4.8)
 
 $fn = 64;
 EPS = 0.01;
@@ -100,8 +101,7 @@ module rear_outer() hull() {
         translate([0, 0, z_top - corner_r]) sphere(corner_r);
     }
 }
-module rear_inner() intersection() {
-    hull() {
+module rear_cavity() hull() {
         translate([0, y_apex - 1, 0]) rotate([90, 0, 0]) linear_extrude(EPS) union() {
             offset(delta = -(wall + sk)) section2d();
             translate([x0, 2]) square([W - 2 * wall, 6], center = true);   // open underneath
@@ -110,11 +110,22 @@ module rear_inner() intersection() {
             cylinder(r = corner_r - wall, h = z_top - corner_r + 1);
             translate([0, 0, z_top - corner_r + 1]) sphere(corner_r - wall);
         }
-    }
+}
+module rear_inner() intersection() {
+    rear_cavity();
     translate([x0 - 100, 0, -2]) cube([200, 400, z_top - top_t + 2]);
 }
-// the original back wall carried up to the new top, so it supports the bridge
-module partition_ext() translate([x0 - W / 2 + wall - 0.05, y_back0 - wall - 0.05, 48]) cube([W - 2 * wall + 0.1, wall + 0.1, z_top - 1 - 48]);
+// the original back wall carried up to the new top (clipped to the cavity so it
+// cannot poke through the side fillets); only the pads survive the window cut
+module partition_ext() intersection() {
+    translate([x0 - W / 2 + wall - 0.05, y_back0 - wall - 0.05, 48]) cube([W - 2 * wall + 0.1, wall + 0.1, z_top - 1 - 48]);
+    rear_cavity();
+}
+// window through the partition between the two screw pads, above the bottom strip
+module partition_window() {
+    xl = screw_x[0] + pad_w; xr = screw_x[1] - pad_w;
+    translate([xl, y_back0 - wall - 1.2, strip_h]) cube([xr - xl, wall + 2.4, z_top - top_t + 0.05 - strip_h]);
+}
 
 module rrect(size, r) offset(r = r) offset(delta = -r) square(size, center = true);
 
@@ -123,10 +134,7 @@ module cutouts() {
     translate([usb_pos[0], y_back + 1, usb_pos[1]]) rotate([90, 0, 0]) linear_extrude(wall + 2) rrect([usb_slot[0], usb_slot[1]], usb_slot[2]);
     // access holes for the two upper hidden screws, on their own (tilted) axes
     for (x = screw_x) translate([x, 149.7, screw_z]) rotate([-(90 + tilt), 0, 0]) translate([0, 0, 1.5]) cylinder(d = 7, h = 60);
-    // wire notch at the top of the partition
-    if (wire_notch[0] > 0)
-        translate([x0, y_back0 - wall - 1, z_top - top_t - wire_notch[1] / 2]) rotate([-90, 0, 0])
-            linear_extrude(wall + 2) rrect(wire_notch, 2);
+    partition_window();
     // button holes
     for (x = btn_xs) translate([x, y_btn, z_top - top_t - 1]) cylinder(d = btn_hole, h = top_t + 2);
 }

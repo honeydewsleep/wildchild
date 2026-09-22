@@ -106,7 +106,10 @@ Lessons: union the imported mesh with new geometry FIRST and cut
 afterwards — CGAL's union asserts on a mesh that was already cut; and
 keep new faces 0.02 mm inside the mesh's faces, never exactly
 coincident. Its screw pattern is offset +2.9 mm like the PCB, not
-symmetric); STLs in
+symmetric. Its fillets: top-side/front corners r≈6.2, rear verticals
+4.8, top-back edge sharp — the new back edges use 6.2 at the user's
+request. The old back wall is cut to two screw pads + a bottom strip so
+the button compartment is reachable from the front); STLs in
 `counter/enclosure/stl/`, binary-converted like the lamp STLs). CYD board
 dims live in `counter/enclosure/cyd_board.scad`, included by both files —
 they are unverified against a real board: `fit_test` exists for that.

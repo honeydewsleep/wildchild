@@ -237,14 +237,16 @@ python3 ../../scripts/stl2bin.py stl/desk_stand_v2_*.stl
 
 - Same footprint width and height as the original (102.8 × 62 mm); depth
   grows from 45 to 71 mm. The top runs flat from the original top-front
-  edge back to a new vertical back wall with the original's 3 mm corner
-  rounding; the side fillets continue straight through because the rear
-  section is extruded from the original body's own cross-section.
+  edge back to a new vertical back wall. The rear section is extruded
+  from the original body's own cross-section, so its 6.2 mm side fillets
+  continue straight through and wrap round the new back edges at the
+  same radius.
 - Buttons: three 16.3 mm holes on a 30 mm pitch, 2.4 mm top, nuts inside.
-  They sit in a rear compartment behind the original back wall (now an
-  internal partition that also supports the top bridge). The compartment
-  is **open underneath** - that is how you reach the nuts and the two
-  upper hidden screws.
+  They sit in a rear compartment behind the original back wall, which is
+  cut down to two pads (carrying its countersunk screw holes) and a
+  bottom strip, so the compartment is open to the front through the
+  bezel opening and **open underneath**. Fit the nuts before the bezel
+  goes on, or from below.
 - Hidden screws: unchanged. Two come up through the original floor slots.
   The two that entered through the old back wall now go in through Ø7
   access holes in the new back wall, on the same axis, into the original
@@ -252,9 +254,8 @@ python3 ../../scripts/stl2bin.py stl/desk_stand_v2_*.stl
   source's screw pattern is offset 2.9 mm to the right like its PCB, so
   the two access holes are not symmetric - that is correct.
 - USB-C: the original 13.6 × 5.5 mm panel-mount slot is repeated in the
-  new back wall; the cable runs through the partition's original slot.
-  A 20 × 8 mm notch at the top of the partition passes the button wires
-  over to the CYD (`wire_notch = [0, 0]` to omit).
+  new back wall; the cable and the button wires simply pass through the
+  open partition (its original bottom slot is still there too).
 - Prints floor down without supports, like the original.
 - The source model is MakerWorld's; check its licence before sharing
   these derived files outside this private repo.
