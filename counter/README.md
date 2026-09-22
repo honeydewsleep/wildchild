@@ -65,7 +65,7 @@ TV (a Chromecast/Fire stick/old laptop in kiosk mode pointing at the web-app URL
 
 ## Wiring
 
-All buttons wire between the GPIO and GND (active-low; internal pull-ups
+Diagram: `docs/wiring.html` (open in a browser). All buttons wire between the GPIO and GND (active-low; internal pull-ups
 are used where the ESP32 has them).
 
 | Function | GPIO | Where on the CYD | Notes |
