@@ -24,16 +24,21 @@ dashboard for the manager's desk.
 
 ## How a worker uses it
 
-1. **Start a batch** – flip the BATCH switch on (or tap START BATCH). The
-   screen asks *Who is running this blower?* then *Which pillow?* – tap a
-   name and a type. The resistive touch panel works with gloves on
-   (it is pressure-based, not capacitive).
-2. **Count** – press **+** for each finished pillow. **−** undoes one.
-   **DEFECT** (on screen, or an optional 4th button) logs a bad skin
-   without changing the count.
-3. **Finish** – flip the BATCH switch off. On the touch screen, FINISH
-   BATCH asks for a second tap within 4 s so a stray touch can't end a
-   batch. A summary shows count, defects and minutes.
+Three panel buttons: **green +**, **red −**, **black** (start / confirm /
+finish). Everything also works on the touch screen, which is resistive
+and responds through gloves.
+
+1. **Start a batch** – press black (or tap START BATCH). The screen asks
+   *Who is running?* then *Which pillow?*: green/red move the highlight,
+   black confirms, holding black goes back. Or just tap a tile.
+2. **Count** – green for each finished pillow, red undoes one. Holding
+   black (or tapping DEFECT) logs a bad skin without changing the count.
+3. **Finish** – press black; the FINISH button turns yellow and a second
+   press within 4 s ends the batch, so a stray press can't end one. A
+   summary shows count, defects and minutes; black or green returns to Idle.
+
+A latching switch can replace the black button (`BTN_BATCH_LATCHING
+true`): ON starts a batch, OFF finishes it, no confirmation needed.
 
 Everything is logged the moment it happens. If WiFi is down the device
 keeps counting, shows `OFFLINE n` in the header, and uploads the backlog
@@ -46,10 +51,8 @@ there is an unsent backlog.
 
 - ESP32-2432S028R "Cheap Yellow Display" 2.8" (ILI9341). The newer
   "2 USB" boards use an ST7789 panel: same firmware, different build env.
-- 2× momentary panel buttons, 12 mm (ADD, SUBTRACT). 16 mm also fine –
-  change `buttons` in the SCAD.
-- 1× latching panel switch, 16 mm (BATCH). A momentary one works too
-  (`BTN_BATCH_LATCHING false` in config.h: press once to arm, again to finish).
+- 3× momentary panel buttons, 12 mm: green (+), red (−), black (start /
+  confirm / finish). Other sizes: change `buttons` in the SCAD.
 - Optional 4th momentary button (DEFECT) – needs a free pin, see below.
 - 1× 10 kΩ resistor (pull-up for the input-only pin the BATCH switch uses).
 - 2× 4-pin 1.25 mm JST pigtails (the CYD ships with them) for CN1 and P3.
@@ -67,9 +70,9 @@ are used where the ESP32 has them).
 
 | Function | GPIO | Where on the CYD | Notes |
 |---|---|---|---|
-| ADD (+) | 22 | CN1 connector (GND, IO22, IO27, 3V3) | internal pull-up |
-| SUBTRACT (−) | 27 | CN1 | internal pull-up |
-| BATCH switch | 35 | P3 connector (GND, IO35, IO22, IO21) | **input-only, no internal pull-up: add 10 kΩ from IO35 to 3V3** |
+| Green (+) | 22 | CN1 connector (GND, IO22, IO27, 3V3) | internal pull-up |
+| Red (−) | 27 | CN1 | internal pull-up; hold at power-on = setup portal |
+| Black (start / confirm / finish) | 35 | P3 connector (GND, IO35, IO22, IO21) | **input-only, no internal pull-up: add 10 kΩ from IO35 to 3V3** |
 | DEFECT (optional) | – | – | set `PIN_BTN_DEFECT` – see "free pins" |
 | Backlight | 21 | P3 | do not use, it drives the screen backlight |
 

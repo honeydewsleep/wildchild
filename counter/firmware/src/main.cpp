@@ -23,6 +23,9 @@ static BatchState st;
 static Screen screen = SCR_IDLE;
 static std::vector<String> ops, types;
 static int pickPage = 0;
+static int pickSel = 0;                 // highlighted picker item (absolute index)
+static uint32_t blackDownAt = 0;
+static bool blackLongFired = false;
 static String pickedOp;
 static uint32_t finishArmedAt = 0;      // 0 = not armed
 static uint32_t summaryShownAt = 0;
@@ -87,10 +90,11 @@ static void sendHeartbeat() {
 }
 
 // -------------------------------------------------------------- actions
+static void startBatch(const String& op, const String& type);
 static void showIdle() {
     screen = SCR_IDLE;
-    const char* hint = (BTN_BATCH_LATCHING && btnBatch.fitted() && btnBatch.held())
-        ? "Batch switch is ON - tap START to choose operator"
+    const char* hint = !BTN_BATCH_LATCHING ? "Press the black button or tap START"
+        : (btnBatch.fitted() && btnBatch.held()) ? "Batch switch is ON - tap START to choose operator"
         : "Flip the batch switch or tap START";
     uiDrawIdle(hint);
 }
@@ -102,11 +106,47 @@ static void showRun() {
     uiUpdateElapsed(elapsedSec());
 }
 
+static const std::vector<String>& pickItems() { return screen == SCR_PICK_OP ? ops : types; }
+
+static void drawPicker() {
+    const std::vector<String>& items = pickItems();
+    uiDrawPicker(screen == SCR_PICK_OP ? "Who is running?" : "Which pillow?", items, pickPage,
+                 items.empty() ? String() : items[pickSel], true);
+}
+
+static void enterPicker(Screen s) {
+    screen = s;
+    const std::vector<String>& items = pickItems();
+    const char* pre = (s == SCR_PICK_OP) ? st.lastOp : st.lastType;
+    pickSel = 0;
+    for (size_t i = 0; i < items.size(); i++) if (items[i] == pre) pickSel = i;
+    pickPage = pickSel / 9;
+    drawPicker();
+}
+
+static void pickerMove(int dir) {              // green / red step the highlight
+    const std::vector<String>& items = pickItems();
+    if (items.empty()) return;
+    pickSel = (pickSel + dir + (int)items.size()) % (int)items.size();
+    pickPage = pickSel / 9;
+    drawPicker();
+}
+
+static void pickerConfirm() {                  // black button / touched tile
+    const std::vector<String>& items = pickItems();
+    if (items.empty() || pickSel >= (int)items.size()) return;
+    if (screen == SCR_PICK_OP) { pickedOp = items[pickSel]; enterPicker(SCR_PICK_TYPE); }
+    else startBatch(pickedOp, items[pickSel]);
+}
+
+static void pickerBack() {
+    if (screen == SCR_PICK_TYPE) enterPicker(SCR_PICK_OP);
+    else showIdle();
+}
+
 static void beginStartFlow() {
     uplinkGetLists(ops, types);
-    pickPage = 0;
-    screen = SCR_PICK_OP;
-    uiDrawPicker("Who is running?", ops, pickPage, st.lastOp, true);
+    enterPicker(SCR_PICK_OP);
 }
 
 static void startBatch(const String& op, const String& type) {
@@ -173,26 +213,17 @@ static void onButton(int id) {
         break;
     case SCR_PICK_OP:
     case SCR_PICK_TYPE: {
-        const std::vector<String>& items = (screen == SCR_PICK_OP) ? ops : types;
-        int pages = uiPickerPages(items.size());
-        if (id == BTN_BACK) {
-            if (screen == SCR_PICK_TYPE) { screen = SCR_PICK_OP; pickPage = 0;
-                uiDrawPicker("Who is running?", ops, pickPage, st.lastOp, true); }
-            else showIdle();
-        } else if (id == BTN_PREV || id == BTN_NEXT) {
+        int pages = uiPickerPages(pickItems().size());
+        if (id == BTN_BACK) pickerBack();
+        else if (id == BTN_PREV || id == BTN_NEXT) {
             pickPage = (pickPage + (id == BTN_NEXT ? 1 : pages - 1)) % pages;
-            uiDrawPicker(screen == SCR_PICK_OP ? "Who is running?" : "Which pillow?",
-                         items, pickPage, screen == SCR_PICK_OP ? st.lastOp : st.lastType, true);
+            pickSel = pickPage * 9;
+            drawPicker();
         } else if (id >= BTN_ITEM0) {
             size_t idx = pickPage * 9 + (id - BTN_ITEM0);
-            if (idx >= items.size()) break;
-            if (screen == SCR_PICK_OP) {
-                pickedOp = items[idx];
-                screen = SCR_PICK_TYPE; pickPage = 0;
-                uiDrawPicker("Which pillow?", types, pickPage, st.lastType, true);
-            } else {
-                startBatch(pickedOp, items[idx]);
-            }
+            if (idx >= pickItems().size()) break;
+            pickSel = idx;
+            pickerConfirm();
         }
         break;
     }
@@ -208,15 +239,37 @@ static void onButton(int id) {
     }
 }
 
+static bool inPicker() { return screen == SCR_PICK_OP || screen == SCR_PICK_TYPE; }
+
+static void onBlackShort() {
+    switch (screen) {
+    case SCR_IDLE:      beginStartFlow(); break;
+    case SCR_PICK_OP:
+    case SCR_PICK_TYPE: pickerConfirm(); break;
+    case SCR_RUN:       requestFinish(false); break;
+    case SCR_SUMMARY:   showIdle(); break;
+    }
+}
+
+static void onBlackLong() {
+    if (inPicker()) pickerBack();
+    else if (screen == SCR_RUN) logDefect();
+}
+
 static void pollPhysical() {
     if (btnAdd.pressed()) {
         if (screen == SCR_RUN) addPillow(+1);
+        else if (inPicker()) pickerMove(+1);
         else if (screen == SCR_SUMMARY) showIdle();
     }
-    if (btnSub.pressed() && screen == SCR_RUN) addPillow(-1);
+    if (btnSub.pressed()) {
+        if (screen == SCR_RUN) addPillow(-1);
+        else if (inPicker()) pickerMove(-1);
+    }
     if (btnDefect.pressed() && screen == SCR_RUN) logDefect();
 
     if (!btnBatch.fitted()) return;
+    btnBatch.pressed();                        // keeps the debounced level fresh
     if (BTN_BATCH_LATCHING) {
         // Level must be stable (debounced with a long window) before we act.
         bool on = btnBatch.held();
@@ -226,9 +279,18 @@ static void pollPhysical() {
             if (on && screen == SCR_SUMMARY && !st.running) beginStartFlow();
             if (!on && st.running) requestFinish(true);
         }
-    } else if (btnBatch.pressed()) {
-        if (st.running) requestFinish(false);
-        else if (screen == SCR_IDLE || screen == SCR_SUMMARY) beginStartFlow();
+        return;
+    }
+    // Momentary black button: short press on release, long press while held.
+    bool down = btnBatch.held();
+    if (down && !blackDownAt) { blackDownAt = millis(); blackLongFired = false; }
+    if (down && blackDownAt && !blackLongFired && millis() - blackDownAt >= LONG_PRESS_MS) {
+        blackLongFired = true;
+        onBlackLong();
+    }
+    if (!down && blackDownAt) {
+        if (!blackLongFired) onBlackShort();
+        blackDownAt = 0;
     }
 }
 

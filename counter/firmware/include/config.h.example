@@ -32,12 +32,13 @@
 // IO35 to 3V3 when you use it.
 #define PIN_BTN_ADD      22   // momentary: +1 pillow
 #define PIN_BTN_SUB      27   // momentary: -1 pillow (undo); hold at boot = setup portal
-#define PIN_BTN_BATCH    35   // latching switch: ON = batch running (needs ext. pull-up)
-#define BTN_BATCH_LATCHING true   // false = momentary toggle button instead
+#define PIN_BTN_BATCH    35   // black button (needs ext. pull-up): start / confirm / finish; hold = back / defect
+#define BTN_BATCH_LATCHING false  // true = a latching switch instead: ON = batch running
 #define PIN_BTN_DEFECT   -1   // optional momentary: log a defective skin
 
 // ---------------------------------------------------------------- timing
 #define HEARTBEAT_S      30   // live-state push interval while online
 #define CONFIG_REFRESH_S 600  // re-fetch operator / pillow-type lists
-#define FINISH_CONFIRM_MS 4000  // touch FINISH twice within this window
+#define FINISH_CONFIRM_MS 4000  // touch FINISH (or press black) twice within this window
+#define LONG_PRESS_MS    800   // black button hold = back (pickers) / defect (counting)
 #define SETUP_PORTAL_TIMEOUT_S 600  // setup hotspot closes after this
