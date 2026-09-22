@@ -27,7 +27,10 @@
 // rear compartment is open to the front (fit the button nuts through
 // the bezel opening) and open underneath. The two rear screws go in
 // through matching access holes in the new back wall on the same axes.
-// The USB-C panel-mount slot is repeated in the new back wall.
+// The USB-C panel-mount slot is repeated in the new back wall. Four
+// press-fit magnet pockets (8 x 2 mm discs, stack two) open on the
+// underside: two on the floor of the front section, two in corner feet
+// of the rear compartment.
 //
 // Coordinates: the source mesh's own frame (x 383.8..486.6, front face
 // toward -y, back face y = 150.7, z up); the exported part is centred
@@ -71,6 +74,15 @@ pad_w     = 8;                       // partition kept this far beyond each coun
 strip_h   = 13;                      // partition kept below this height (floor, USB slot)
 corner_r  = 6.2;                     // new rear vertical + top-back edges = the original's
                                      // top-side / front-corner fillet radius (rear verticals were 4.8)
+
+/* ---------------- magnets (press-in from the underside) ------------- */
+magnets      = true;
+magnet_d     = 8.15;                 // pocket for 8 mm discs (press fit)
+magnet_depth = 4.2;                  // two 2 mm discs stacked, or one pushed in flush
+magnet_boss_d = 12;
+magnet_roof  = 1.2;                  // material above the pocket
+magnet_pos   = [[x0 - 25, 126], [x0 + 25, 126],                                   // front floor, clear of the screw slots
+                [x0 - (W / 2 - wall - 5), y_back - wall - 5], [x0 + (W / 2 - wall - 5), y_back - wall - 5]];  // rear corner feet
 
 $fn = 64;
 EPS = 0.01;
@@ -129,6 +141,22 @@ module partition_window() {
 
 module rrect(size, r) offset(r = r) offset(delta = -r) square(size, center = true);
 
+// magnet bosses stand on the desk plane; the rear ones weld into the corner
+// walls and are clipped to the outer shell so they cannot poke through the fillet
+module magnet_bosses() if (magnets) {
+    for (p = magnet_pos) if (p[1] < y_apex)             // front section: on the original floor
+        translate([p[0], p[1], 0]) cylinder(d = magnet_boss_d, h = magnet_depth + magnet_roof);
+    intersection() {                                    // rear section: clipped to the shell
+        for (p = magnet_pos) if (p[1] >= y_apex)
+            translate([p[0], p[1], 0]) cylinder(d = magnet_boss_d, h = magnet_depth + magnet_roof);
+        rear_outer();
+    }
+}
+module magnet_pockets() if (magnets) for (p = magnet_pos) translate([p[0], p[1], -1]) {
+    cylinder(d = magnet_d, h = magnet_depth + 1);
+    translate([0, 0, 1 - EPS]) cylinder(d1 = magnet_d + 0.8, d2 = magnet_d, h = 0.4);   // lead-in chamfer
+}
+
 module cutouts() {
     // USB-C cable slot through the new back wall, same as the original's
     translate([usb_pos[0], y_back + 1, usb_pos[1]]) rotate([90, 0, 0]) linear_extrude(wall + 2) rrect([usb_slot[0], usb_slot[1]], usb_slot[2]);
@@ -137,6 +165,7 @@ module cutouts() {
     partition_window();
     // button holes
     for (x = btn_xs) translate([x, y_btn, z_top - top_t - 1]) cylinder(d = btn_hole, h = top_t + 2);
+    magnet_pockets();
 }
 
 // Union first, then cut: CGAL's union asserts if the source mesh is cut
@@ -147,6 +176,7 @@ module base_raw() difference() {
         orig();
         difference() { rear_outer(); rear_inner(); }
         partition_ext();
+        magnet_bosses();
     }
     difference() { intersection() { top_cutter(); rear_inner(); } partition_ext(); }
     cutouts();

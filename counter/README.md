@@ -256,6 +256,11 @@ python3 ../../scripts/stl2bin.py stl/desk_stand_v2_*.stl
 - USB-C: the original 13.6 × 5.5 mm panel-mount slot is repeated in the
   new back wall; the cable and the button wires simply pass through the
   open partition (its original bottom slot is still there too).
+- Magnets: four press-fit pockets on the underside for 8 × 2 mm discs
+  (Ø8.15 × 4.2 deep with a lead-in chamfer: stack two, or push one in
+  flush). Two sit on the floor of the front section between the screw
+  slots, two are corner feet in the rear compartment. `magnets = false`
+  to omit; `magnet_d` / `magnet_depth` / `magnet_pos` to change.
 - Prints floor down without supports, like the original.
 - The source model is MakerWorld's; check its licence before sharing
   these derived files outside this private repo.
