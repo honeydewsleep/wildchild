@@ -121,3 +121,19 @@ button nut/body and the board envelope (`stack`), not set directly.
 OpenSCAD is not preinstalled in the remote sandbox; `apt-get update &&
 apt-get install -y openscad xvfb` works (2021.01). Firmware compiles
 clean; nothing has run on hardware yet.
+
+### Drive mirror of `counter/` (standing instruction)
+
+The user reads the counter project from the shared drive, not GitHub:
+folder "PIllow Batch Counter and Production Dashboard" (Drive id
+`1DEdu3ccgfV6wMw81nnKKMdXqBjNUtbzG`, shared drive "App and Code
+Database Assets"). Subfolders `firmware/{src,include}`, `backend`,
+`enclosure`, `docs` mirror the repo; the root holds `README.md` and
+"READ ME FIRST - downloads and versions.txt" (version, commit, and the
+GitHub raw links for the `.bin` images and STLs, which are too big for
+the Drive MCP - only inline text/base64 ≤ ~25 KB per call works).
+**After every counter change:** move the current root files into a
+`v<N> (<date>)` subfolder, upload the new versions to the root and the
+mirrored subfolders, bump the version note. Use `search_files` with
+`parentId = '<id>'` to verify uploads (a batch of parallel `create_file`
+calls can return "internal error" while still succeeding).
