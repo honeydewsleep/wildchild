@@ -245,8 +245,8 @@ python3 ../../scripts/stl2bin.py stl/desk_stand_v2_*.stl
   They sit in a rear compartment behind the original back wall, which is
   cut down to two pads (carrying its countersunk screw holes) and a
   bottom strip, so the compartment is open to the front through the
-  bezel opening and **open underneath**. Fit the nuts before the bezel
-  goes on, or from below.
+  bezel opening. It has its own 2 mm floor (`rear_floor = false` for an
+  open underside). Fit the nuts before the bezel goes on.
 - Hidden screws: unchanged. Two come up through the original floor slots.
   The two that entered through the old back wall now go in through Ø7
   access holes in the new back wall, on the same axis, into the original
@@ -256,11 +256,12 @@ python3 ../../scripts/stl2bin.py stl/desk_stand_v2_*.stl
 - USB-C: the original 13.6 × 5.5 mm panel-mount slot is repeated in the
   new back wall; the cable and the button wires simply pass through the
   open partition (its original bottom slot is still there too).
-- Magnets: four press-fit pockets on the underside for 8 × 2 mm discs
-  (Ø8.15 × 4.2 deep with a lead-in chamfer: stack two, or push one in
-  flush). Two sit on the floor of the front section between the screw
-  slots, two are corner feet in the rear compartment. `magnets = false`
-  to omit; `magnet_d` / `magnet_depth` / `magnet_pos` to change.
+- Magnets: four press-fit cups for 8 × 2 mm discs, Ø8.15 × 4.2 deep,
+  **opening upward** from the floor over a 1 mm skin, so the magnets are
+  hidden and the bottom face stays closed (stack two, or push one to the
+  bottom). Two in the front section between the screw slots, two in the
+  rear corners; all reached through the bezel opening. `magnets = false`
+  to omit; `magnet_d` / `magnet_depth` / `magnet_skin` / `magnet_pos`.
 - Prints floor down without supports, like the original.
 - The source model is MakerWorld's; check its licence before sharing
   these derived files outside this private repo.

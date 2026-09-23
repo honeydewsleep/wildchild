@@ -109,9 +109,10 @@ coincident. Its screw pattern is offset +2.9 mm like the PCB, not
 symmetric. Its fillets: top-side/front corners r≈6.2, rear verticals
 4.8, top-back edge sharp — the new back edges use 6.2 at the user's
 request. The old back wall is cut to two screw pads + a bottom strip so
-the button compartment is reachable from the front. Four Ø8.15 × 4.2
-press-fit magnet pockets underneath (bosses: two on the front floor,
-two corner feet in the open rear section, clipped to the shell); STLs in
+the button compartment is reachable from the front; the rear section
+has its own 2 mm floor (`rear_floor`). Four Ø8.15 × 4.2 press-fit
+magnet cups open UPWARD over a 1 mm skin (bottom face closed; cups on
+the front floor and in the rear corners, clipped to the shell); STLs in
 `counter/enclosure/stl/`, binary-converted like the lamp STLs). CYD board
 dims live in `counter/enclosure/cyd_board.scad`, included by both files —
 they are unverified against a real board: `fit_test` exists for that.
