@@ -106,7 +106,8 @@ Lessons: union the imported mesh with new geometry FIRST and cut
 afterwards — CGAL's union asserts on a mesh that was already cut; and
 keep new faces 0.02 mm inside the mesh's faces, never exactly
 coincident. Its screw pattern is offset +2.9 mm like the PCB, not
-symmetric. Its fillets: top-side/front corners r≈6.2, rear verticals
+symmetric; its fixing is 4× M2.5 × 10 pan head (Ø6.4 counterbores,
+Ø3.2 boss bores, Ø2.1 × 4 mm post holes — NOT countersunk M3). Its fillets: top-side/front corners r≈6.2, rear verticals
 4.8, top-back edge sharp — the new back edges use 6.2 at the user's
 request. The old back wall is cut to two screw pads + a bottom strip so
 the button compartment is reachable from the front; the rear section

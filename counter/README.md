@@ -249,12 +249,19 @@ python3 ../../scripts/stl2bin.py stl/desk_stand_v2_*.stl
   bottom strip, so the compartment is open to the front through the
   bezel opening. It has its own 2 mm floor (`rear_floor = false` for an
   open underside). Fit the nuts before the bezel goes on.
-- Hidden screws: unchanged. Two come up through the original floor slots.
-  The two that entered through the old back wall now go in through Ø7
-  access holes in the new back wall, on the same axis, into the original
-  countersinks in the partition (long driver, screw on the tip). Note the
-  source's screw pattern is offset 2.9 mm to the right like its PCB, so
-  the two access holes are not symmetric - that is correct.
+- Hidden screws: unchanged from the original, **4× M2.5 × 10 mm pan or
+  socket head** (thread-forming into the panel's Ø2.1 post holes; a
+  plain M2.5 machine screw cuts its own thread in PLA). Measured on the
+  mesh: each screw seats on a shoulder inside a Ø6.4 counterbore, passes
+  a 5.5 mm Ø3.2 bore through the boss and the 1.6 mm PCB, then gets
+  3.3 mm of bite in the 4 mm deep post hole - 12 mm would bottom out on
+  the plate, 8 mm bites only 1.3 mm. Head must be under Ø6.4. Two come
+  up through the floor slots (the shoulder is 22 mm up the bore: use a
+  long driver, magnetic tip). The two that entered through the old back
+  wall now go in through Ø7 access holes in the new back wall on the
+  same axes, seating 9 mm inside the partition. The source's screw
+  pattern is offset 2.9 mm to the right like its PCB, so the two access
+  holes are not symmetric - that is correct.
 - USB-C: the original 13.6 × 5.5 mm panel-mount slot is repeated in the
   new back wall; the cable and the button wires simply pass through the
   open partition (its original bottom slot is still there too).
