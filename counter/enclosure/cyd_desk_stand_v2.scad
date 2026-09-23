@@ -17,6 +17,9 @@
 //   base       the stand (prints as modelled, floor down, no supports;
 //              the flat top bridges 12 mm + 24 mm over the partition)
 //   btn_test   30 mm square, one 16.3 mm hole, 2.4 mm thick
+//   panel      the source Front Panel, re-exported (face down, centred)
+//   panel_slim the same panel trimmed `panel_trim` per side for tight
+//              prints (0.2 -> 99.6 x 58.0 in a 100.4 x 58.8 pocket)
 //   assembly   preview with the original front panel and buttons
 //   check_orig the imported source mesh only (sanity)
 //
@@ -79,12 +82,14 @@ corner_r  = 6.2;                     // new rear vertical + top-back edges = the
 /* ---------------- magnets (press-in from inside, bottom closed) ------ */
 magnets      = true;
 magnet_d     = 8.15;                 // cup for 8 mm discs (press fit)
-magnet_depth = 4.2;                  // two 2 mm discs stacked, or one pushed to the bottom
+magnet_depth = 4.2;                  // straight bore: two 2 mm discs stacked, or one pushed to the bottom
 magnet_skin  = 1.0;                  // floor left under the magnet (the bottom face stays closed)
+magnet_flare = 0.4;                  // lead-in above the straight bore (the cup rim is depth + this)
 magnet_boss_d = 12;
 magnet_pos   = [[x0 - 25, 126], [x0 + 25, 126],                                   // front floor, clear of the screw slots
                 [x0 - (W / 2 - wall - 5), y_back - wall - 5], [x0 + (W / 2 - wall - 5), y_back - wall - 5]];  // rear corners
 rear_floor   = true;                 // 2 mm floor under the rear compartment
+panel_trim   = 0.2;                  // panel_slim: shave this off each outer edge of the source panel
 
 $fn = 64;
 EPS = 0.01;
@@ -145,7 +150,7 @@ module rrect(size, r) offset(r = r) offset(delta = -r) square(size, center = tru
 
 // magnet cups stand on the floor, open at the top; the rear ones weld into the
 // corner walls and are clipped to the outer shell so they cannot poke through the fillet
-magnet_cup_h = magnet_skin + magnet_depth;
+magnet_cup_h = magnet_skin + magnet_depth + magnet_flare;
 module magnet_bosses() if (magnets) {
     for (p = magnet_pos) if (p[1] < y_apex)             // front section: on the original floor
         translate([p[0], p[1], 0]) cylinder(d = magnet_boss_d, h = magnet_cup_h);
@@ -156,8 +161,8 @@ module magnet_bosses() if (magnets) {
     }
 }
 module magnet_pockets() if (magnets) for (p = magnet_pos) translate([p[0], p[1], magnet_skin]) {
-    cylinder(d = magnet_d, h = magnet_depth + 1);
-    translate([0, 0, magnet_depth - 0.4 + EPS]) cylinder(d1 = magnet_d, d2 = magnet_d + 0.8, h = 0.4);   // lead-in chamfer at the mouth
+    cylinder(d = magnet_d, h = magnet_depth + magnet_flare + 1);                                        // full-depth straight bore
+    translate([0, 0, magnet_depth - EPS]) cylinder(d1 = magnet_d, d2 = magnet_d + 2 * magnet_flare, h = magnet_flare + EPS);   // flare above it
 }
 // floor under the rear compartment, following the shell outline
 module rear_floor_slab() if (rear_floor) intersection() {
@@ -208,7 +213,16 @@ module btn_test() difference() {
     translate([0, 0, -1]) cylinder(d = btn_hole, h = top_t + 2);
 }
 
+// the source front panel as printed (face at z = 0 on the bed, posts up), centred on the origin
+module panel_src() translate([-128, -128, 0]) import(src_panel, convexity = 6);
+module panel_slim() intersection() {
+    panel_src();
+    translate([0, 0, -1]) linear_extrude(12) rrect([100 - 2 * panel_trim, 58.4 - 2 * panel_trim], 3 - panel_trim);
+}
+
 if (part == "base")       base();
+if (part == "panel")      panel_src();
+if (part == "panel_slim") panel_slim();
 if (part == "btn_test")   btn_test();
 if (part == "check_orig") translate([-x0, 0, 0]) orig();
 if (part == "assembly")   translate([-x0, 0, 0]) { base_raw(); color("gold", 0.85) panel(12); button_mock(); }

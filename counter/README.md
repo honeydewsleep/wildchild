@@ -232,6 +232,8 @@ Front Panel STL unchanged.** No labels on the buttons.
 cd counter/enclosure
 openscad -o stl/desk_stand_v2_base.stl     -D 'part="base"'     cyd_desk_stand_v2.scad   # ~1 min
 openscad -o stl/desk_stand_v2_btn_test.stl -D 'part="btn_test"' cyd_desk_stand_v2.scad
+openscad -o stl/desk_stand_v2_panel.stl    -D 'part="panel"'    cyd_desk_stand_v2.scad   # source panel, as-is
+openscad -o stl/desk_stand_v2_panel_slim.stl -D 'part="panel_slim"' cyd_desk_stand_v2.scad   # -0.2 mm per edge
 python3 ../../scripts/stl2bin.py stl/desk_stand_v2_*.stl
 ```
 
@@ -256,12 +258,20 @@ python3 ../../scripts/stl2bin.py stl/desk_stand_v2_*.stl
 - USB-C: the original 13.6 × 5.5 mm panel-mount slot is repeated in the
   new back wall; the cable and the button wires simply pass through the
   open partition (its original bottom slot is still there too).
-- Magnets: four press-fit cups for 8 × 2 mm discs, Ø8.15 × 4.2 deep,
-  **opening upward** from the floor over a 1 mm skin, so the magnets are
-  hidden and the bottom face stays closed (stack two, or push one to the
-  bottom). Two in the front section between the screw slots, two in the
-  rear corners; all reached through the bezel opening. `magnets = false`
-  to omit; `magnet_d` / `magnet_depth` / `magnet_skin` / `magnet_pos`.
+- Magnets: four press-fit cups for 8 × 2 mm discs, a full 4.2 mm of
+  straight Ø8.15 bore with a 0.4 mm lead-in flare above it, **opening
+  upward** from the floor over a 1 mm skin, so the magnets are hidden and
+  the bottom face stays closed (stack two, or push one to the bottom).
+  Two in the front section between the screw slots, two in the rear
+  corners; all reached through the bezel opening. `magnets = false` to
+  omit; `magnet_d` / `magnet_depth` / `magnet_skin` / `magnet_flare` /
+  `magnet_pos`.
+- Front panel: `desk_stand_v2_panel.stl` is the source Front Panel
+  re-exported (identical, face down). The pocket is 100.4 × 58.8 mm and
+  the panel 100 × 58.4, only 0.2 mm a side, so a slightly fat print will
+  not drop in. `desk_stand_v2_panel_slim.stl` is the same panel with 0.2
+  mm shaved off each outer edge (99.6 × 58.0; window, posts and holes
+  untouched) for prints that come out tight - `panel_trim` sets it.
 - Prints floor down without supports, like the original.
 - The source model is MakerWorld's; check its licence before sharing
   these derived files outside this private repo.

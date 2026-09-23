@@ -111,8 +111,11 @@ symmetric. Its fillets: top-side/front corners r≈6.2, rear verticals
 request. The old back wall is cut to two screw pads + a bottom strip so
 the button compartment is reachable from the front; the rear section
 has its own 2 mm floor (`rear_floor`). Four Ø8.15 × 4.2 press-fit
-magnet cups open UPWARD over a 1 mm skin (bottom face closed; cups on
-the front floor and in the rear corners, clipped to the shell); STLs in
+magnet cups open UPWARD over a 1 mm skin, straight bore + 0.4 flare
+above (bottom face closed; cups on the front floor and in the rear
+corners, clipped to the shell). `panel` / `panel_slim` parts re-export
+the source Front Panel, the slim one trimmed `panel_trim` (0.2) per
+edge — the pocket has only 0.2 mm a side of clearance; STLs in
 `counter/enclosure/stl/`, binary-converted like the lamp STLs). CYD board
 dims live in `counter/enclosure/cyd_board.scad`, included by both files —
 they are unverified against a real board: `fit_test` exists for that.
