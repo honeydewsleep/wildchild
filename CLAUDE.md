@@ -140,4 +140,8 @@ the Drive MCP - only inline text/base64 ≤ ~25 KB per call works).
 `v<N> (<date>)` subfolder, upload the new versions to the root and the
 mirrored subfolders, bump the version note. Use `search_files` with
 `parentId = '<id>'` to verify uploads (a batch of parallel `create_file`
-calls can return "internal error" while still succeeding).
+calls can return "internal error" while still succeeding). The Drive MCP
+cannot MOVE files (`update_file` with `parentId` → "caller does not have
+permission"); it can rename and trash. So archive by re-uploading the
+old versions into the `v<N>` folder (old text comes from `git show
+<commit>:counter/...`), then trash the superseded root/subfolder copies.
