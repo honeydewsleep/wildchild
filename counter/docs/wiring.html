@@ -1,0 +1,120 @@
+<title>Counter Button Wiring</title>
+<style>
+:root { color-scheme: light; --page:#f6f6f3; --ink:#161616; --ink-2:#55544f; --card:#ffffff; --line:rgba(0,0,0,.12); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; --page:#121211; --ink:#f2f2ee; --ink-2:#bdbcb3; --card:#1c1c1a; --line:rgba(255,255,255,.12); } }
+:root[data-theme="dark"] { color-scheme: dark; --page:#121211; --ink:#f2f2ee; --ink-2:#bdbcb3; --card:#1c1c1a; --line:rgba(255,255,255,.12); }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--page); color:var(--ink); font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; padding:28px 24px; padding-block:28px 48px; }
+main { max-width: 860px; margin: 0 auto; }
+h1 { font-size:26px; margin:0 0 6px; font-weight:650; }
+p.lede { color:var(--ink-2); margin:0 0 22px; max-width:62ch; }
+figure { margin:0 0 22px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; }
+svg { max-width:100%; height:auto; display:block; }
+figcaption { margin-top:12px; font-size:14px; color:var(--ink-2); }
+ol { padding-left:22px; } li { margin:6px 0; }
+.sw { display:inline-block; width:12px; height:12px; border-radius:50%; vertical-align:-1px; margin-right:4px; border:1px solid var(--line); }
+table { border-collapse:collapse; font-size:15px; margin-top:8px; }
+th, td { text-align:left; padding:6px 12px 6px 0; border-bottom:1px solid var(--line); }
+th { font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-2); }
+</style>
+<main>
+<h1>Counter Button Wiring</h1>
+<p class="lede">Three momentary buttons on the back of the Cheap Yellow Display. Every button sits between one input pin and GND. The black button's pin has no internal pull-up, so it gets a 10 kΩ resistor to 3V3.</p>
+
+<figure>
+<svg viewBox="0 0 760 360" role="img" aria-label="Back of the CYD board with its CN1 and P3 connectors wired to three buttons: green to IO22, red to IO27, black to IO35 with a 10 kilohm pull-up to 3V3, all buttons returning to GND." font-family="system-ui, sans-serif" font-size="12" fill="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  <!-- board -->
+  <rect x="30" y="60" width="300" height="240" rx="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  <text x="46" y="84" font-size="13" font-weight="600">ESP32-2432S028R (CYD), back side</text>
+  <text x="46" y="102" fill="currentColor" opacity=".65">connector positions schematic: go by the silkscreen labels</text>
+  <rect x="150" y="292" width="60" height="8" fill="currentColor" opacity=".35"/>
+  <text x="180" y="316" text-anchor="middle" opacity=".65">USB</text>
+
+  <!-- CN1 connector -->
+  <rect x="300" y="88" width="30" height="88" rx="3" fill="none" stroke="currentColor" opacity=".7"/>
+  <text x="290" y="82" text-anchor="end" font-weight="600">CN1</text>
+  <g>
+    <rect x="318" y="96" width="12" height="8" fill="currentColor"/><text x="292" y="103" text-anchor="end">GND</text>
+    <rect x="318" y="116" width="12" height="8" fill="currentColor"/><text x="292" y="123" text-anchor="end">IO22</text>
+    <rect x="318" y="136" width="12" height="8" fill="currentColor"/><text x="292" y="143" text-anchor="end">IO27</text>
+    <rect x="318" y="156" width="12" height="8" fill="currentColor"/><text x="292" y="163" text-anchor="end">3V3</text>
+  </g>
+
+  <!-- P3 connector -->
+  <rect x="300" y="198" width="30" height="88" rx="3" fill="none" stroke="currentColor" opacity=".7"/>
+  <text x="290" y="192" text-anchor="end" font-weight="600">P3</text>
+  <g>
+    <rect x="318" y="206" width="12" height="8" fill="currentColor" opacity=".4"/><text x="292" y="213" text-anchor="end" opacity=".55">GND (spare)</text>
+    <rect x="318" y="226" width="12" height="8" fill="currentColor"/><text x="292" y="233" text-anchor="end">IO35</text>
+    <rect x="318" y="246" width="12" height="8" fill="currentColor" opacity=".4"/><text x="292" y="253" text-anchor="end" opacity=".55">IO22 (same as CN1)</text>
+    <rect x="318" y="266" width="12" height="8" fill="currentColor" opacity=".4"/><text x="292" y="273" text-anchor="end" opacity=".55">IO21 (backlight, do not use)</text>
+  </g>
+
+  <!-- wires -->
+  <g fill="none" stroke="currentColor" stroke-width="2">
+    <!-- GND bus to all right-hand terminals -->
+    <polyline points="330,100 680,100 680,280"/>
+    <line x1="680" y1="120" x2="640" y2="120"/>
+    <line x1="680" y1="200" x2="640" y2="200"/>
+    <line x1="680" y1="280" x2="640" y2="280"/>
+    <!-- IO22 -> green -->
+    <polyline points="330,120 560,120"/>
+    <!-- IO27 -> red -->
+    <polyline points="330,140 440,140 440,200 560,200"/>
+    <!-- IO35 -> black -->
+    <polyline points="330,230 470,230 470,280 560,280"/>
+    <!-- 3V3 -> resistor -> IO35 -->
+    <polyline points="330,160 400,160 400,178"/>
+    <polyline points="400,212 400,230"/>
+  </g>
+  <!-- resistor -->
+  <polyline points="400,178 405,182 395,188 405,194 395,200 405,206 400,212" fill="none" stroke="currentColor" stroke-width="2"/>
+  <text x="412" y="198">10 kΩ</text>
+  <circle cx="400" cy="230" r="3.5" fill="currentColor"/>
+  <circle cx="680" cy="120" r="3.5" fill="currentColor"/>
+  <circle cx="680" cy="200" r="3.5" fill="currentColor"/>
+
+  <!-- wire labels -->
+  <text x="445" y="112">IO22</text>
+  <text x="445" y="194">IO27</text>
+  <text x="480" y="274">IO35</text>
+  <text x="640" y="92" text-anchor="middle">GND (shared)</text>
+
+  <!-- buttons -->
+  <g stroke="currentColor" stroke-width="1.5">
+    <circle cx="600" cy="120" r="24" fill="#1a9a3a"/>
+    <circle cx="600" cy="200" r="24" fill="#d03b3b"/>
+    <circle cx="600" cy="280" r="24" fill="#3a3a3a"/>
+    <!-- terminals -->
+    <g fill="currentColor" stroke="none">
+      <rect x="556" y="116" width="8" height="8"/><rect x="636" y="116" width="8" height="8"/>
+      <rect x="556" y="196" width="8" height="8"/><rect x="636" y="196" width="8" height="8"/>
+      <rect x="556" y="276" width="8" height="8"/><rect x="636" y="276" width="8" height="8"/>
+    </g>
+  </g>
+  <text x="600" y="124" text-anchor="middle" fill="#fff" font-size="18" font-weight="700" stroke="none">+</text>
+  <text x="600" y="204" text-anchor="middle" fill="#fff" font-size="18" font-weight="700" stroke="none">−</text>
+  <text x="600" y="284" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" stroke="none">OK</text>
+  <text x="600" y="156" text-anchor="middle">green: add a pillow</text>
+  <text x="600" y="236" text-anchor="middle">red: undo one</text>
+  <text x="600" y="316" text-anchor="middle">black: start / confirm / finish</text>
+  <text x="600" y="332" text-anchor="middle" opacity=".65">hold: back, or log a defect</text>
+</svg>
+<figcaption>Green and red use CN1's IO22 and IO27, which have internal pull-ups. Black uses P3's IO35, an input-only pin, so a 10 kΩ resistor from IO35 to CN1's 3V3 holds it high until pressed. All three return to one shared GND wire.</figcaption>
+</figure>
+
+<table>
+<tr><th>Button</th><th>Signal wire</th><th>Return wire</th><th>Extra</th></tr>
+<tr><td><span class="sw" style="background:#1a9a3a"></span>Green (+)</td><td>CN1 IO22</td><td>CN1 GND</td><td>none</td></tr>
+<tr><td><span class="sw" style="background:#d03b3b"></span>Red (−)</td><td>CN1 IO27</td><td>CN1 GND</td><td>none; hold at power-on for the setup portal</td></tr>
+<tr><td><span class="sw" style="background:#3a3a3a"></span>Black (OK)</td><td>P3 IO35</td><td>CN1 GND (or P3 GND)</td><td>10 kΩ from IO35 to CN1 3V3</td></tr>
+</table>
+
+<ol style="margin-top:20px">
+  <li>Plug the two JST pigtails that came with the board into CN1 and P3. Wire colours on the pigtails vary, so identify each lead by its position against the silkscreen label, not by colour.</li>
+  <li>Solder the resistor between the IO35 lead and the 3V3 lead near the connectors, and heat-shrink it.</li>
+  <li>Twist each button's pair, keep the runs short, and route them away from the motor leads.</li>
+  <li>Button polarity does not matter. On buttons with NO, NC and COM terminals use NO and COM.</li>
+  <li>Leave P3's IO21 unconnected: it drives the screen backlight.</li>
+</ol>
+</main>

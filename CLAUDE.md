@@ -88,3 +88,62 @@ never "improve" them:
   periodic check-ins/polling (a previous hourly PR-watch loop burned
   ~20% of their credits overnight), don't re-render parts that didn't
   change, and don't render PNG previews unless asked.
+
+## `counter/` — Pillow Blower Counter (separate project)
+
+CYD (ESP32-2432S028R) pillow counter: `counter/firmware` (PlatformIO,
+`pio run -e cyd`; copy `include/config.h.example` to `config.h` first),
+`counter/backend` (Apps Script `Code.gs` + `Dashboard.html`; the HTML
+renders with demo data when opened locally), `counter/enclosure`
+(`cyd_counter_case.scad` wall case, parts `fit_test|box|bezel|assembly`;
+`cyd_desk_stand.scad` 32° desk stand with 3 up-facing 16 mm buttons on
+a flat top, parts `base|bezel|btn_test|assembly|check_buttons|check_bosses`
+— the `check_*` parts must render EMPTY; `cyd_desk_stand_v2.scad` grafts
+the same flat button top onto the ORIGINAL "CYD Desk Buddy" mesh
+(`counter/enclosure/src/*.stl`, imported; keeps its hidden fixing and
+symmetrical bezel — use the source Front Panel STL as-is; ~1 min render.
+Lessons: union the imported mesh with new geometry FIRST and cut
+afterwards — CGAL's union asserts on a mesh that was already cut; and
+keep new faces 0.02 mm inside the mesh's faces, never exactly
+coincident. Its screw pattern is offset +2.9 mm like the PCB, not
+symmetric; its fixing is 4× M2.5 × 10 pan head (Ø6.4 counterbores,
+Ø3.2 boss bores, Ø2.1 × 4 mm post holes — NOT countersunk M3). Its fillets: top-side/front corners r≈6.2, rear verticals
+4.8, top-back edge sharp — the new back edges use 6.2 at the user's
+request. The old back wall is cut to two screw pads + a bottom strip so
+the button compartment is reachable from the front; the rear section
+has its own 2 mm floor (`rear_floor`). Four Ø8.15 × 4.2 press-fit
+magnet cups open UPWARD over a 1 mm skin, straight bore + 0.4 flare
+above (bottom face closed; cups on the front floor and on the rear
+floor INSIDE the partition window at x0±18, y 158 — the rear corners
+were unreachable once printed). `panel` / `panel_slim` parts re-export
+the source Front Panel, the slim one trimmed `panel_trim` (0.2) per
+edge — the pocket has only 0.2 mm a side of clearance; STLs in
+`counter/enclosure/stl/`, binary-converted like the lamp STLs). CYD board
+dims live in `counter/enclosure/cyd_board.scad`, included by both files —
+they are unverified against a real board: `fit_test` exists for that.
+Both bezels export inverted (face down) — Y is flipped in mesh probes,
+same as the lamp shells. The desk stand's top depth is derived from the
+button nut/body and the board envelope (`stack`), not set directly.
+OpenSCAD is not preinstalled in the remote sandbox; `apt-get update &&
+apt-get install -y openscad xvfb` works (2021.01). Firmware compiles
+clean; nothing has run on hardware yet.
+
+### Drive mirror of `counter/` (standing instruction)
+
+The user reads the counter project from the shared drive, not GitHub:
+folder "PIllow Batch Counter and Production Dashboard" (Drive id
+`1DEdu3ccgfV6wMw81nnKKMdXqBjNUtbzG`, shared drive "App and Code
+Database Assets"). Subfolders `firmware/{src,include}`, `backend`,
+`enclosure`, `docs` mirror the repo; the root holds `README.md` and
+"READ ME FIRST - downloads and versions.txt" (version, commit, and the
+GitHub raw links for the `.bin` images and STLs, which are too big for
+the Drive MCP - only inline text/base64 ≤ ~25 KB per call works).
+**After every counter change:** move the current root files into a
+`v<N> (<date>)` subfolder, upload the new versions to the root and the
+mirrored subfolders, bump the version note. Use `search_files` with
+`parentId = '<id>'` to verify uploads (a batch of parallel `create_file`
+calls can return "internal error" while still succeeding). The Drive MCP
+cannot MOVE files (`update_file` with `parentId` → "caller does not have
+permission"); it can rename and trash. So archive by re-uploading the
+old versions into the `v<N>` folder (old text comes from `git show
+<commit>:counter/...`), then trash the superseded root/subfolder copies.

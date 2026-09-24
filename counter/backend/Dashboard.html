@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pillow Floor</title>
+<style>
+/* ---- tokens: light on :root, dark under both scopes (dashboard stamps dark) ---- */
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --baseline: #c3c2b7; --border: rgba(11,11,11,.10);
+  --series: #2a78d6; --series-soft: #b7d3f6; --meter-track: #cde2fb;
+  --good: #0ca30c; --warn: #fab219; --crit: #d03b3b; --good-text: #006300;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,.10);
+  --series: #3987e5; --series-soft: #1c5cab; --meter-track: #184f95;
+  --good: #0ca30c; --warn: #fab219; --crit: #d03b3b; --good-text: #0ca30c;
+}}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,.10);
+  --series: #3987e5; --series-soft: #1c5cab; --meter-track: #184f95;
+  --good: #0ca30c; --warn: #fab219; --crit: #d03b3b; --good-text: #0ca30c;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--page); color: var(--ink);
+  font: 16px/1.35 system-ui, -apple-system, "Segoe UI", sans-serif; }
+body { padding: 20px 24px; padding-top: calc(20px + env(safe-area-inset-top, 0px)); min-height: 100vh; }
+#app.loading { opacity: .6; transition: opacity .3s; }
+h1 { font-size: 26px; margin: 0; font-weight: 600; letter-spacing: -.01em; }
+h2 { font-size: 15px; margin: 0 0 10px; font-weight: 600; color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; }
+.top { display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch; margin-bottom: 20px; }
+.brand { flex: 1 1 260px; display: flex; flex-direction: column; justify-content: space-between; }
+.clock { font-size: 44px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; margin-top: 8px; }
+.date { color: var(--ink-2); font-size: 18px; margin-top: 6px; }
+.hero { flex: 2 1 420px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+.hero .big { font-size: 92px; font-weight: 700; line-height: .95; letter-spacing: -.02em; }
+.hero .lbl { color: var(--ink-2); font-size: 16px; }
+.meter { flex: 1 1 220px; min-width: 200px; }
+.meter .bar { height: 14px; border-radius: 7px; background: var(--meter-track); overflow: hidden; margin-top: 8px; }
+.meter .fill { height: 100%; background: var(--series); border-radius: 7px; transition: width .6s; }
+.meter .row { display: flex; justify-content: space-between; color: var(--ink-2); font-size: 14px; margin-top: 6px; }
+.kpis { display: flex; gap: 14px; flex-wrap: wrap; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; min-width: 120px; }
+.kpi .v { font-size: 34px; font-weight: 600; line-height: 1.1; }
+.kpi .l { color: var(--ink-2); font-size: 13px; }
+.stations { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; position: relative; overflow: hidden; }
+.card .name { font-weight: 600; font-size: 17px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 4px 9px; border-radius: 99px; border: 1px solid var(--border); color: var(--ink-2); }
+.pill i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--muted); }
+.pill.running i { background: var(--good); } .pill.offline i { background: var(--crit); } .pill.idle i { background: var(--warn); }
+.card .op { font-size: 30px; font-weight: 600; margin-top: 10px; line-height: 1.1; min-height: 1.1em; }
+.card .type { color: var(--ink-2); font-size: 16px; margin-top: 2px; min-height: 1.35em; }
+.card .cnt { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; }
+.card .cnt b { font-size: 56px; font-weight: 700; line-height: 1; }
+.card .cnt span { color: var(--ink-2); font-size: 14px; }
+.card .meta { display: flex; gap: 14px; color: var(--muted); font-size: 13px; margin-top: 8px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.card.offline .op, .card.offline .cnt b { color: var(--muted); }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.chart { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px 10px; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { fill: var(--ink-2); font-size: 15px; font-family: inherit; }
+.chart .val { fill: var(--ink); font-weight: 600; font-size: 16px; }
+.chart .tick { fill: var(--muted); font-variant-numeric: tabular-nums; }
+.chart .grid { stroke: var(--grid); stroke-width: 1; }
+.chart .base { stroke: var(--baseline); stroke-width: 1; }
+.chart .mark { fill: var(--series); }
+.chart .mark.dim { fill: var(--series-soft); }
+.chart .mark:hover, .chart .hit:hover + .mark { filter: brightness(1.15); }
+.chart .hit { fill: transparent; }
+.empty { color: var(--muted); font-size: 14px; padding: 30px 0; text-align: center; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th { text-align: left; color: var(--ink-2); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; padding: 6px 8px; border-bottom: 1px solid var(--grid); }
+td { padding: 8px; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+td.n, th.n { text-align: right; }
+details { margin-top: 6px; } summary { color: var(--muted); font-size: 12px; cursor: pointer; }
+details table { font-size: 13px; margin-top: 6px; }
+.foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; color: var(--muted); font-size: 13px; }
+.foot .err { color: var(--crit); }
+#tip { position: fixed; pointer-events: none; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.25); z-index: 9; }
+#tip b { font-size: 15px; }
+@media (max-width: 700px) { .hero .big { font-size: 64px; } .clock { font-size: 34px; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="top">
+    <div class="brand">
+      <div><h1>Pillow Floor</h1><div class="date" id="date">&nbsp;</div></div>
+      <div class="clock" id="clock">--:--</div>
+    </div>
+    <div class="hero">
+      <div><div class="big" id="pillowsToday">0</div><div class="lbl">pillows made today</div></div>
+      <div class="meter" id="meter">
+        <div class="lbl">Daily target <b id="targetVal"></b></div>
+        <div class="bar"><div class="fill" id="meterFill" style="width:0%"></div></div>
+        <div class="row"><span id="meterPct">0%</span><span id="meterLeft"></span></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="v" id="kBatches">0</div><div class="l">batches finished</div></div>
+        <div class="kpi"><div class="v" id="kDefects">0</div><div class="l">defective skins</div></div>
+        <div class="kpi"><div class="v" id="kRunning">0</div><div class="l">blowers running</div></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Blowers right now</h2>
+  <div class="stations" id="stations"></div>
+
+  <div class="charts">
+    <div class="chart"><h2>Pillows per operator today</h2><div id="chOps"></div></div>
+    <div class="chart"><h2>Pillows by type today</h2><div id="chTypes"></div></div>
+    <div class="chart"><h2>Production by hour</h2><div id="chHours"></div></div>
+    <div class="chart"><h2>Last 7 days</h2><div id="chDays"></div></div>
+  </div>
+
+  <div class="chart" style="margin-bottom:16px">
+    <h2>Recent batches</h2>
+    <div style="overflow-x:auto"><table id="batches"><thead><tr>
+      <th>Finished</th><th>Blower</th><th>Operator</th><th>Type</th>
+      <th class="n">Pillows</th><th class="n">Defects</th><th class="n">Minutes</th><th class="n">Per hour</th>
+    </tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <div class="foot"><span id="status">Loading…</span><span id="src"></span></div>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+  var REFRESH_MS = 15000;
+  var $ = function (id) { return document.getElementById(id); };
+  var inApps = typeof google !== 'undefined' && google.script && google.script.run;
+
+  // ----------------------------------------------------------- utilities
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function svgEl(tag, attrs) {
+    var e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function fmtDur(s) {
+    s = Math.max(0, Math.round(s));
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+    return h ? h + 'h ' + (m < 10 ? '0' : '') + m + 'm' : m + ' min';
+  }
+  function fmtTime(ms) {
+    var d = new Date(ms);
+    return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+  function niceMax(v) {
+    if (v <= 0) return 1;
+    var p = Math.pow(10, Math.floor(Math.log10(v)));
+    var m = v / p;
+    var n = m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10;
+    return n * p;
+  }
+
+  // ------------------------------------------------------------- tooltip
+  var tip = $('tip');
+  function showTip(evt, label, value) {
+    tip.textContent = '';
+    tip.appendChild(el('b', null, String(value)));
+    tip.appendChild(document.createTextNode(' ' + label));
+    tip.hidden = false;
+    moveTip(evt);
+  }
+  function moveTip(evt) {
+    var x = evt.clientX + 14, y = evt.clientY + 14;
+    if (x + tip.offsetWidth > window.innerWidth - 8) x = evt.clientX - tip.offsetWidth - 10;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  function hideTip() { tip.hidden = true; }
+  function hoverable(node, label, value) {
+    node.addEventListener('pointerenter', function (e) { showTip(e, label, value); });
+    node.addEventListener('pointermove', moveTip);
+    node.addEventListener('pointerleave', hideTip);
+  }
+
+  // ---------------------------------------------------------- bar charts
+  // Horizontal ranking bars: one series, value labels at the tip (no axis).
+  function hbars(container, rows, unit) {
+    container.textContent = '';
+    if (!rows.length) { container.appendChild(el('div', 'empty', 'Nothing logged yet today')); return; }
+    var W = 600, rowH = 36, barH = 22, labelW = 150, padR = 60;
+    var H = rows.length * rowH + 4;
+    var max = Math.max.apply(null, rows.map(function (r) { return r.pillows; }).concat([1]));
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img' });
+    var plotW = W - labelW - padR;
+    rows.forEach(function (r, i) {
+      var y = i * rowH + 2, w = Math.max(0, r.pillows / max * plotW);
+      var t = svgEl('text', { x: labelW - 12, y: y + barH / 2 + 4, 'text-anchor': 'end' });
+      t.textContent = r.name; svg.appendChild(t);
+      svg.appendChild(svgEl('line', { class: 'base', x1: labelW, x2: labelW, y1: y - 2, y2: y + barH + 2 }));
+      var hit = svgEl('rect', { class: 'hit', x: 0, y: y - rowH / 2 + barH / 2, width: W, height: rowH });
+      hoverable(hit, unit + ' · ' + r.name, r.pillows);
+      svg.appendChild(hit);
+      if (w > 0) {
+        var rr = Math.min(4, w);
+        var d = 'M' + labelW + ',' + y + 'h' + (w - rr) + 'a' + rr + ',' + rr + ' 0 0 1 ' + rr + ',' + rr +
+                'v' + (barH - 2 * rr) + 'a' + rr + ',' + rr + ' 0 0 1 -' + rr + ',' + rr + 'h-' + (w - rr) + 'z';
+        var p = svgEl('path', { class: 'mark', d: d }); svg.appendChild(p);
+      }
+      var v = svgEl('text', { class: 'val', x: labelW + w + 8, y: y + barH / 2 + 4 });
+      v.textContent = r.pillows; svg.appendChild(v);
+    });
+    container.appendChild(svg);
+    dataTable(container, [unit, 'Pillows'], rows.map(function (r) { return [r.name, r.pillows]; }));
+  }
+
+  // Columns from a single baseline, hairline grid, labels on the top value
+  // and the highlighted column only.
+  function columns(container, cats, opts) {
+    container.textContent = '';
+    var W = 600, H = 220, padL = 40, padB = 26, padT = 18;
+    var n = cats.length;
+    var plotW = W - padL - 8, plotH = H - padB - padT;
+    var maxV = niceMax(Math.max.apply(null, cats.map(function (c) { return c.value; }).concat([1])));
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img' });
+    var ticks = 4;
+    for (var i = 0; i <= ticks; i++) {
+      var yy = padT + plotH - plotH * i / ticks;
+      svg.appendChild(svgEl('line', { class: i ? 'grid' : 'base', x1: padL, x2: W - 8, y1: yy, y2: yy }));
+      var tl = svgEl('text', { class: 'tick', x: padL - 8, y: yy + 4, 'text-anchor': 'end' });
+      tl.textContent = Math.round(maxV * i / ticks).toLocaleString(); svg.appendChild(tl);
+    }
+    var slot = plotW / n, bw = Math.min(24, slot * 0.6);
+    var maxIdx = -1, maxSeen = -1;
+    cats.forEach(function (c, i) { if (c.value > maxSeen) { maxSeen = c.value; maxIdx = i; } });
+    cats.forEach(function (c, i) {
+      var x = padL + slot * i + (slot - bw) / 2, h = c.value / maxV * plotH, y = padT + plotH - h;
+      var hit = svgEl('rect', { class: 'hit', x: padL + slot * i, y: padT, width: slot, height: plotH });
+      hoverable(hit, c.label + (c.sub ? ' · ' + c.sub : ''), c.value);
+      svg.appendChild(hit);
+      if (h > 0) {
+        var rr = Math.min(4, h);
+        var d = 'M' + x + ',' + (y + rr) + 'a' + rr + ',' + rr + ' 0 0 1 ' + rr + ',-' + rr + 'h' + (bw - 2 * rr) +
+                'a' + rr + ',' + rr + ' 0 0 1 ' + rr + ',' + rr + 'v' + (h - rr) + 'h-' + bw + 'z';
+        var isHi = opts.highlight === i;
+        svg.appendChild(svgEl('path', { class: 'mark' + (opts.highlight !== undefined && !isHi ? ' dim' : ''), d: d }));
+        if (c.value > 0 && (i === maxIdx || isHi)) {
+          var v = svgEl('text', { class: 'val', x: x + bw / 2, y: y - 6, 'text-anchor': 'middle' });
+          v.textContent = c.value; svg.appendChild(v);
+        }
+      }
+      if (!opts.labelEvery || i % opts.labelEvery === 0) {
+        var l = svgEl('text', { class: 'tick', x: padL + slot * i + slot / 2, y: H - 8, 'text-anchor': 'middle' });
+        l.textContent = c.label; svg.appendChild(l);
+      }
+    });
+    container.appendChild(svg);
+    dataTable(container, [opts.head || 'Period', 'Pillows'], cats.map(function (c) { return [c.label, c.value]; }));
+  }
+
+  function dataTable(container, head, rows) {
+    var det = el('details'); det.appendChild(el('summary', null, 'Data table'));
+    var t = el('table'), th = el('thead'), tr = el('tr');
+    head.forEach(function (h, i) { tr.appendChild(el('th', i ? 'n' : '', h)); });
+    th.appendChild(tr); t.appendChild(th);
+    var tb = el('tbody');
+    rows.forEach(function (r) { var x = el('tr'); r.forEach(function (c, i) { x.appendChild(el('td', i ? 'n' : '', String(c))); }); tb.appendChild(x); });
+    t.appendChild(tb); det.appendChild(t); container.appendChild(det);
+  }
+
+  // -------------------------------------------------------------- render
+  function render(d) {
+    if (!d || !d.ok) { $('status').textContent = 'Bad data from server'; return; }
+    var t = d.totals;
+    $('pillowsToday').textContent = t.pillows.toLocaleString();
+    $('kBatches').textContent = t.batches;
+    $('kDefects').textContent = t.defects;
+    $('kRunning').textContent = t.running + ' / ' + d.stations.length;
+    if (d.target > 0) {
+      $('meter').hidden = false;
+      var pct = Math.min(100, Math.round(t.pillows / d.target * 100));
+      $('targetVal').textContent = d.target.toLocaleString();
+      $('meterFill').style.width = pct + '%';
+      $('meterPct').textContent = pct + '%';
+      $('meterLeft').textContent = t.pillows >= d.target ? 'target met' : (d.target - t.pillows).toLocaleString() + ' to go';
+    } else { $('meter').hidden = true; }
+
+    var st = $('stations'); st.textContent = '';
+    d.stations.forEach(function (s) {
+      var c = el('div', 'card ' + s.status);
+      var name = el('div', 'name', s.name);
+      var pill = el('span', 'pill ' + s.status); pill.appendChild(el('i'));
+      pill.appendChild(document.createTextNode(s.status === 'running' ? 'Running' : s.status === 'idle' ? 'Idle' : 'Offline'));
+      name.appendChild(pill); c.appendChild(name);
+      c.appendChild(el('div', 'op', s.status === 'running' ? s.operator : (s.status === 'offline' ? 'No signal' : 'Nobody')));
+      c.appendChild(el('div', 'type', s.status === 'running' ? s.type : ''));
+      var cnt = el('div', 'cnt'); cnt.appendChild(el('b', null, s.status === 'running' ? s.count : s.today));
+      cnt.appendChild(el('span', null, s.status === 'running' ? 'in this batch' : 'today')); c.appendChild(cnt);
+      var meta = el('div', 'meta');
+      if (s.status === 'running') {
+        meta.appendChild(el('span', null, fmtDur(s.seconds) + ' elapsed'));
+        if (s.perHour !== null) meta.appendChild(el('span', null, s.perHour + ' / hr'));
+        if (s.defects) meta.appendChild(el('span', null, s.defects + ' defect' + (s.defects > 1 ? 's' : '')));
+        meta.appendChild(el('span', null, s.today + ' today'));
+      } else if (s.status === 'offline' && s.ageS !== null && s.ageS < 1e8) {
+        meta.appendChild(el('span', null, 'last seen ' + fmtDur(s.ageS) + ' ago'));
+      }
+      c.appendChild(meta); st.appendChild(c);
+    });
+
+    hbars($('chOps'), d.operators, 'Operator');
+    hbars($('chTypes'), d.types, 'Type');
+
+    var nowH = new Date().getHours();
+    var firstH = 0, lastH = 23;
+    for (var h = 0; h < 24; h++) if (d.hours[h]) { firstH = h; break; }
+    for (h = 23; h >= 0; h--) if (d.hours[h]) { lastH = h; break; }
+    firstH = Math.min(firstH, 6, nowH); lastH = Math.max(lastH, Math.min(23, nowH), 17);
+    var hourCats = [];
+    for (h = firstH; h <= lastH; h++) hourCats.push({ label: (h % 12 || 12) + (h < 12 ? 'a' : 'p'), value: d.hours[h] });
+    columns($('chHours'), hourCats, { head: 'Hour' });
+    columns($('chDays'), d.days.map(function (x) { return { label: x.label, sub: x.key, value: x.pillows }; }),
+            { highlight: d.days.length - 1, head: 'Day' });
+
+    var tb = $('batches').querySelector('tbody'); tb.textContent = '';
+    if (!d.batches.length) { var r0 = el('tr'); var c0 = el('td', 'empty', 'No batches finished yet'); c0.colSpan = 8; r0.appendChild(c0); tb.appendChild(r0); }
+    d.batches.forEach(function (b) {
+      var r = el('tr');
+      [b.finished ? fmtTime(b.finished) : '', b.station, b.operator, b.type].forEach(function (v) { r.appendChild(el('td', null, v)); });
+      [b.pillows, b.defects, b.minutes, b.perHour === null ? '' : b.perHour].forEach(function (v) { r.appendChild(el('td', 'n', String(v))); });
+      tb.appendChild(r);
+    });
+    $('status').textContent = 'Updated ' + new Date(d.generated).toLocaleTimeString();
+    $('status').className = '';
+  }
+
+  // ---------------------------------------------------------------- data
+  function load() {
+    $('app').classList.add('loading');
+    if (inApps) {
+      google.script.run.withSuccessHandler(function (d) { $('app').classList.remove('loading'); render(d); })
+        .withFailureHandler(function (e) { $('app').classList.remove('loading'); $('status').textContent = 'Refresh failed: ' + e.message; $('status').className = 'err'; })
+        .getDashboardData();
+    } else {
+      setTimeout(function () { $('app').classList.remove('loading'); render(demoData()); }, 150);
+      $('src').textContent = 'Demo data - deploy the Apps Script to see live numbers';
+    }
+  }
+  function tickClock() {
+    var n = new Date();
+    $('clock').textContent = n.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    $('date').textContent = n.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  // Demo data lets the file be previewed outside Apps Script.
+  function demoData() {
+    var now = Date.now(), hrs = [], h;
+    var curve = [0,0,0,0,0,0,4,18,31,36,28,33,14,30,35,29,22,9,0,0,0,0,0,0];
+    var nowH = new Date().getHours();
+    for (h = 0; h < 24; h++) hrs.push(h <= nowH ? curve[h] : 0);
+    var total = hrs.reduce(function (a, b) { return a + b; }, 0);
+    var days = ['Wed','Thu','Fri','Sat','Sun','Mon','Today'].map(function (l, i) {
+      return { key: 'd' + i, label: l, pillows: i === 6 ? total : [372, 401, 356, 120, 0, 388][i], defects: 3 }; });
+    return { ok: true, generated: now, today: '', target: 400,
+      totals: { pillows: total, defects: 4, batches: 7, running: 2 },
+      stations: [
+        { id: 'b1', name: 'Blower 1', status: 'running', operator: 'Alex', type: 'King', count: 23, defects: 1, seconds: 1740, perHour: 48, today: 131 },
+        { id: 'b2', name: 'Blower 2', status: 'running', operator: 'Sam', type: 'Standard', count: 41, defects: 0, seconds: 2880, perHour: 51, today: 118 },
+        { id: 'b3', name: 'Blower 3', status: 'idle', operator: '', type: '', count: 0, defects: 0, seconds: 0, perHour: null, today: Math.max(0, total - 249) }],
+      operators: [ { name: 'Alex', pillows: 131 }, { name: 'Sam', pillows: 118 }, { name: 'Jordan', pillows: Math.max(0, total - 249) } ],
+      types: [ { name: 'Standard', pillows: Math.round(total * .5) }, { name: 'King', pillows: Math.round(total * .3) }, { name: 'Body', pillows: Math.round(total * .2) } ],
+      hours: hrs, days: days,
+      batches: [
+        { finished: now - 12 * 60000, station: 'Blower 3', operator: 'Jordan', type: 'Body', pillows: 38, defects: 1, minutes: 46, perHour: 49.6 },
+        { finished: now - 61 * 60000, station: 'Blower 1', operator: 'Alex', type: 'Standard', pillows: 52, defects: 0, minutes: 58, perHour: 53.8 },
+        { finished: now - 95 * 60000, station: 'Blower 2', operator: 'Sam', type: 'King', pillows: 35, defects: 2, minutes: 44, perHour: 47.7 }] };
+  }
+
+  tickClock(); setInterval(tickClock, 1000);
+  load(); setInterval(load, REFRESH_MS);
+})();
+</script>
+</body>
+</html>

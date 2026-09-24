@@ -1,0 +1,44 @@
+// Copy to include/config.h and (optionally) edit. config.h is git-ignored.
+//
+// Everything in the first two sections can be left blank: on first boot
+// (or when the - button / the screen is held during boot) the device opens
+// a setup hotspot "PillowCounter-<station>" and a web page asks for the
+// WiFi, the Apps Script URL, the API key and the station name. Values set
+// there are stored on the device and win over the defaults here.
+#pragma once
+
+// ---------------------------------------------------------------- network
+#define WIFI_SSID        ""             // optional compile-time default
+#define WIFI_PASS        ""
+
+// Apps Script web-app URL (Deploy -> New deployment -> Web app -> "Anyone").
+#define SHEET_URL        ""             // e.g. "https://script.google.com/macros/s/AKfycb.../exec"
+// Shared secret; must match API_KEY in backend/Code.gs.
+#define API_KEY          ""
+
+// POSIX TZ string used for on-device timestamps (America/New_York shown).
+#define TZ_INFO          "EST5EDT,M3.2.0,M11.1.0"
+
+// ---------------------------------------------------------------- station
+#define STATION_ID       "blower-1"      // unique per device, no spaces
+#define STATION_NAME     "Blower 1"      // shown on the screen + dashboard
+
+// ---------------------------------------------------------------- buttons
+// All buttons wire between the GPIO and GND (active-low). -1 disables.
+//
+// CYD spare pins:  CN1 connector = GND, IO22, IO27, 3V3
+//                  P3  connector = GND, IO35, IO22, IO21(backlight - don't use)
+// IO35 is INPUT-ONLY with no internal pull-up: add a 10k resistor from
+// IO35 to 3V3 when you use it.
+#define PIN_BTN_ADD      22   // momentary: +1 pillow
+#define PIN_BTN_SUB      27   // momentary: -1 pillow (undo); hold at boot = setup portal
+#define PIN_BTN_BATCH    35   // black button (needs ext. pull-up): start / confirm / finish; hold = back / defect
+#define BTN_BATCH_LATCHING false  // true = a latching switch instead: ON = batch running
+#define PIN_BTN_DEFECT   -1   // optional momentary: log a defective skin
+
+// ---------------------------------------------------------------- timing
+#define HEARTBEAT_S      30   // live-state push interval while online
+#define CONFIG_REFRESH_S 600  // re-fetch operator / pillow-type lists
+#define FINISH_CONFIRM_MS 4000  // touch FINISH (or press black) twice within this window
+#define LONG_PRESS_MS    800   // black button hold = back (pickers) / defect (counting)
+#define SETUP_PORTAL_TIMEOUT_S 600  // setup hotspot closes after this

@@ -1,0 +1,119 @@
+<title>Blower Counter Screens</title>
+<style>
+:root { color-scheme: light; --page:#f4f4f1; --ink:#141414; --ink-2:#55544f; --muted:#8a887f; --line:rgba(0,0,0,.12); --card:#ffffff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; --page:#121211; --ink:#f4f4f1; --ink-2:#c2c1b8; --muted:#8a887f; --line:rgba(255,255,255,.12); --card:#1d1d1b; } }
+:root[data-theme="dark"] { color-scheme: dark; --page:#121211; --ink:#f4f4f1; --ink-2:#c2c1b8; --muted:#8a887f; --line:rgba(255,255,255,.12); --card:#1d1d1b; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--page); color:var(--ink); font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; padding: 28px 24px; padding-block: 28px 48px; }
+h1 { font-size:28px; margin:0 0 6px; font-weight:650; letter-spacing:-.01em; text-wrap:balance; }
+.lede { color:var(--ink-2); max-width:62ch; margin:0 0 26px; }
+.flow { display:grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px 24px; }
+figure { margin:0; }
+figcaption { margin-top:10px; font-size:14px; color:var(--ink-2); max-width:44ch; }
+figcaption b { color:var(--ink); font-weight:650; display:block; margin-bottom:2px; }
+.step { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+.frame { width:100%; max-width:640px; aspect-ratio:320/240; position:relative; border-radius:10px; overflow:hidden;
+  box-shadow: 0 0 0 6px #2a2a2a, 0 0 0 7px #000, 0 10px 30px rgba(0,0,0,.35); background:#000; }
+.scr { position:absolute; left:0; top:0; width:320px; height:240px; transform-origin:0 0; transform: scale(var(--s)); background:#000; color:#fff;
+  font-family: "Roboto", system-ui, sans-serif; user-select:none; }
+.scr * { position:absolute; margin:0; box-sizing:border-box; }
+.hdr { left:0; top:0; width:320px; height:30px; background:#242424; }
+.hdr .name { left:8px; top:0; height:30px; line-height:30px; font-size:22px; font-weight:500; }
+.hdr .clk { right:8px; top:0; height:30px; line-height:30px; font-size:13px; color:#9c9a9c; }
+.hdr .dot { left:226px; top:11px; width:8px; height:8px; border-radius:50%; background:#29d35a; }
+.hdr .off { right:8px; top:0; height:30px; line-height:30px; font-size:13px; color:#ff6500; font-weight:600; }
+.btn { border-radius:8px; display:flex; align-items:center; justify-content:center; text-align:center; font-weight:500; }
+.f4 { font-size:22px; } .f2 { font-size:13px; }
+.green { background:#00ae00; } .blue { background:#298ee7; } .panel { background:#242424; } .orange { background:#ff6500; } .red { background:#ce0000; } .yellow { background:#ffd700; color:#000; }
+.txt { left:0; width:320px; text-align:center; }
+.count { left:2px; top:60px; width:206px; height:122px; border:1px solid #242424; border-radius:8px; }
+.num { left:2px; width:206px; top:66px; text-align:center; font-size:74px; line-height:1; font-weight:500; font-variant-numeric: tabular-nums; }
+.def { left:2px; width:206px; top:160px; text-align:center; font-size:13px; color:#9c9a9c; }
+.bar { background:#fff; }
+.note { margin-top:34px; padding-top:18px; border-top:1px solid var(--line); color:var(--ink-2); font-size:14px; max-width:70ch; }
+.note b { color:var(--ink); }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap">
+
+<h1>Blower Counter Screens</h1>
+<p class="lede">What each pillow-blower station shows on its 2.8-inch touch screen, drawn from the same layout the firmware uses (320 × 240 pixels, shown at 2×). Below the screen sit the three panel buttons: + &nbsp;− &nbsp;BATCH.</p>
+
+<div class="flow" id="flow"></div>
+
+<div class="note">
+  <b>What is exact and what is approximate.</b> Positions, sizes, colours and button areas match <code>ui.cpp</code> pixel for pixel. The display's built-in bitmap fonts are approximated with Roboto here; the real text is a touch blockier. Names and pillow types come from the Config tab of the Google Sheet, so the pickers show whatever you type there. The green dot in the header means the sheet link is up; it becomes <span style="color:#ff6500;font-weight:600">OFFLINE 3</span> with the number of un-sent clicks when Wi-Fi drops, and those upload later in order.
+</div>
+
+<script>
+(function () {
+  var screens = [
+    { step: 'Step 1', title: 'Idle', cap: 'Nothing running. Flip the BATCH switch on, or tap START BATCH.',
+      body: hdr('Blower 1') +
+        '<div class="txt f4" style="top:56px">No batch running</div>' +
+        '<div class="txt f2" style="top:92px;color:#9c9a9c">Flip the batch switch or tap START</div>' +
+        btn(40,140,240,76,'green f4','START BATCH') },
+    { step: 'Step 2', title: 'Who is running?', cap: 'One tap on a name. The last person to use this station is pre-highlighted. Nine names per page, with page arrows when there are more.',
+      body: hdr('Blower 1') + '<div class="txt f4" style="top:31px">Who is running?</div>' +
+        grid(['Alex','Sam','Jordan','Casey','Riley','Morgan'], 'Alex') + btn(6,196,80,40,'panel f2','BACK') },
+    { step: 'Step 3', title: 'Which pillow?', cap: 'Pillow types in the order the sheet lists them. Types on the "make next" list come first, so the suggested one is the top-left tile.',
+      body: hdr('Blower 1') + '<div class="txt f4" style="top:31px">Which pillow?</div>' +
+        grid(['King','Standard','Body','Travel'], 'King') + btn(6,196,80,40,'panel f2','BACK') },
+    { step: 'Step 4', title: 'Counting', cap: 'The count fills the left side. + and − are also the physical buttons, so a gloved hand never has to find them on the glass. DEFECT logs a bad skin without changing the count.',
+      body: hdr('Blower 1') + run('Alex','King',23,1,'29:14') },
+    { step: 'Step 4, second tap', title: 'Confirm finish', cap: 'A touch on FINISH BATCH turns it yellow for four seconds; a second tap ends the batch. A brush against the glass cannot end a batch by accident. The physical BATCH switch finishes directly.',
+      body: hdr('Blower 1') + run('Alex','King',23,1,'29:14', true) },
+    { step: 'Step 5', title: 'Batch finished', cap: 'Totals for the batch just logged. OK, a + press, or 20 seconds returns to Idle. Flipping the switch back on starts the next batch straight from here.',
+      body: hdr('Blower 1') +
+        '<div class="txt f4" style="top:35px">Batch finished</div>' +
+        '<div class="txt" style="top:68px;font-size:74px;line-height:1;font-weight:500;color:#29d35a">23</div>' +
+        '<div class="txt f2" style="top:142px;color:#ffd700">Alex&nbsp;&nbsp;-&nbsp;&nbsp;King</div>' +
+        '<div class="txt f2" style="top:162px;color:#9c9a9c">1 defects&nbsp;&nbsp;&nbsp;29 min</div>' +
+        btn(100,190,120,44,'panel f4','OK') },
+    { step: 'Any time', title: 'Wi-Fi down', cap: 'Counting carries on. The header shows how many clicks are waiting, and the on-board LED glows red until they are delivered.',
+      body: hdr('Blower 1', 'OFFLINE 3') + run('Alex','King',24,1,'31:02') }
+  ];
+
+  function hdr(name, off) {
+    return '<div class="hdr"><div class="name">' + name + '</div>' +
+      (off ? '<div class="off">' + off + '</div>' : '<div class="dot"></div><div class="clk">10:24</div>') + '</div>';
+  }
+  function btn(x, y, w, h, cls, label) {
+    return '<div class="btn ' + cls + '" style="left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px">' + label + '</div>';
+  }
+  function grid(items, sel) {
+    var s = '';
+    items.forEach(function (t, i) {
+      var c = i % 3, r = Math.floor(i / 3);
+      s += btn(6 + c * 104, 62 + r * 44, 100, 40, (t === sel ? 'blue' : 'panel') + ' f4', t);
+    });
+    return s;
+  }
+  function run(op, type, n, defects, elapsed, armed) {
+    return '<div class="f2" style="left:8px;top:36px;color:#ffd700">' + op + '&nbsp;&nbsp;-&nbsp;&nbsp;' + type + '</div>' +
+      '<div class="f2" style="right:8px;top:36px;color:#9c9a9c">' + elapsed + '</div>' +
+      '<div class="count"></div><div class="num">' + n + '</div>' +
+      '<div class="def"' + (defects ? ' style="color:#ff6500"' : '') + '>defects: ' + defects + '</div>' +
+      btn(214,60,102,66,'green','') + '<div class="bar" style="left:261px;top:73px;width:8px;height:40px"></div><div class="bar" style="left:245px;top:89px;width:40px;height:8px"></div>' +
+      btn(214,132,102,50,'orange','') + '<div class="bar" style="left:245px;top:153px;width:40px;height:8px"></div>' +
+      btn(4,190,92,46,'red f2','DEFECT') +
+      (armed ? btn(102,190,214,46,'yellow f2','TAP AGAIN TO FINISH') : btn(102,190,214,46,'blue f4','FINISH BATCH'));
+  }
+
+  var flow = document.getElementById('flow');
+  screens.forEach(function (s) {
+    var fig = document.createElement('figure');
+    fig.innerHTML = '<div class="frame"><div class="scr">' + s.body + '</div></div>' +
+      '<figcaption><span class="step"></span><b></b><span class="cap"></span></figcaption>';
+    fig.querySelector('.step').textContent = s.step;
+    fig.querySelector('b').textContent = s.title;
+    fig.querySelector('.cap').textContent = s.cap;
+    flow.appendChild(fig);
+  });
+  function fit() {
+    document.querySelectorAll('.frame').forEach(function (f) {
+      f.querySelector('.scr').style.setProperty('--s', f.clientWidth / 320);
+    });
+  }
+  fit(); window.addEventListener('resize', fit);
+})();
+</script>

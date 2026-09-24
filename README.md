@@ -30,6 +30,13 @@ There are **two part series**:
   (Ø150 two-half ring in a slotted Ø92 base) built before the original
   files were available. Kept as an alternative aesthetic.
 
+
+## Also in this repo: Pillow Blower Counter
+
+`counter/` is a separate project: a per-machine pillow counter on the
+ESP32 Cheap Yellow Display with panel buttons, a Google Sheet backend and
+a wall dashboard. See [`counter/README.md`](counter/README.md).
+
 ## The original's problem, measured
 
 Slicing the original STLs shows the base is a tapered shell that simply
