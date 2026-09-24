@@ -269,9 +269,11 @@ python3 ../../scripts/stl2bin.py stl/desk_stand_v2_*.stl
   straight Ø8.15 bore with a 0.4 mm lead-in flare above it, **opening
   upward** from the floor over a 1 mm skin, so the magnets are hidden and
   the bottom face stays closed (stack two, or push one to the bottom).
-  Two in the front section between the screw slots, two in the rear
-  corners; all reached through the bezel opening. `magnets = false` to
-  omit; `magnet_d` / `magnet_depth` / `magnet_skin` / `magnet_flare` /
+  Two in the front section between the screw slots, two on the rear
+  floor 18 mm either side of centre just behind the partition's bottom
+  strip - inside its window, so all four are pressed in through the
+  bezel opening before the buttons go in. `magnets = false` to omit;
+  `magnet_d` / `magnet_depth` / `magnet_skin` / `magnet_flare` /
   `magnet_pos`.
 - Front panel: `desk_stand_v2_panel.stl` is the source Front Panel
   re-exported (identical, face down). The pocket is 100.4 × 58.8 mm and

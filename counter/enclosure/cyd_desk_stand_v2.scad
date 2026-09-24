@@ -33,8 +33,9 @@
 // through matching access holes in the new back wall on the same axes.
 // The USB-C panel-mount slot is repeated in the new back wall. Four
 // press-fit magnet cups (8 x 2 mm discs, stack two) open UPWARD from
-// the floor over a 1 mm skin: two in the front section, two in the
-// rear corners - the magnets are hidden, the bottom stays closed.
+// the floor over a 1 mm skin: two in the front section, two on the rear
+// floor just behind the partition strip, inside its window so they can
+// be pressed in through the bezel opening - magnets hidden, bottom closed.
 //
 // Coordinates: the source mesh's own frame (x 383.8..486.6, front face
 // toward -y, back face y = 150.7, z up); the exported part is centred
@@ -86,8 +87,12 @@ magnet_depth = 4.2;                  // straight bore: two 2 mm discs stacked, o
 magnet_skin  = 1.0;                  // floor left under the magnet (the bottom face stays closed)
 magnet_flare = 0.4;                  // lead-in above the straight bore (the cup rim is depth + this)
 magnet_boss_d = 12;
+// rear pair sits inside the partition window (between the screw pads) just
+// behind the bottom strip, so both pairs are reachable through the bezel opening
+rear_mag_x   = 18;
+rear_mag_y   = y_back0 + 1.3 + magnet_boss_d / 2;                                 // 1.3 mm behind the strip
 magnet_pos   = [[x0 - 25, 126], [x0 + 25, 126],                                   // front floor, clear of the screw slots
-                [x0 - (W / 2 - wall - 5), y_back - wall - 5], [x0 + (W / 2 - wall - 5), y_back - wall - 5]];  // rear corners
+                [x0 - rear_mag_x, rear_mag_y], [x0 + rear_mag_x, rear_mag_y]];    // rear floor, in the window
 rear_floor   = true;                 // 2 mm floor under the rear compartment
 panel_trim   = 0.2;                  // panel_slim: shave this off each outer edge of the source panel
 
