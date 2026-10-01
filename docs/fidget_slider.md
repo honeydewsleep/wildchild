@@ -15,10 +15,10 @@ Innovation" animation, hand photos).
 | Footprint | 1.83 × 1.18 in | 46.5 × 30 mm, corner R 6 |
 | Assembled thickness | 0.65 in | 16.5 mm (pillow 9.8 + track 1.2 + base 5.5) |
 | Weight | 53 g (Gr5 titanium) | ~30–35 g in PLA with magnets |
-| Top half | sculpted pillow shell + magnet carrier plate (2 screws) | pillow cap + carrier plate, glued, 2 pegs |
-| Bottom half | base shell + thin grooved track plate (centre screw) | base + 1.2 mm grooved track plate, glued |
+| Top half | sculpted pillow shell + magnet carrier plate (2 screws) | pillow cap + carrier plate, glued, 2 filament dowels |
+| Bottom half | sculpted base shell + thin grooved track plate (centre screw) | sculpted base shell + 1.2 mm grooved track plate, glued, 2 filament dowels |
 | Magnets per half | 4 large corner + 6 small (2 × 3 grid) + centre element | 4 × Ø6×3 + 6 × Ø4×3 (positions in `big_pos` / `small_pos`) |
-| Click feedback | spring-loaded centre pin riding over concentric rectangular grooves | Ø3 steel ball + pen spring, concentric grooves 2.6 mm pitch |
+| Click feedback | spring-loaded centre pin riding over concentric rectangular grooves | Ø3 steel ball + pen spring, concentric grooves 2.6 mm pitch on **both** sliding faces |
 | Finish | mirror / sandblasted / stonewashed titanium, UV-resin edition | – |
 
 The exploded render shows, left to right: pillow, a serpentine flat
@@ -29,37 +29,52 @@ the same magnet layout. The halves are held together only by magnets,
 so the slider has no end stops and can rotate in its own plane; the
 pin clicking over the grooves is what gives the "pocket rhythm".
 
+Two deliberate departures: the base shell is a shallower copy of the
+sculpted pillow (the original's base is a rounded shell too, this model
+first had a flat slab), and the top half's sliding face carries the same
+concentric ridge pattern as the track plate. With ridges on both faces
+the halves ratchet every 2.6 mm (ridge drops into groove) instead of
+gliding; `carrier_grooves = false` restores a smooth carrier face.
+
 ## Parts and print orientation
 
-Every part exports with its **sliding face on the bed** (the face the
-other half glides on) except the embedded base, which has to print
-bottom-down because its grooves are on the top surface. No supports.
+Every STL is already in its print orientation. No supports anywhere.
+Parts whose ridged face lands on the bed (the embedded halves) print the
+ridge tops as the first layer; add a brim if those thin strips lift.
 
 **Recommended 4-part build** (no printer tricks, magnets captured):
 
-| STL | What | Notes |
+| STL | What | Print side on the bed |
 |---|---|---|
-| `stl/slider_carrier.stl` | 3.6 mm plate, lower part of the pillow outline | pockets open towards the cap, ball-detent bore, two Ø2.4 pegs up |
-| `stl/slider_pillow_cap.stl` | sculpted pillow, flat underside | peg holes, Ø3.8 × 4 spring pocket |
-| `stl/slider_base.stl` | 5.5 mm base shell | pockets open on the (bed-side) top face, two Ø1.9 dowel holes |
-| `stl/slider_track.stl` | 1.2 mm grooved track plate | grooves up, Ø1.9 dowel holes |
+| `stl/slider_carrier.stl` | 4.1 mm plate, lower part of the pillow outline; ridged sliding face with the ball mouth, pockets open towards the cap | pockets down, ridges up |
+| `stl/slider_pillow_cap.stl` | sculpted pillow, flat underside with Ø3.8 × 3.9 spring pocket | flat face down |
+| `stl/slider_base.stl` | sculpted base shell, pockets open towards the track plate | pocket face down, dome up |
+| `stl/slider_track.stl` | 1.2 mm grooved track plate | grooves up |
+
+Each glued pair (cap/carrier, base/track) has two Ø1.9 holes at ±12 mm;
+5 mm stubs of 1.75 mm filament align them (or just line up the edges).
 
 **1-piece-per-half, pause-and-insert** (`slider_pillow_embedded.stl`,
-`slider_base_embedded.stl`): closed pockets whose ceilings sit on the
-0.2 mm layer grid, so the pauses are plain layer tops (the render echoes
-them): pillow — magnets at z = 3.8, ball + spring at the bore ceiling
-z = 7.6 (the spring must then be ≤ 5 mm free length); base — magnets at
-z = 5.6, printed bottom-down. Pause **before** the layer above that
-height starts, i.e. the first layer that closes the pocket.
+`slider_base_embedded.stl`): both print ridged face down. Closed pockets
+whose ceilings sit on the 0.2 mm layer grid, so the pauses are plain
+layer tops (the render echoes them): magnets at z = 4.2 in **both**
+halves, then ball + spring at the bore ceiling z = 8.0 in the pillow
+(the spring must then be ≤ 5 mm free length). Pause **before** the
+layer above that height starts, i.e. the first layer that closes the
+pocket.
 
-Ready-made project files with the three pauses already in the layer
-slider are in `3mf/`: `slider_embedded_bambu.3mf` (Bambu Studio /
-OrcaSlicer; carries an A1 printer profile from the template, switch to
-your printer after opening, the pauses stay) and
-`slider_embedded_prusa.3mf` (PrusaSlicer / SuperSlicer, verified by
-slicing: M601 at Z3.8, Z5.6 and Z7.6). Both parts sit on one plate, so
-each pause only concerns one of them; just resume the other. They are
-built by `scripts/make_3mf.py` from the STLs (see its docstring).
+Ready-made project files are in `3mf/`, one pair per slicer family —
+`*_bambu.3mf` for Bambu Studio / OrcaSlicer (carries an A1 printer
+profile from the template; switch to your printer after opening, the
+pauses stay) and `*_prusa.3mf` for PrusaSlicer / SuperSlicer:
+
+- `slider_4part_*.3mf` — the four capped-build parts on one plate.
+- `slider_embedded_*.3mf` — both embedded halves on one plate with the
+  two pauses in the layer slider (verified on the Prusa file by
+  slicing: M601 at Z4.2 and Z8.0).
+
+They are built by `scripts/make_3mf.py` from the STLs (see its
+docstring).
 
 **Simplest** (`slider_pillow_open.stl`, `slider_base_open.stl`):
 pockets open at the sliding face, magnets glued 0.2 mm below the
@@ -87,11 +102,12 @@ surface, no detent, no grooves — the usual MakerWorld construction.
 
 1. Base: drop the magnets in (**all the same pole up**), glue the track
    plate on top, grooves out, edges flush (dowels optional).
-2. Carrier: press the ball into the centre bore from the top (it seats in
-   the tapered mouth and sticks out ~0.4 mm), add the spring, drop the
-   magnets in with the **opposite pole facing down** so that every
-   magnet attracts its counterpart when the halves are aligned.
-3. Glue the pillow cap onto the carrier (pegs locate it; the spring is
+2. Carrier: press the ball into the centre bore from the pocket side (it
+   seats in the tapered mouth and sticks out ~0.4 mm past the ridges),
+   add the spring, drop the magnets in with the **opposite pole facing
+   down** so that every magnet attracts its counterpart when the halves
+   are aligned.
+3. Glue the pillow cap onto the carrier (dowels locate it; the spring is
    compressed by the cap's pocket). Done — slide, spin, click.
 
 With uniform polarity every 8 mm step along the length lands on a new
@@ -110,6 +126,9 @@ try a chequerboard.
 - Thickness split (9.8 / 1.2 / 5.5) was read from side-view photos; the
   campaign's parameter sheet labels the pillow "0.5 in" and the whole
   thing "0.65 in", which do not add up, so expect ±1 mm there.
+- Ridges on both faces: if the ratcheting is too coarse, set
+  `carrier_grooves = false` (smooth carrier face, 0.5 mm thinner carrier)
+  or shallow the pattern with `groove_d`.
 
 ## Rendering
 
