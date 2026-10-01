@@ -16,6 +16,9 @@ is workflow knowledge for agents working in the repo.
   `stem_locknut.scad`, `shapes_preview.scad` (mockups only).
 - `scad/*.scad` (root) — Series A generic design. Stable; rarely touched.
 - `scad/fit_check.scad` — boolean interference checks (see below).
+- `scad/fidget_slider/slider.scad` — unrelated side model: magnetic
+  fidget slider mockup (`docs/fidget_slider.md`). Self-contained, does
+  not use `params.scad`. `scripts/stl_probe.py` does the mesh checks.
 - `stl/` — exported binary STLs, committed. `render.sh` — batch pipeline.
 - `docs/` — handoff specs for planned work.
 

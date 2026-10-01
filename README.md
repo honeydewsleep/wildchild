@@ -227,6 +227,14 @@ command drives every lamp in the house.
 
 Requires OpenSCAD (tested with 2021.01).
 
+## Bonus: fidget slider mockup
+
+`scad/fidget_slider/slider.scad` is an unrelated parametric model: a
+size-and-feel replica of the DADA / LOOPLET "infinite" magnetic fidget
+slider from Kickstarter (46.5 × 30 × 16.5 mm, 4 + 6 magnets per half,
+spring-loaded ball clicking over a grooved track plate). STLs are
+`stl/slider_*.stl`; build notes and BOM in `docs/fidget_slider.md`.
+
 ## Roadmap
 
 - **Other shapes (heart, peace sign, …)** — planned next, as discussed.
