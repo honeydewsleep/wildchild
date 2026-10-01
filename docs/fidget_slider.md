@@ -45,10 +45,21 @@ bottom-down because its grooves are on the top surface. No supports.
 | `stl/slider_track.stl` | 1.2 mm grooved track plate | grooves up, Ø1.9 dowel holes |
 
 **1-piece-per-half, pause-and-insert** (`slider_pillow_embedded.stl`,
-`slider_base_embedded.stl`): closed pockets; the render echoes the
-pause heights (pillow: magnets at z = 3.7, ball + spring at the bore
-ceiling z = 7.6 — the spring must then be ≤ 5 mm free length; base:
-magnets at z = 5.7, printed bottom-down).
+`slider_base_embedded.stl`): closed pockets whose ceilings sit on the
+0.2 mm layer grid, so the pauses are plain layer tops (the render echoes
+them): pillow — magnets at z = 3.8, ball + spring at the bore ceiling
+z = 7.6 (the spring must then be ≤ 5 mm free length); base — magnets at
+z = 5.6, printed bottom-down. Pause **before** the layer above that
+height starts, i.e. the first layer that closes the pocket.
+
+Ready-made project files with the three pauses already in the layer
+slider are in `3mf/`: `slider_embedded_bambu.3mf` (Bambu Studio /
+OrcaSlicer; carries an A1 printer profile from the template, switch to
+your printer after opening, the pauses stay) and
+`slider_embedded_prusa.3mf` (PrusaSlicer / SuperSlicer, verified by
+slicing: M601 at Z3.8, Z5.6 and Z7.6). Both parts sit on one plate, so
+each pause only concerns one of them; just resume the other. They are
+built by `scripts/make_3mf.py` from the STLs (see its docstring).
 
 **Simplest** (`slider_pillow_open.stl`, `slider_base_open.stl`):
 pockets open at the sliding face, magnets glued 0.2 mm below the

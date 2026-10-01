@@ -95,9 +95,17 @@ valley_sigma = [10, 4.5];       // Gaussian half-widths along / across the valle
 valley_pos   = [-8, 4];         // first valley centre; second is at -pos
 valley_rot   = 15;              // valley axis angle from the long axis
 
-echo(str("assembled height = ", total_h, " mm; carrier = ", carrier_t,
-         " mm; embedded pillow pause at z = ", skin + max(mag_big_t, mag_small_t) + 0.2,
-         " mm; embedded base pause at z = ", base_h + track_t - groove_d - skin, " mm"));
+/* ---------------------- embedded (pause-and-insert) ------------------- */
+emb_layer = 0.2;                 // layer height the pause heights align to
+function ceil_to(v, s)  = ceil(v / s - 1e-6) * s;
+function floor_to(v, s) = floor(v / s + 1e-6) * s;
+emb_pillow_top = ceil_to(skin + max(mag_big_t, mag_small_t) + 0.2, emb_layer);  // 3.8
+emb_base_top   = floor_to(base_h + track_t - groove_d - skin, emb_layer);        // 5.6
+
+echo(str("assembled height = ", total_h, " mm; carrier = ", carrier_t, " mm"));
+echo(str("embedded pillow: pause at z = ", emb_pillow_top, " (magnets) and z = ",
+         carrier_t + spring_pocket_h, " (ball + spring); embedded base: pause at z = ",
+         emb_base_top, " (magnets)"));
 
 /* ============================ primitives ============================ */
 module rr(l, w, r) { offset(r = r) square([l - 2*r, w - 2*r], center = true); }
@@ -266,19 +274,20 @@ module track() {
 }
 
 // ---- 1 piece per half, pause-and-insert ------------------------------
+// Pocket ceilings sit on the emb_layer grid so the slicer never samples a
+// layer exactly at the ceiling, and the pause heights are plain layer tops.
 module pillow_embedded() {
     difference() {
         pillow_shape();
-        pockets(skin, skin + mag_big_t + 0.2, skin, skin + mag_small_t + 0.2);
+        pockets(skin, emb_pillow_top, skin, emb_pillow_top);
         if (detent) detent_cut(carrier_t + spring_pocket_h);
     }
 }
 module base_embedded() {          // prints bottom-down (grooves on top)
-    h  = base_h + track_t;
-    zt = h - groove_d - skin;     // pocket tops
+    h = base_h + track_t;
     difference() {
         base_solid(h, "chamfer");
-        pockets(zt - mag_big_t - 0.2, zt, zt - mag_small_t - 0.2, zt);
+        pockets(emb_base_top - mag_big_t - 0.2, emb_base_top, emb_base_top - mag_small_t - 0.2, emb_base_top);
         if (grooves) groove_cut(h);
     }
 }

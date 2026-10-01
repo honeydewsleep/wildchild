@@ -18,7 +18,9 @@ is workflow knowledge for agents working in the repo.
 - `scad/fit_check.scad` — boolean interference checks (see below).
 - `scad/fidget_slider/slider.scad` — unrelated side model: magnetic
   fidget slider mockup (`docs/fidget_slider.md`). Self-contained, does
-  not use `params.scad`. `scripts/stl_probe.py` does the mesh checks.
+  not use `params.scad`. `scripts/stl_probe.py` does the mesh checks;
+  `scripts/make_3mf.py` builds the pause-and-insert project files in
+  `3mf/` (Bambu/Orca and PrusaSlicer flavours) from the STLs.
 - `stl/` — exported binary STLs, committed. `render.sh` — batch pipeline.
 - `docs/` — handoff specs for planned work.
 
