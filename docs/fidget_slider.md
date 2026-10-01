@@ -63,6 +63,15 @@ surface, no detent, no grooves — the usual MakerWorld construction.
   pure magnetic slider (`detent = false` removes the bore).
 - CA glue; optional 2 stubs of 1.75 mm filament as dowels for the track.
 
+### Where to buy (Amazon, checked Oct 2026)
+
+| Part | Qty per slider | Links |
+|---|---|---|
+| Ø6 × 3 mm disc magnets | 8 | [20-pack](https://www.amazon.com/dp/B0FQMPK65H) · [30-pack N52](https://www.amazon.com/dp/B0CLTWR8Z1) · [150-pack N52](https://www.amazon.com/dp/B0GF7CJVMY) |
+| Ø4 × 3 mm disc magnets | 12 | [100-pack](https://www.amazon.com/dp/B0H28LQ1WZ) · [50-pack](https://www.amazon.com/dp/B0CD87R29Y) (multi-size listing, choose 4×3 mm) |
+| Ø3 mm steel ball | 1 | [50-pack 304 stainless](https://www.amazon.com/dp/B0174MEUWA) · [50-pack 316L](https://www.amazon.com/dp/B087CZ5ML5) — any grade works, the spring supplies the detent force |
+| Compression spring 3 mm OD × 0.3 mm wire | 1 | [20-pack, 10 mm free length](https://www.amazon.com/dp/B0F9PM65H2) · [10-pack, 10 mm](https://www.amazon.com/dp/B0D9Y4FG2J) — cut to ~7 mm for ~1 N preload; a ballpoint-pen spring also fits the Ø3.8 bore |
+
 ## Assembly
 
 1. Base: drop the magnets in (**all the same pole up**), glue the track
