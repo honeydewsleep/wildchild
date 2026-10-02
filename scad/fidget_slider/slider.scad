@@ -72,6 +72,12 @@ skin        = 0.5;                     // plastic between magnet and face
 big_pos   = [[ 16, 8.3], [-16, 8.3], [ 16,-8.3], [-16,-8.3]];
 small_pos = [[-8, 5.5], [0, 5.5], [8, 5.5], [-8,-5.5], [0,-5.5], [8,-5.5]];
 carrier_grooves = true;                // ridge pattern on the top half's face too
+carrier_groove_angle = 45;             // 0 = same concentric rings as the track (the
+                                       // ridges then nest into the track grooves and
+                                       // ratchet); 45 = straight stripes crossing the
+                                       // track's rings, so the faces always ride ridge
+                                       // on ridge and the ball keeps a constant reach
+island_d = 6;                          // flat disc around the ball mouth, ridge level
 mag_floor = (carrier_grooves ? groove_d : 0) + skin;   // pocket floor above the face
 carrier_t = mag_floor + max(mag_big_t, mag_small_t) + 0.1;   // 4.1
 
@@ -161,10 +167,13 @@ pp_n = 4*pp_arc + 2*pp_long + 2*pp_short;
 // sliding-face chamfer when z0 < face_c.
 dome_rings = 60;
 function dome_rho(i) = 1 - pow(i / dome_rings, 2);       // i = 0 rim .. dome_rings-1
-module pillow_poly(z0, h = pillow_h, side_h = pillow_side_h, vd = valley_depth) {
+// chamfer: only for a face that slides on the other half; a glued seat
+// face (base under the track plate) stays square so the seam is a flush
+// butt joint instead of a V-notch.
+module pillow_poly(z0, h = pillow_h, side_h = pillow_side_h, vd = valley_depth, chamfer = true) {
     o  = outline_pts(L, W, R);
     oc = outline_pts(L - 2*face_c, W - 2*face_c, R - face_c);
-    cham = z0 < face_c;
+    cham = chamfer && z0 < face_c;
     nr = dome_rings;                                     // ring count (excl. apex)
     pts = concat(
         [for (i = [0 : nr-1], j = [0 : pp_n-1]) let(k = dome_rho(i), x = k*o[j][0], y = k*o[j][1]) [x, y, z_top(x, y, k, h, side_h, vd)]],
@@ -200,8 +209,8 @@ module outline_prism(h) {
 module pillow_shape() { pillow_poly(0); }
 // base shell with the same sculpt, scaled to its shallower dome; h = apex
 // height above its (sliding / track-seat) face at z = 0
-module base_shape(h) {
-    pillow_poly(0, h, h - base_dome_h, valley_depth * base_dome_h / (pillow_h - pillow_side_h));
+module base_shape(h, chamfer = true) {
+    pillow_poly(0, h, h - base_dome_h, valley_depth * base_dome_h / (pillow_h - pillow_side_h), chamfer);
 }
 
 // magnet pockets: [zb0, zb1] for the big ones, [zs0, zs1] for the small
@@ -231,10 +240,27 @@ module groove_rings(with_slot = true) {
             }
     }
 }
+// straight stripes at an angle, same pitch/width, with a flat island
+// around the ball mouth (top half's face when carrier_groove_angle != 0)
+module stripe_grooves(angle) {
+    difference() {
+        intersection() {
+            offset(r = -groove_margin) rr(L, W, R);
+            rotate(angle) for (i = [-24 : 24]) translate([i*groove_pitch - groove_w/2, -70]) square([groove_w, 140]);
+        }
+        circle(d = island_d);
+    }
+}
 // grooves into a top face at z_top (track plate)
 module groove_cut(z_top) { translate([0, 0, z_top - groove_d]) linear_extrude(groove_d + 1) groove_rings(true); }
-// grooves into a sliding face at z = 0 (parts modelled face-at-zero)
-module face_groove_cut(with_slot) { translate([0, 0, -1]) linear_extrude(groove_d + 1) groove_rings(with_slot); }
+// grooves into a sliding face at z = 0 (parts modelled face-at-zero):
+// kind = "track" (rings + centre slot), "top" (the top half's pattern)
+module face_groove_cut(kind) {
+    translate([0, 0, -1]) linear_extrude(groove_d + 1)
+        if (kind == "track") groove_rings(true);
+        else if (carrier_groove_angle == 0) groove_rings(false);
+        else stripe_grooves(carrier_groove_angle);
+}
 
 /* ============================ printed parts ============================ */
 // ---- recommended 4-part build --------------------------------------
@@ -246,7 +272,7 @@ module carrier() {
         outline_prism(carrier_t);
         pockets(carrier_t - mag_big_t - 0.1, carrier_t + 1, carrier_t - mag_small_t - 0.1, carrier_t + 1);
         if (detent) detent_cut(carrier_t + 1);
-        if (grooves && carrier_grooves) face_groove_cut(false);
+        if (grooves && carrier_grooves) face_groove_cut("top");
         for (p = peg_pos) translate([p[0], p[1], carrier_t - dowel_depth]) cylinder(d = dowel_d, h = dowel_depth + 1);
     }
 }
@@ -262,7 +288,7 @@ module pillow_cap() {
 // open towards the track plate (capped by it). Print orientation as is.
 module base_capped() {
     difference() {
-        base_shape(base_h);
+        base_shape(base_h, false);          // square seat edge: flush seam with the track
         pockets(-1, mag_big_t + 0.1, -1, mag_small_t + 0.1);
         for (p = peg_pos) translate([p[0], p[1], -1]) cylinder(d = dowel_d, h = dowel_depth + 1);
     }
@@ -289,14 +315,14 @@ module pillow_embedded() {
         pillow_shape();
         pockets(emb_pocket_floor, emb_pocket_top, emb_pocket_floor, emb_pocket_top);
         if (detent) detent_cut(carrier_t + spring_pocket_h);
-        if (grooves && carrier_grooves) face_groove_cut(false);
+        if (grooves && carrier_grooves) face_groove_cut("top");
     }
 }
 module base_embedded() {
     difference() {
         base_shape(base_h + track_t);
         pockets(emb_pocket_floor, emb_pocket_top, emb_pocket_floor, emb_pocket_top);
-        if (grooves) face_groove_cut(true);
+        if (grooves) face_groove_cut("track");
     }
 }
 

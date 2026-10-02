@@ -31,10 +31,19 @@ pin clicking over the grooves is what gives the "pocket rhythm".
 
 Two deliberate departures: the base shell is a shallower copy of the
 sculpted pillow (the original's base is a rounded shell too, this model
-first had a flat slab), and the top half's sliding face carries the same
-concentric ridge pattern as the track plate. With ridges on both faces
-the halves ratchet every 2.6 mm (ridge drops into groove) instead of
-gliding; `carrier_grooves = false` restores a smooth carrier face.
+first had a flat slab), and the top half's sliding face is patterned as
+well. Its pattern is straight stripes at 45° (`carrier_groove_angle`),
+not a copy of the track's rings: identical rings would nest into each
+other every 2.6 mm and ratchet, and whenever they nested the carrier
+would drop 0.5 mm and swallow the ball's reach. Crossed stripes always
+ride ridge on ridge, so the gap is constant, the ball's reach past the
+ridges is constant, and the contact is a grid of points, which glides
+more easily than two flat faces. `carrier_groove_angle = 0` gives the
+nesting rings, `carrier_grooves = false` a smooth face.
+
+Only faces that slide get the 0.6 mm edge chamfer. Glued seat faces
+(base under the track) are square, so those seams are flush butt joints
+like the cap/carrier one; a chamfer there reads as a V-notch.
 
 ## Parts and print orientation
 
@@ -110,11 +119,36 @@ surface, no detent, no grooves — the usual MakerWorld construction.
 3. Glue the pillow cap onto the carrier (dowels locate it; the spring is
    compressed by the cap's pocket). Done — slide, spin, click.
 
-With uniform polarity every 8 mm step along the length lands on a new
-attracting alignment, so the slider "clicks" through positions without
-end stops, like the original. Flipping individual magnets changes the
-feel; the array positions are plain lists in the SCAD if you want to
-try a chequerboard.
+### Polarity: two arrangements, two feels
+
+The campaign never shows the magnet poles, so pick by feel. Whatever
+the pattern, the top half must mirror the bottom so that every pair
+attracts at the home (aligned) position.
+
+- **All attract** (every base magnet N up, every pillow magnet S down):
+  one strong home position plus soft catches every 8 mm along the
+  length where the inner 2 × 3 grid realigns with its neighbours. The
+  top glides and can park a step off-centre.
+- **Chequerboard inner grid, corners attract** (base: inner magnets
+  alternate N/S along each row and between the rows; the four Ø6
+  corners all N up; pillow mirrors): home is the only comfortable
+  position. Pushed half a pitch the inner pairs repel while the big
+  corners pull it back, so it springs home when released — the
+  push-pull, "retracting" behaviour in the campaign video. The corners
+  are 33 mm apart and never meet anything but their own partners, so
+  they only add holding force at home.
+
+The 4-part build lets you test before gluing the cap: load the base,
+drop magnets into the carrier, hold it on the track and slide. Swap
+magnets until it feels right, then glue.
+
+### What the ball rides on
+
+The ball (0.38 mm proud of the carrier's ridges) needs recesses on the
+opposite face, and those are the track plate's grooves: every 1.8 mm
+groove is a 0.3 mm dip (a click), and the lowered centre slot is the
+home detent it drops into fully. There is no separate dimple. This is
+why the carrier's own pattern must not nest into the track (see above).
 
 ## Tolerances to confirm on the first print
 
