@@ -45,6 +45,10 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     stl ring_double_sided    matched/ring_ds.scad part ring_ds
     stl ring_ds_diffuser     matched/ring_ds.scad part diffuser_ds   # print x2
     stl chassis_jack         matched/chassis.scad part chassis_jack
+    # fidget slider mockup (scad/fidget_slider, independent of the lamp)
+    for p in pillow_cap carrier base track pillow_embedded base_embedded pillow_open base_open; do
+        stl slider_$p fidget_slider/slider.scad part $p
+    done
     # bottom port window + front button (multi-flag variant)
     echo "== stl/shell_free_port_button.stl"
     openscad -o stl/shell_free_port_button.stl -D 'part="shell_free"' \
