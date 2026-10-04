@@ -1,62 +1,47 @@
-# 12" Vent Deflector, magnets 8.5" apart
+# Vent deflector, 12" sweep remix
 
 Remix of the **6-20 Expandable Vent Cover / Vent Deflector**
 ([MakerWorld 2722921](https://makerworld.com/en/models/2722921-6-20-expandable-vent-cover-vent-deflector),
-6-12" profile). The original is two 6" halves that telescope; the magnets ride
-on the end caps, so their spacing is tied to the overall length. This version
-fixes the overall length at **12"** (304.8 mm) and puts the two magnet bosses
-**8.5"** (215.9 mm) apart, 1.75" in from each end, so the scoop covers nearly the
-whole vent while the magnets land where you want them.
+6-12" profile, `original/`). The two telescoping halves are kept exactly as
+designed: same 6-12" slide, same interlocking rails, same end caps, same magnet
+bosses and pockets. The only change is the **curved sweep of the scoop: 4"
+(R 100 mm) becomes 12" (R 304.8 mm)**, so the deflector reaches 12" off the wall
+and 12" along it instead of 4".
 
-Everything else is copied from the original: 100 mm quarter-round scoop,
-2 mm wall, open toward the wall and open on the exit side, closed end caps,
-two Ø6.7 × 1.9 mm magnet pockets per boss on 9.7 mm centres (for **6 × 2 mm
-disc magnets**, glued in, sitting ~0.1 mm proud for good contact).
+![before / after](before_after.png)
 
-## Parts (`stl/`)
+## Files
 
-| File | What | Print |
-|---|---|---|
-| `vent_deflector_12in_half_A.stl` | cap end + **outer** half-lap | cap down, as exported |
-| `vent_deflector_12in_half_B.stl` | cap end + **inner** half-lap | cap down, as exported |
+| File | What |
+|---|---|
+| `stl/vent_deflector_12in_sweep_outer.stl` | outer half (the original "Right Side"), print cap down |
+| `stl/vent_deflector_12in_sweep_inner.stl` | inner half (the original "Left Side"), print cap down |
+| `sweep_remix.py` | regenerates both STLs from the original 3MF; `python3 sweep_remix.py [file.3mf] [sweep_inches]` |
+| `original/` | the MakerWorld 3MF this is derived from |
 
-Each half is 160 mm tall (145 mm of full wall + a 15 mm half-thickness lap).
-Slide the two laps together: half B's inner lap goes inside half A's outer lap,
-0.30 mm radial clearance. The assembled scoop is 304.8 mm; the outside and
-inside surfaces stay flush across the joint. The magnets hold each half to the
-vent on their own, so the joint is only for alignment. A drop of glue in the lap
-is optional.
+Footprint of each half is 305 × 305 mm (cap), 150 mm tall standing, like the
+original. That fits the H2D bed (350 × 320); it does **not** fit a 256 mm bed.
+Magnets are the same as the original's pockets: Ø6.7 × 1.9 mm, for 6 × 2 mm discs.
+The two cap-mounted magnet bosses were moved to the middle of the (now 12") wall
+face, the same relative spot they had on the 4" face; the inner half's hood boss
+stays at the hood.
 
-A one-piece 12" print was rejected on purpose: standing cap-down it would need
-a 305 mm tall print with an unsupported top cap. Two halves print the same way
-the original does, with no supports.
+## How the stretch was done
 
-## Magnet bosses
+Mesh-level transform, not a redraw, so nothing that the slide depends on was
+re-modelled. Both halves are placed in one frame (shared arc centre, hood at 90°,
+exit edge at 180°) and every vertex is mapped in polar coordinates:
 
-The bosses hang under the hood (the top edge of the scoop, where the arc meets
-the wall at a right angle), the same spot the original designer used for the
-inner half's magnets. That location prints cap-down with no support: each boss
-has a 45° chamfer on its underside. The pockets open toward the wall face.
+- radius: the wall band is offset outward by 204.8 mm (wall stays 2 mm thick,
+  rails keep their depth); the flat cap inside is scaled to meet it;
+- angle: the bands holding the hood lip and the mid-arc rails keep their original
+  arc length; the plain arc between them is stretched to make up the 90°.
 
-Set `cap_magnets = true` to add the original's mid-face magnet boss on each end
-cap as well (also support-free). Default off: the brief was 8.5" spacing only.
+Both halves get the identical map, so the nesting fit is unchanged. Checks run by
+the script: nested-profile overlap at z = 0 is 0.011 mm² before and after; 3D
+interference volume at 2, 60 and 120 mm of slide matches the original within
+0.1 mm³ (about 1 mm³, i.e. rail contact only); both outputs watertight.
 
-## Printing
-
-Original profile targets a Bambu Lab H2D at 0.2 mm, 2 walls, 15 % infill, no
-supports. Both halves fit any 256 mm bed standing up (100 × 100 footprint,
-160 mm tall).
-
-## Parameters (`vent_deflector.scad`)
-
-- `total_len` (304.8), `magnet_spacing` (215.9): the two numbers from the brief.
-- `R` (100), `wall` (2), `cap_t` (2): scoop section.
-- `lap_len` (15), `lap_clr` (0.15 per side): the middle joint.
-- `pocket_d` (6.7), `pocket_depth` (1.9), `pocket_pitch` (9.7): magnet pockets.
-- `part`: `half_A`, `half_B`, `assembly` (preview), `fit_check` (must render empty).
-
-```bash
-openscad -o stl/vent_deflector_12in_half_A.stl -D 'part="half_A"' vent_deflector.scad
-openscad -o stl/vent_deflector_12in_half_B.stl -D 'part="half_B"' vent_deflector.scad
-python3 ../scripts/stl2bin.py stl/*.stl
-```
+The curvature itself is of course different (R 305 vs 100), so the rails now sit
+on a flatter wall. The hooks' cross-sections are preserved to ~0.2 mm; the
+inner/outer radial clearance (0.19 mm) is unchanged.
