@@ -27,6 +27,16 @@ at 1/4, 1/2 and 3/4 of its length (`CAP_BOSSES` in the script; the original has
 one at mid-face). The inner half's hood boss stays at the hood. Per deflector:
 12 cap magnets + 2 hood magnets = **14 × 6 × 2 mm discs**.
 
+## Ready-made plate file
+
+`3mf/vent_deflector_ellipse_302x100_256bed.3mf` is a Bambu Studio project with
+the outer half on plate 1 and the inner half on plate 2, each already rotated
+(145° / 34°) and centred to fit a 256 × 256 plate (0.8 mm and 4.5 mm margin per
+side). Select your 256 mm printer in Bambu Studio **before** opening it, open it
+as a project, and turn the skirt off. No printer or filament settings are stored
+in the file, so your own presets stay. Rebuild with
+`python3 make_plate_3mf.py OUT.3mf 256 outer.stl inner.stl`.
+
 ## Regenerating
 
 ```bash
