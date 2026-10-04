@@ -8,8 +8,8 @@ semi-axes OUT (off the wall) and ALONG (along the wall), e.g. 304.8 x 304.8 for 
 
 Everything the slide depends on is preserved at its original size: wall thickness,
 the interlocking rails at the hood and mid-arc, the end caps, the magnet bosses and
-their pockets. Only the plain arc between features is stretched. The two cap magnet
-bosses are moved to the middle of the new wall-contact face.
+their pockets. Only the plain arc between features is stretched. The cap magnet
+boss is replicated CAP_BOSSES times, evenly spaced along the new wall-contact face.
 
 How: both halves are put in one frame (arc centre C, hood at 90 deg on the wall face
 x = 50, exit edge at 180 deg on y = -50). Each vertex (r, theta) about C maps to
@@ -43,6 +43,7 @@ C = np.array([50.0, -50.0])       # arc centre in the outer half's frame
 R0 = 70.0                         # inside this radius (flat cap only) scale instead of offset
 LEFT_X_SHIFT = 1.16               # inner half's arc centre is 1.16 mm off its own bbox frame
 CAP_TOP_R, CAP_TOP_L = -74.0, -72.8   # cap top faces (outer half 1 mm cap, inner half 2 mm)
+CAP_BOSSES = 3                    # magnet bosses per end cap, spread evenly along the wall face (original: 1)
 
 # ---------------------------------------------------------------- load the 3MF
 def load_3mf_object(zf, path):
@@ -124,12 +125,14 @@ def remix(ALONG, OUTW, tag):
         wall = place(np.maximum(r, R0), th)                     # r >= R0: normal offset of the ellipse
         cap = C + (r / R0)[:, None] * (place(np.full_like(r, R0), th) - C)   # r < R0: scaled flat cap
         v[:, :2] = np.where((r >= R0)[:, None], wall, cap); return v
-    mid_face = C[1] + b / 2                                    # wall face spans y = C.y .. C.y + b
+    # wall face spans y = C.y .. C.y + b; bosses at 1/(n+1), 2/(n+1), ... of it (n=1 -> mid-face)
+    boss_y = [C[1] + b * k / (CAP_BOSSES + 1) for k in range(1, CAP_BOSSES + 1)]
+    print("cap magnet bosses at y =", np.round(boss_y, 1).tolist(), "(2 pockets each)")
     def rebuild(m, bossbox, weld_dir):
         boss, rest = split(m, bossbox)
         mapped = trimesh.Trimesh(fmap(rest.vertices), rest.faces, process=False)
-        boss.apply_translation([0, mid_face, 0.3 * weld_dir])   # 0.3 mm into the cap plate
-        out = trimesh.boolean.union([mapped, boss], engine="manifold"); out.merge_vertices()
+        copies = [boss.copy().apply_translation([0, y, 0.3 * weld_dir]) for y in boss_y]  # 0.3 mm into the cap
+        out = trimesh.boolean.union([mapped] + copies, engine="manifold"); out.merge_vertices()
         assert out.is_watertight; return out
     new_outer = rebuild(outer, box(40.5, 50.6, -13, 13, CAP_TOP_R, -62.5), -1)
     new_inner = rebuild(innerc, box(40.5, 50.6, -13, 13, 62.5, -CAP_TOP_L), +1)

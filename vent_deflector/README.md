@@ -21,9 +21,11 @@ original is a 4" quarter circle (R 100 mm).
 
 Both halves print standing on their end cap, like the original. `outer` is the
 original "Right Side", `inner` the "Left Side". Magnets are the original's: Ø6.7 ×
-1.9 mm pockets for 6 × 2 mm discs. The two cap-mounted magnet bosses were moved to
-the middle of the new wall face (the same relative spot they had on the 4" face);
-the inner half's hood boss stays at the hood.
+1.9 mm pockets for 6 × 2 mm discs. Each end cap now carries **three** of the
+original's cap magnet bosses (two pockets each), spread evenly along the wall face
+at 1/4, 1/2 and 3/4 of its length (`CAP_BOSSES` in the script; the original has
+one at mid-face). The inner half's hood boss stays at the hood. Per deflector:
+12 cap magnets + 2 hood magnets = **14 × 6 × 2 mm discs**.
 
 ## Regenerating
 
