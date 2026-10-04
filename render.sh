@@ -49,6 +49,11 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     for p in pillow_cap carrier base track pillow_embedded base_embedded pillow_open base_open; do
         stl slider_$p fidget_slider/slider.scad part $p
     done
+    for p in pillow_cap carrier base track; do   # snap-latch variant of the 4-part build
+        echo "== stl/slider_snap_$p.stl"
+        openscad -o stl/slider_snap_$p.stl -D 'snap=true' -D "part=\"$p\"" scad/fidget_slider/slider.scad 2>&1 \
+            | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
+    done
     # bottom port window + front button (multi-flag variant)
     echo "== stl/shell_free_port_button.stl"
     openscad -o stl/shell_free_port_button.stl -D 'part="shell_free"' \

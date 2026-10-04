@@ -22,7 +22,9 @@
 // part =
 //   pillow_cap, carrier, base, track   recommended 4-part build:
 //                                      magnets captured, no printer
-//                                      tricks (face-down prints)
+//                                      tricks (face-down prints).
+//                                      snap=true turns the glued joints
+//                                      into snap latches (see below)
 //   pillow_embedded, base_embedded     1 piece per half, magnets and
 //                                      ball/spring inserted at a print
 //                                      pause (closed pockets)
@@ -63,6 +65,9 @@ groove_pitch  = 2.6;     // concentric rounded rectangles
 groove_w      = 1.8;     // wide enough for the 3 mm ball to dip ~0.3 mm
 groove_d      = 0.5;
 groove_margin = 1.0;     // first groove this far in from the edge
+groove_spokes = true;    // ridge-level bars along the diagonals (like the
+                         // original's corner lines); they also tie the ring
+                         // ridges together when a track prints ridges-down
 
 /* ------------------------------ magnets ------------------------------ */
 mag_big_d   = 6;   mag_big_t   = 3;    // 4 corner magnets
@@ -97,6 +102,31 @@ spring_pocket_h = 3.9;   // extra spring room in the pillow above the carrier
 // orientation, pegs would not.
 peg_pos     = [[12, 0], [-12, 0]];
 dowel_d     = 1.9;   dowel_depth = 2.5;
+
+/* ----------------------------- snap latches ------------------------------ */
+// snap = true replaces glue + dowels: four barbed posts stand on the back of
+// the carrier and of the track plate; the cap and the base carry two flex
+// beams (bridged across a cavity, free on both long sides, anchored at
+// both ends) that the barbs push up and then hook under. Caps still print
+// face-down; carrier and track then print with their ridged face on the
+// bed so the posts can grow upwards.
+snap          = false;
+snap_beam_y   = 9.7;     // beam centre line |y|, the beam runs along x
+snap_beam_len = 14;      // free span between the anchors
+snap_beam_w   = 2.0;
+snap_beam_t   = 0.6;     // 3 layers, bends up into the void
+snap_gap      = 0.4;     // side gaps that free the beam
+snap_hole_h   = 1.1;     // open cavity under the beam
+snap_void_h   = 0.5;     // room above the beam = barb engagement
+snap_post_x   = 4.0;     // posts at (+-snap_post_x, +-snap_post_y)
+snap_post_w   = 2.2;     // square post footprint
+snap_clr      = 0.2;     // post-to-channel clearance
+snap_barb     = 0.5;     // barb reach over the beam's edge
+snap_post_y   = snap_beam_y - snap_beam_w/2 - snap_clr - snap_post_w/2;   // 7.4
+snap_barb_len = snap_clr + snap_barb;                                     // 0.7
+snap_beam_top = snap_hole_h + snap_beam_t;                                // 1.7
+snap_post_top = snap_beam_top + snap_void_h + 0.7;                        // 2.9
+snap_chan_top = snap_post_top + 0.2;                                      // 3.1
 
 /* ------------------------------- sculpt ------------------------------ */
 // The dome is a superellipsoid of the plan outline with two smooth
@@ -231,12 +261,20 @@ module detent_cut(h_top) {
 // the faces that carry the ball mouth skip it so the ball keeps its reach.
 module groove_rings(with_slot = true) {
     n = floor((W/2 - groove_margin) / groove_pitch);
-    for (i = [0 : n]) {
-        ins = groove_margin + i * groove_pitch;
-        if (with_slot || ins + groove_w < W/2)
+    difference() {
+        for (i = [0 : n]) {
+            ins = groove_margin + i * groove_pitch;
+            if (with_slot || ins + groove_w < W/2)
+                difference() {
+                    offset(r = -ins) rr(L, W, R);
+                    offset(r = -(ins + groove_w)) rr(L, W, R);
+                }
+        }
+        if (groove_spokes)
             difference() {
-                offset(r = -ins) rr(L, W, R);
-                offset(r = -(ins + groove_w)) rr(L, W, R);
+                for (sx = [-1, 1], sy = [-1, 1])
+                    rotate(atan2(sy * (W/2 - R), sx * (L/2 - R))) translate([0, -0.4]) square([L, 0.8]);
+                offset(r = -(groove_margin + n * groove_pitch) + 0.01) rr(L, W, R);   // keep the centre slot open
             }
     }
 }
@@ -262,6 +300,35 @@ module face_groove_cut(kind) {
         else stripe_grooves(carrier_groove_angle);
 }
 
+/* ============================ snap latch ============================= */
+// barbed post, base at z = 0, barb on the +y face (mirror for -y)
+module snap_post() {
+    w = snap_post_w;
+    translate([-w/2, -w/2, 0]) cube([w, w, snap_post_top]);
+    translate([-w/2, 0, 0]) rotate([90, 0, 90]) linear_extrude(w)
+        polygon([[w/2, 1.0], [w/2 + snap_barb_len, 1.0 + snap_barb_len],
+                 [w/2 + snap_barb_len, snap_beam_top + snap_void_h], [w/2, snap_post_top]]);
+}
+module snap_posts(z) {
+    for (sx = [-1, 1], sy = [-1, 1])
+        translate([sx*snap_post_x, sy*snap_post_y, z]) mirror([0, sy < 0 ? 1 : 0, 0]) snap_post();
+}
+// cavities cut into a face-down cap/base (face at z = 0), +y side; what is
+// left between hole and void is the beam. Mirror for -y.
+module snap_female() {
+    by = snap_beam_y; bw = snap_beam_w; g = snap_gap; Lb = snap_beam_len;
+    y0 = by - bw/2 - g;  wy = bw + 2*g;
+    translate([-Lb/2, y0, -1]) cube([Lb, wy, 1 + snap_hole_h]);                        // hole under the beam
+    translate([-Lb/2, y0, snap_beam_top]) cube([Lb, wy, snap_void_h]);                 // void above it
+    for (sy = [y0, by + bw/2]) translate([-Lb/2, sy, -1]) cube([Lb, g, 1 + snap_beam_top + snap_void_h]);   // side gaps
+    cw = snap_post_w + 2*snap_clr;
+    for (sx = [-1, 1]) {
+        translate([sx*snap_post_x - cw/2, snap_post_y - cw/2, -1]) cube([cw, (by - bw/2) - (snap_post_y - cw/2), 1 + snap_chan_top]);   // post channel
+        translate([sx*snap_post_x - cw/2, by - bw/2, snap_beam_top]) cube([cw, snap_barb + 0.3, snap_chan_top - snap_beam_top]);        // barb room
+    }
+}
+module snap_females() { snap_female(); mirror([0, 1, 0]) snap_female(); }
+
 /* ============================ printed parts ============================ */
 // ---- recommended 4-part build --------------------------------------
 // carrier plate: lower carrier_t of the pillow outline, sliding face at
@@ -273,14 +340,16 @@ module carrier() {
         pockets(carrier_t - mag_big_t - 0.1, carrier_t + 1, carrier_t - mag_small_t - 0.1, carrier_t + 1);
         if (detent) detent_cut(carrier_t + 1);
         if (grooves && carrier_grooves) face_groove_cut("top");
-        for (p = peg_pos) translate([p[0], p[1], carrier_t - dowel_depth]) cylinder(d = dowel_d, h = dowel_depth + 1);
+        if (!snap) for (p = peg_pos) translate([p[0], p[1], carrier_t - dowel_depth]) cylinder(d = dowel_d, h = dowel_depth + 1);
     }
+    if (snap) snap_posts(carrier_t - SL);
 }
 // pillow cap: the rest of the pillow, flat face at z = 0 for printing
 module pillow_cap() {
     translate([0, 0, -carrier_t]) difference() {
         pillow_poly(carrier_t);
-        for (p = peg_pos) translate([p[0], p[1], carrier_t - SL]) cylinder(d = dowel_d, h = dowel_depth + SL);
+        if (!snap) for (p = peg_pos) translate([p[0], p[1], carrier_t - SL]) cylinder(d = dowel_d, h = dowel_depth + SL);
+        if (snap) translate([0, 0, carrier_t]) snap_females();
         if (detent) translate([0, 0, carrier_t - SL]) cylinder(d = bore_d, h = spring_pocket_h + SL);
     }
 }
@@ -290,10 +359,24 @@ module base_capped() {
     difference() {
         base_shape(base_h, false);          // square seat edge: flush seam with the track
         pockets(-1, mag_big_t + 0.1, -1, mag_small_t + 0.1);
-        for (p = peg_pos) translate([p[0], p[1], -1]) cylinder(d = dowel_d, h = dowel_depth + 1);
+        if (!snap) for (p = peg_pos) translate([p[0], p[1], -1]) cylinder(d = dowel_d, h = dowel_depth + 1);
+        if (snap) snap_females();
     }
 }
-// grooved track plate, z = 0 underside .. track_t grooved top
+// snap track plate in print orientation: ridged face on the bed (z = 0),
+// barbed posts up from its back
+module track_snap() {
+    difference() {
+        hull() {
+            slab(0, L - 2*track_c, W - 2*track_c, R - track_c);
+            slab(track_c, L, W, R);
+            slab(track_t - SL, L, W, R);
+        }
+        if (grooves) face_groove_cut("track");
+    }
+    snap_posts(track_t - SL);
+}
+// grooved track plate, z = 0 underside .. track_t grooved top (glued build)
 module track() {
     difference() {
         hull() {
@@ -349,7 +432,7 @@ module magnets_mockup(z0) {       // magnets drawn for the exploded view
 }
 module assembly(gap = 0, slide = [0, 0]) {
     color("royalblue")  translate([0, 0, base_h]) mirror([0, 0, 1]) base_capped();   // dome down
-    color("silver")     translate([0, 0, base_h + gap]) track();
+    color("silver")     translate([0, 0, base_h + gap]) if (snap) translate([0, 0, track_t]) mirror([0, 0, 1]) track_snap(); else track();
     translate([slide[0], slide[1], base_h + track_t + 2*gap]) {
         color("lightsteelblue") carrier();
         color("silver") translate([0, 0, carrier_t + gap]) pillow_cap();
@@ -358,9 +441,9 @@ module assembly(gap = 0, slide = [0, 0]) {
 
 /* =============================== export =============================== */
 if (part == "pillow_cap")       pillow_cap();
-if (part == "carrier")          translate([0, 0, carrier_t]) mirror([0, 0, 1]) carrier();   // ridges up
+if (part == "carrier")          if (snap) carrier(); else translate([0, 0, carrier_t]) mirror([0, 0, 1]) carrier();   // glued: ridges up; snap: posts up
 if (part == "base")             base_capped();                                          // face down
-if (part == "track")            track();
+if (part == "track")            if (snap) track_snap(); else track();
 if (part == "pillow_embedded")  pillow_embedded();
 if (part == "base_embedded")    base_embedded();
 if (part == "pillow_open")      pillow_open();

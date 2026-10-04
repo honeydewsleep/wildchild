@@ -60,8 +60,28 @@ ridge tops as the first layer; add a brim if those thin strips lift.
 | `stl/slider_base.stl` | sculpted base shell, pockets open towards the track plate | pocket face down, dome up |
 | `stl/slider_track.stl` | 1.2 mm grooved track plate | grooves up |
 
+The track's ring pattern has four ridge-level spokes along the diagonals
+(like the original's corner lines); the ball rides over them like any
+ridge.
+
 Each glued pair (cap/carrier, base/track) has two Ø1.9 holes at ±12 mm;
 5 mm stubs of 1.75 mm filament align them (or just line up the edges).
+
+**Snap variant** (`snap = true`, STLs `stl/slider_snap_*.stl`, project
+files `3mf/slider_4part_snap_*.3mf`): no glue. Four barbed posts stand
+on the back of the carrier and of the track plate; the cap and the base
+each carry two flex beams (0.6 mm thick, 14 mm span, free on both long
+sides) bridged across a cavity. Pressing a cap on, the barbs' ramps lift
+the beams 0.5 mm, pass, and the beams drop back under the barbs. Pull
+firmly to release (the 45° barb underside cams the beams up again).
+Only the plates change orientation: carrier and track print with their
+ridged face **on the bed** so the posts can grow upwards (the diagonal
+spokes in the track pattern tie its ring ridges together for that first
+layer; add a brim if the ridges lift). The caps still print face-down;
+the beams and cavities inside them are plain bridges. The flex beams
+are the one unverified element of this model: if a beam snaps, raise
+`snap_beam_t` to 0.8 or print the cap and base in PETG; if the latch is
+too loose, raise `snap_barb`.
 
 **1-piece-per-half, pause-and-insert** (`slider_pillow_embedded.stl`,
 `slider_base_embedded.stl`): both print ridged face down. Closed pockets
