@@ -9,10 +9,12 @@
 //            OVER the capsule body. The hole is then limited only by
 //            the capsule's own bore (~Ø7.6 for a 00), not by a printed
 //            wall. Also self-centres on the body.
-//   spout = "in"    - classic thin tube that drops INTO the body.
-//            Hole = body ID - 2*spout_wall (~Ø6.5 for a 00). Kept for
-//            comparison / tray-style fillers where the body rim is
-//            flush with a plate.
+//   spout = "in"    - super-thin tube that drops INTO the body, so
+//            nothing can spill between funnel and capsule. Wall is a
+//            SINGLE extrusion line (0.45 mm @ 0.4 nozzle - enable thin
+//            wall detection / Arachne in the slicer). Hole = body ID -
+//            insert_clr - 2*insert_wall (~Ø6.9 for a 00). The cone
+//            shoulder lands on the capsule rim as a depth stop.
 //
 // Cone is steep (cone_angle from horizontal) and the inside is one
 // smooth polygon of revolution - no steps for powder to bridge on.
@@ -40,8 +42,9 @@ cap_wall_t  = 0.12;      // gelatin/HPMC shell thickness (per side)
 // --- printing ---------------------------------------------------------
 wall        = 0.8;       // cone wall, measured normal to the surface
                          // (2 perimeters @ 0.4 nozzle; 0.6 ok w/ Arachne)
-spout_wall  = 0.6;       // socket / insert tube wall (thin, short, so
-                         // it gets away with less)
+spout_wall  = 0.6;       // "over" socket wall
+insert_wall = 0.45;      // "in" tube wall: one extrusion line. Do not go
+                         // below your nozzle width - it won't print.
 rim_w       = 2.0;       // flat grip rim around the mouth (also the
                          // print bed contact when printed mouth-down)
 rim_t       = 1.2;
@@ -55,7 +58,8 @@ socket_clr  = 0.30;      // "over": diametral clearance over body OD
 bore_margin = 0.30;      // "over": hole = body ID - this (keeps the
                          // hole edge from landing outside the body rim)
 insert_h    = 4.0;       // "in": how far the tube goes into the body
-insert_clr  = 0.25;      // "in": diametral clearance inside body ID
+insert_clr  = 0.15;      // "in": diametral clearance inside body ID
+                         // (the tube is only 4 mm long, so tight is ok)
 
 // --- tamper -----------------------------------------------------------
 tamper_clr  = 0.5;       // diametral, vs the funnel bore
@@ -78,8 +82,8 @@ body_len = row[3];
 over     = (spout == "over");
 
 // hole radius
-bore_r   = over ? (body_id - bore_margin)/2
-                : (body_id - insert_clr)/2 - spout_wall;
+bore_in_r = (body_id - insert_clr)/2 - insert_wall;   // "in" hole
+bore_r   = over ? (body_id - bore_margin)/2 : bore_in_r;
 // spout tube radii
 sock_r   = (body_od + socket_clr)/2;              // "over" socket ID/2
 sp_in_r  = over ? sock_r : bore_r;               // spout inner radius
@@ -142,7 +146,8 @@ module funnel_body() {
 }
 
 module tamper() {
-    d = 2*bore_r - tamper_clr;
+    // sized to the smaller ("in") bore so one tamper fits both funnels
+    d = 2*bore_in_r - tamper_clr;
     // handle disc on the bed, rod up
     cylinder(h = tamper_ht, d = tamper_hd);
     translate([0, 0, tamper_ht - EPS]) {

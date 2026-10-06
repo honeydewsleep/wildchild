@@ -249,7 +249,12 @@ doesn't want to flow. Standalone file, unrelated to the lamp.
   that inserts *into* the body (`spout="in"`) can't beat ~Ø6.5.
   Steep 68° cone, Ø30 mouth, 0.8 mm cone wall, 0.6 mm socket wall,
   34 mm tall. Prints mouth-down, no supports.
-- `capsule_tamper_00.stl` — Ø7.1 rod with a disc handle to break
-  bridges and pack the powder down.
+- `capsule_funnel_00_insert.stl` — spout goes **into** the body
+  instead (4 mm, Ø7.79 OD), so nothing can spill between funnel and
+  capsule. The tube wall is a **single 0.45 mm extrusion line**; turn on
+  thin-wall detection / Arachne in the slicer. Hole **Ø6.89 mm**. The
+  cone shoulder rests on the capsule rim as a depth stop.
+- `capsule_tamper_00.stl` — Ø6.4 rod with a disc handle to break
+  bridges and pack the powder down. Fits through either funnel.
 - Other sizes: `-D 'capsule="000"'` / `"0"` / `"1"` (body OD table in
   the file). Loosen `socket_clr` if the socket is tight on your prints.
