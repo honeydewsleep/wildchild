@@ -48,10 +48,17 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     # misc: capsule-filling funnel (size 00, socket-over-body spout) + tamper
     stl capsule_funnel_00    misc/capsule_funnel.scad part funnel
     stl capsule_tamper_00    misc/capsule_funnel.scad part tamper
+    stl capsule_stand_00     misc/capsule_funnel.scad part stand
     echo "== stl/capsule_funnel_00_insert.stl"
     openscad -o stl/capsule_funnel_00_insert.stl -D 'part="funnel"' -D 'spout="in"' \
         scad/misc/capsule_funnel.scad 2>&1 \
         | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
+    # capsule kit as one plate-ready 3MF (run stl2bin on the STLs first!)
+    python3 scripts/stl2bin.py stl/capsule_*.stl >/dev/null
+    mkdir -p 3mf
+    python3 scripts/make_3mf.py 3mf/capsule_filler_kit.3mf \
+        stand=stl/capsule_stand_00.stl funnel_socket=stl/capsule_funnel_00.stl \
+        funnel_insert=stl/capsule_funnel_00_insert.stl tamper=stl/capsule_tamper_00.stl
     # bottom port window + front button (multi-flag variant)
     echo "== stl/shell_free_port_button.stl"
     openscad -o stl/shell_free_port_button.stl -D 'part="shell_free"' \

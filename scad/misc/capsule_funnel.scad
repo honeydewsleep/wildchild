@@ -21,6 +21,8 @@
 //
 // parts:  part = "funnel"  (exports mouth-down, ready to print)
 //         part = "tamper"  (rod that fits the bore, handle-down)
+//         part = "stand"   (block of wells for the bodies, plus a row
+//                           of shallower wells for the caps)
 //         part = "preview" (funnel in use orientation + ghost capsule)
 //
 // Standalone: does not include params.scad.
@@ -60,6 +62,20 @@ bore_margin = 0.30;      // "over": hole = body ID - this (keeps the
 insert_h    = 4.0;       // "in": how far the tube goes into the body
 insert_clr  = 0.15;      // "in": diametral clearance inside body ID
                          // (the tube is only 4 mm long, so tight is ok)
+
+// --- stand ------------------------------------------------------------
+stand_cols    = 4;       // body wells per row
+stand_rows    = 2;       // rows of body wells  (4 x 2 = 8 capsules)
+stand_cap_row = true;    // add the same grid of shallower wells for caps
+stand_pitch   = 13;      // well centre spacing
+well_clr      = 0.40;    // diametral clearance in the wells
+well_depth    = 12;      // body well depth (body is 20.2 long -> 8 mm
+                         // stands proud: enough to grab, and for the
+                         // "over" socket to sleeve)
+cap_well_depth = 6;      // cap wells (cap is 11.7 long)
+stand_floor   = 2.5;
+stand_corner_r = 4;
+stand_lead_in = 1.0;     // 45° countersink on every well
 
 // --- tamper -----------------------------------------------------------
 tamper_clr  = 0.5;       // diametral, vs the funnel bore
@@ -157,6 +173,30 @@ module tamper() {
     }
 }
 
+module stand() {
+    sx = stand_cols * stand_pitch;
+    ny = stand_rows * (stand_cap_row ? 2 : 1);
+    sy = ny * stand_pitch;
+    h  = well_depth + stand_floor;
+    module well(d, depth) {
+        translate([0, 0, h - depth]) cylinder(h = depth + EPS, d = d, $fn = 64);
+        // lead-in cone
+        translate([0, 0, h - stand_lead_in])
+            cylinder(h = stand_lead_in + EPS, d1 = d, d2 = d + 2*stand_lead_in, $fn = 64);
+    }
+    difference() {
+        linear_extrude(h)
+            offset(r = stand_corner_r) offset(delta = -stand_corner_r)
+                square([sx, sy], center = true);
+        for (i = [0 : stand_cols - 1], j = [0 : ny - 1])
+            translate([(i + 0.5) * stand_pitch - sx/2, (j + 0.5) * stand_pitch - sy/2, 0])
+                if (j < stand_rows)
+                    well(body_od + well_clr, well_depth);        // front rows: bodies
+                else
+                    well(row[2] + well_clr, cap_well_depth);     // back rows: caps
+    }
+}
+
 module capsule_ghost() {
     %color([0.9, 0.5, 0.2, 0.35])
         translate([0, 0, -body_len + (over ? sp_h : -insert_h + sp_h)])
@@ -172,6 +212,8 @@ if (part == "funnel") {
     translate([0, 0, H]) rotate([180, 0, 0]) funnel_body();
 } else if (part == "tamper") {
     tamper();
+} else if (part == "stand") {
+    stand();
 } else if (part == "preview") {
     funnel_body();
     capsule_ghost();

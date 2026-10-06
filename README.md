@@ -256,5 +256,13 @@ doesn't want to flow. Standalone file, unrelated to the lamp.
   cone shoulder rests on the capsule rim as a depth stop.
 - `capsule_tamper_00.stl` — Ø6.4 rod with a disc handle to break
   bridges and pack the powder down. Fits through either funnel.
+- `capsule_stand_00.stl` — 52×52×14.5 block: 8 wells for bodies
+  (front two rows, 12 mm deep so 8 mm stands proud) and 8 shallower
+  wells for the caps (back two rows). Every well has a 45° lead-in.
+  `stand_cols` / `stand_rows` / `stand_cap_row` change the count.
+- `3mf/capsule_filler_kit.3mf` — all four parts named and laid out on
+  the plate, centred on (90, 90) so it fits any Bambu bed (A1 mini
+  included). Open it in Bambu Studio and slice with your own presets.
+  Rebuilt by `render.sh` via `scripts/make_3mf.py`.
 - Other sizes: `-D 'capsule="000"'` / `"0"` / `"1"` (body OD table in
   the file). Loosen `socket_clr` if the socket is tight on your prints.

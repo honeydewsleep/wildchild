@@ -19,6 +19,8 @@ is workflow knowledge for agents working in the repo.
 - `scad/misc/` — unrelated one-offs (capsule funnel). Self-contained; do
   not pull `params.scad` into them.
 - `stl/` — exported binary STLs, committed. `render.sh` — batch pipeline.
+- `3mf/` — plate-ready 3MF kits built from the STLs by `scripts/make_3mf.py`
+  (plain core-spec 3MF; opens in Bambu Studio with names + positions).
 - `docs/` — handoff specs for planned work.
 
 ## Build & verify
