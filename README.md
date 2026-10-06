@@ -268,3 +268,20 @@ doesn't want to flow. Standalone file, unrelated to the lamp.
   Rebuilt by `render.sh` via `scripts/make_3mf.py`.
 - Other sizes: `-D 'capsule="000"'` / `"0"` / `"1"` (body OD table in
   the file). Loosen `socket_clr` if the socket is tight on your prints.
+
+## Misc: Katie Bakes cookie cutter (`scad/misc/katiebakes_cutter.scad`)
+
+Cutter + embosser in one part for the "Katie Bakes" script wordmark:
+the blade follows the lettering outline (5 mm dough border), a 2.5 mm
+plate spans the top, and the letters hang 2 mm below it so they press
+into the dough as you cut. Tuned for 6 mm rolled dough → 1.5 mm imprint
+(`dough_t`, `imprint`). Lettering 100 mm wide (strokes ≥ 1.2 mm after a
+0.15 mm `bold` offset); the cutter is ≈ 123 × 45 × 9 mm.
+
+- `katiebakes_cutter.stl` — print as exported (plate on the bed, blade
+  and letters up), no supports; PLA/PETG, 0.4 nozzle, 2+ perimeters.
+- `scad/misc/katiebakes_logo.svg` — cream face layer of the logo,
+  colour-masked from `katie-bakes.jpg` and traced with potrace. Swap in
+  another SVG (black fill, letters only) to re-use the cutter for a
+  different logo; `logo_w` sets the size.
+
