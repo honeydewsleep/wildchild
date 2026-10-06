@@ -16,8 +16,17 @@
 // bed, letters and blade pointing up); no supports needed.
 //
 //   openscad -o stl/katiebakes_cutter.stl -D 'part="cutter"' scad/misc/katiebakes_cutter.scad
+//
+// part="stamp": stand-alone embosser — same lettering standing 2 mm proud
+// of a 3 mm plate (cookie outline, inset 1 mm so it fits a cut cookie),
+// with a rounded bar handle on the back.  The plate is the depth stop, so
+// the imprint depth is `stamp_letter_h` regardless of dough thickness.
+// Modelled directly in print orientation: letter faces on the bed, handle
+// up (letters read correctly from the handle side = mirrored on the face).
+// Turn on the slicer's elephant-foot compensation (~0.2 mm) so the first
+// layer of the letters doesn't flare.
 
-part = "cutter";          // "cutter" | "letters2d" | "cookie2d"
+part = "cutter";          // "cutter" | "stamp" | "letters2d" | "cookie2d"
 inverted = true;          // export in print orientation
 
 // ---- size ------------------------------------------------------------
@@ -38,6 +47,15 @@ wall_t    = 1.6;   // wall above the lip
 plate_t   = 2.5;
 flange_w  = 4;     // thumb rim around the top
 flange_t  = 2;
+
+// ---- stamp-only part -------------------------------------------------
+stamp_letter_h = 2;      // relief = imprint depth
+stamp_plate_t  = 3;
+stamp_inset    = 1;      // plate sits this far inside the cutter outline
+handle_l       = 80;     // bar handle along the long axis
+handle_w_base  = 9;      // footprint width on the plate
+handle_d_top   = 7;      // rounded top diameter
+handle_h       = 20;     // height above the plate
 
 EPS = 0.01;
 $fn = 48;
@@ -70,6 +88,19 @@ module cutter() {
     translate([0, 0, letter_face_z]) linear_extrude(letter_h + EPS) letters();
 }
 
+module stamp() {
+    linear_extrude(stamp_letter_h + EPS) letters();
+    translate([0, 0, stamp_letter_h]) linear_extrude(stamp_plate_t) offset(r = -stamp_inset) cookie();
+    z0 = stamp_letter_h + stamp_plate_t;
+    hull() {
+        translate([0, 0, z0 - EPS]) linear_extrude(EPS) square([handle_l, handle_w_base], center = true);
+        for (sx = [-1, 1])
+            translate([sx * (handle_l - handle_d_top) / 2, 0, z0 + handle_h - handle_d_top / 2])
+                sphere(d = handle_d_top);
+    }
+}
+
+if (part == "stamp") stamp();
 if (part == "cutter") {
     if (inverted) translate([0, 0, plate_z1]) rotate([180, 0, 0]) cutter();
     else cutter();

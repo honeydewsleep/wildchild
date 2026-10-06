@@ -280,6 +280,11 @@ into the dough as you cut. Tuned for 6 mm rolled dough → 1.5 mm imprint
 
 - `katiebakes_cutter.stl` — print as exported (plate on the bed, blade
   and letters up), no supports; PLA/PETG, 0.4 nozzle, 2+ perimeters.
+- `katiebakes_stamp.stl` — stamp-only version: the same lettering 2 mm
+  proud of a 3 mm plate (cookie outline inset 1 mm) with an 80 mm bar
+  handle, ≈ 110 × 32 × 25 mm. The plate is the depth stop, so it works on
+  any dough thickness. Print as exported: letter faces on the bed, handle
+  up, no supports; enable elephant-foot compensation (~0.2 mm).
 - `scad/misc/katiebakes_logo.svg` — cream face layer of the logo,
   colour-masked from `katie-bakes.jpg` and traced with potrace. Swap in
   another SVG (black fill, letters only) to re-use the cutter for a

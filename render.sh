@@ -51,6 +51,7 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     stl capsule_stand_00     misc/capsule_funnel.scad part stand
     # misc: Katie Bakes cookie cutter + logo embosser
     stl katiebakes_cutter    misc/katiebakes_cutter.scad part cutter
+    stl katiebakes_stamp     misc/katiebakes_cutter.scad part stamp
     echo "== stl/capsule_funnel_00_insert.stl"
     openscad -o stl/capsule_funnel_00_insert.stl -D 'part="funnel"' -D 'spout="in"' \
         scad/misc/capsule_funnel.scad 2>&1 \
