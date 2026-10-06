@@ -83,6 +83,21 @@ are the one unverified element of this model: if a beam snaps, raise
 `snap_beam_t` to 0.8 or print the cap and base in PETG; if the latch is
 too loose, raise `snap_barb`.
 
+**Snap variant, plates on edge** (`snap = true` + `stand = true`, STLs
+`stl/slider_snap_stand_*.stl`, project files
+`3mf/slider_4part_snap_stand_*.3mf`): carrier and track print standing
+on their −y long edge with a 5 mm brim, no supports; the ridged face
+becomes a vertical wall (crisp pattern, nothing bridged) and the posts
+grow sideways. To keep every barb printing upwards, both latches face
++y in this variant: the second beam sits across the centre of the cap
+and base, so the ball bore is gone (`detent_on` is false) and the cap
+goes on one way round only (match the two posts near the carrier's
+centre line to the centre beam). Posts carry 45° gussets underneath,
+the carrier's magnet pockets are teardrops, and the cap/base channels
+are extended to clear the gussets. Caps print face-down as before. The
+1.2 mm track standing 30 mm tall is the fussy print: slow it down; if it
+wobbles, the glued grooves-up track is the fallback.
+
 **1-piece-per-half, pause-and-insert** (`slider_pillow_embedded.stl`,
 `slider_base_embedded.stl`): both print ridged face down. Closed pockets
 whose ceilings sit on the 0.2 mm layer grid, so the pauses are plain

@@ -123,6 +123,17 @@ snap_post_w   = 2.2;     // square post footprint
 snap_clr      = 0.2;     // post-to-channel clearance
 snap_barb     = 0.5;     // barb reach over the beam's edge
 snap_post_y   = snap_beam_y - snap_beam_w/2 - snap_clr - snap_post_w/2;   // 7.4
+// stand = true (with snap): carrier and track print standing on their -y
+// long edge with a brim, no supports. Both latches then face +y (barbs
+// print upwards, never as floating tips), which puts the second beam at
+// the centre of the cap/base where the ball bore was, so the detent is
+// off in this variant. Posts get 45 deg gussets underneath, magnet
+// pockets become teardrops. Caps still print face-down.
+stand         = false;
+snap_b_beam_y = -1.3;    // second latch, stand mode: beam centre |y|...
+snap_b_post_y = -3.6;    // ...and post centre (barbs toward +y)
+print_orient  = true;    // false exports every part un-rotated (for probes)
+detent_on     = detent && !(snap && stand);   // no ball in the standing variant
 snap_barb_len = snap_clr + snap_barb;                                     // 0.7
 snap_beam_top = snap_hole_h + snap_beam_t;                                // 1.7
 snap_post_top = snap_beam_top + snap_void_h + 0.7;                        // 2.9
@@ -244,9 +255,15 @@ module base_shape(h, chamfer = true) {
 }
 
 // magnet pockets: [zb0, zb1] for the big ones, [zs0, zs1] for the small
-module pockets(zb0, zb1, zs0, zs1) {
-    for (p = big_pos)   translate([p[0], p[1], zb0]) cylinder(d = mag_big_d + mag_clr,   h = zb1 - zb0);
-    for (p = small_pos) translate([p[0], p[1], zs0]) cylinder(d = mag_small_d + mag_clr, h = zs1 - zs0);
+// tear = true: teardrop section (45 deg roof towards +y) for a pocket that
+// prints with its axis horizontal and +y up
+module pocket_cyl(d, h, tear) {
+    if (tear) linear_extrude(h) hull() { circle(d = d); translate([0, d/2 * sqrt(2) - 0.01]) square(0.02, center = true); }
+    else cylinder(d = d, h = h);
+}
+module pockets(zb0, zb1, zs0, zs1, tear = false) {
+    for (p = big_pos)   translate([p[0], p[1], zb0]) pocket_cyl(mag_big_d + mag_clr,   zb1 - zb0, tear);
+    for (p = small_pos) translate([p[0], p[1], zs0]) pocket_cyl(mag_small_d + mag_clr, zs1 - zs0, tear);
 }
 
 // ball detent bore: mouth at the face (z = 0), bore up to h_top
@@ -286,7 +303,7 @@ module stripe_grooves(angle) {
             offset(r = -groove_margin) rr(L, W, R);
             rotate(angle) for (i = [-24 : 24]) translate([i*groove_pitch - groove_w/2, -70]) square([groove_w, 140]);
         }
-        circle(d = island_d);
+        if (detent_on) circle(d = island_d);
     }
 }
 // grooves into a top face at z_top (track plate)
@@ -309,25 +326,42 @@ module snap_post() {
         polygon([[w/2, 1.0], [w/2 + snap_barb_len, 1.0 + snap_barb_len],
                  [w/2 + snap_barb_len, snap_beam_top + snap_void_h], [w/2, snap_post_top]]);
 }
-module snap_posts(z) {
-    for (sx = [-1, 1], sy = [-1, 1])
-        translate([sx*snap_post_x, sy*snap_post_y, z]) mirror([0, sy < 0 ? 1 : 0, 0]) snap_post();
+// 45 deg gusset under a post's -y face (stand mode: -y is down in the print)
+module snap_gusset() {
+    w = snap_post_w; h = snap_post_top;
+    translate([-w/2, 0, 0]) rotate([90, 0, 90]) linear_extrude(w)
+        polygon([[-w/2, 0], [-w/2, h], [-w/2 - h, 0]]);
 }
-// cavities cut into a face-down cap/base (face at z = 0), +y side; what is
-// left between hole and void is the beam. Mirror for -y.
-module snap_female() {
-    by = snap_beam_y; bw = snap_beam_w; g = snap_gap; Lb = snap_beam_len;
+module snap_posts(z) {
+    if (snap && stand) {
+        for (sx = [-1, 1], py = [snap_post_y, snap_b_post_y])
+            translate([sx*snap_post_x, py, z]) { snap_post(); snap_gusset(); }
+    } else {
+        for (sx = [-1, 1], sy = [-1, 1])
+            translate([sx*snap_post_x, sy*snap_post_y, z]) mirror([0, sy < 0 ? 1 : 0, 0]) snap_post();
+    }
+}
+// cavities cut into a face-down cap/base (face at z = 0) for one latch:
+// beam centred on y = by (runs along x), posts centred on y = py < by,
+// barbs towards +y. What is left between hole and void is the beam.
+module snap_female(by = snap_beam_y, py = snap_post_y) {
+    bw = snap_beam_w; g = snap_gap; Lb = snap_beam_len;
     y0 = by - bw/2 - g;  wy = bw + 2*g;
     translate([-Lb/2, y0, -1]) cube([Lb, wy, 1 + snap_hole_h]);                        // hole under the beam
     translate([-Lb/2, y0, snap_beam_top]) cube([Lb, wy, snap_void_h]);                 // void above it
     for (sy = [y0, by + bw/2]) translate([-Lb/2, sy, -1]) cube([Lb, g, 1 + snap_beam_top + snap_void_h]);   // side gaps
     cw = snap_post_w + 2*snap_clr;
+    ext = (snap && stand) ? snap_post_top + snap_clr : 0;      // room for the gusset
     for (sx = [-1, 1]) {
-        translate([sx*snap_post_x - cw/2, snap_post_y - cw/2, -1]) cube([cw, (by - bw/2) - (snap_post_y - cw/2), 1 + snap_chan_top]);   // post channel
-        translate([sx*snap_post_x - cw/2, by - bw/2, snap_beam_top]) cube([cw, snap_barb + 0.3, snap_chan_top - snap_beam_top]);        // barb room
+        translate([sx*snap_post_x - cw/2, py - cw/2 - ext, -1]) cube([cw, (by - bw/2) - (py - cw/2 - ext), 1 + snap_chan_top]);   // post channel
+        translate([sx*snap_post_x - cw/2, by - bw/2, snap_beam_top]) cube([cw, snap_barb + 0.3, snap_chan_top - snap_beam_top]);   // barb room
     }
 }
-module snap_females() { snap_female(); mirror([0, 1, 0]) snap_female(); }
+module snap_females() {
+    snap_female();
+    if (snap && stand) snap_female(snap_b_beam_y, snap_b_post_y);
+    else mirror([0, 1, 0]) snap_female();
+}
 
 /* ============================ printed parts ============================ */
 // ---- recommended 4-part build --------------------------------------
@@ -337,8 +371,8 @@ module snap_females() { snap_female(); mirror([0, 1, 0]) snap_female(); }
 module carrier() {
     difference() {
         outline_prism(carrier_t);
-        pockets(carrier_t - mag_big_t - 0.1, carrier_t + 1, carrier_t - mag_small_t - 0.1, carrier_t + 1);
-        if (detent) detent_cut(carrier_t + 1);
+        pockets(carrier_t - mag_big_t - 0.1, carrier_t + 1, carrier_t - mag_small_t - 0.1, carrier_t + 1, snap && stand);
+        if (detent_on) detent_cut(carrier_t + 1);
         if (grooves && carrier_grooves) face_groove_cut("top");
         if (!snap) for (p = peg_pos) translate([p[0], p[1], carrier_t - dowel_depth]) cylinder(d = dowel_d, h = dowel_depth + 1);
     }
@@ -350,7 +384,7 @@ module pillow_cap() {
         pillow_poly(carrier_t);
         if (!snap) for (p = peg_pos) translate([p[0], p[1], carrier_t - SL]) cylinder(d = dowel_d, h = dowel_depth + SL);
         if (snap) translate([0, 0, carrier_t]) snap_females();
-        if (detent) translate([0, 0, carrier_t - SL]) cylinder(d = bore_d, h = spring_pocket_h + SL);
+        if (detent_on) translate([0, 0, carrier_t - SL]) cylinder(d = bore_d, h = spring_pocket_h + SL);
     }
 }
 // base shell: sculpted dome, track-seat face at z = 0 with the pockets
@@ -441,9 +475,11 @@ module assembly(gap = 0, slide = [0, 0]) {
 
 /* =============================== export =============================== */
 if (part == "pillow_cap")       pillow_cap();
-if (part == "carrier")          if (snap) carrier(); else translate([0, 0, carrier_t]) mirror([0, 0, 1]) carrier();   // glued: ridges up; snap: posts up
+// standing on the -y long edge: x stays, part y -> print z, posts point -y
+module on_edge() { if (snap && stand && print_orient) translate([0, 0, W/2]) rotate([90, 0, 0]) children(); else children(); }
+if (part == "carrier")          if (snap) on_edge() carrier(); else translate([0, 0, carrier_t]) mirror([0, 0, 1]) carrier();   // glued: ridges up; snap: posts up / on edge
 if (part == "base")             base_capped();                                          // face down
-if (part == "track")            if (snap) track_snap(); else track();
+if (part == "track")            if (snap) on_edge() track_snap(); else track();
 if (part == "pillow_embedded")  pillow_embedded();
 if (part == "base_embedded")    base_embedded();
 if (part == "pillow_open")      pillow_open();
