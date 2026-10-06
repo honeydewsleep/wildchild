@@ -60,8 +60,12 @@ socket_clr  = 0.30;      // "over": diametral clearance over body OD
 bore_margin = 0.30;      // "over": hole = body ID - this (keeps the
                          // hole edge from landing outside the body rim)
 insert_h    = 4.0;       // "in": how far the tube goes into the body
-insert_clr  = 0.15;      // "in": diametral clearance inside body ID
-                         // (the tube is only 4 mm long, so tight is ok)
+insert_clr  = 0.45;      // "in": diametral clearance inside body ID at
+                         // the shoulder end. 0.15 test-printed too big:
+                         // single-line walls swell ~0.1-0.2 on diameter.
+insert_taper = 0.10;     // "in": per-side taper, shoulder -> tip, so the
+                         // tip enters easily and the fit tightens as it
+                         // seats. Hole follows the tip OD (wall is fixed).
 
 // --- stand ------------------------------------------------------------
 stand_cols    = 4;       // body wells per row
@@ -98,13 +102,15 @@ body_len = row[3];
 over     = (spout == "over");
 
 // hole radius
-bore_in_r = (body_id - insert_clr)/2 - insert_wall;   // "in" hole
+sp_in_tip_r = (body_id - insert_clr)/2 - insert_taper;   // "in" tube OD/2 at tip
+bore_in_r = sp_in_tip_r - insert_wall;                   // "in" hole
 bore_r   = over ? (body_id - bore_margin)/2 : bore_in_r;
 // spout tube radii
 sock_r   = (body_od + socket_clr)/2;              // "over" socket ID/2
 sp_in_r  = over ? sock_r : bore_r;               // spout inner radius
 sp_out_r = over ? sock_r + spout_wall
                 : (body_id - insert_clr)/2;      // spout outer radius
+sp_tip_r = over ? sp_out_r : sp_in_tip_r;        // spout outer radius at tip
 sp_h     = over ? socket_h : insert_h;           // spout height
 
 mouth_r  = mouth_d/2;
@@ -120,6 +126,7 @@ sh_r     = over ? max(r_c1, sp_out_r) : max(r_c1, body_od/2 + 0.8);
 
 echo(str("capsule ", capsule, "  body OD ", body_od, "  body ID ", body_id));
 echo(str("spout=", spout, "  HOLE Ø", 2*bore_r, "  spout OD ", 2*sp_out_r,
+         over ? "" : str(" at shoulder, ", 2*sp_tip_r, " at tip"),
          "  height ", H, "  mouth Ø", mouth_d));
 
 // =====================================================================
@@ -152,7 +159,7 @@ outer_pts = concat(
             ? [ [sh_r, sp_h], [sp_out_r, sp_h - (sh_r - sp_out_r)] ]  // 45° chamfer
             : [] )
         : [ [sh_r, sp_h], [sp_out_r, sp_h] ],
-    [ [sp_out_r, 0.3], [sp_out_r - 0.3, 0] ]  // tiny outer chamfer at the tip
+    [ [sp_tip_r, 0.3], [sp_tip_r - 0.3, 0] ]  // tiny outer chamfer at the tip
 );
 
 profile = concat(inner_pts, outer_pts);
