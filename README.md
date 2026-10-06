@@ -237,3 +237,19 @@ Requires OpenSCAD (tested with 2021.01).
   silhouette bars).
 - Printed-contact AA holder (springs from salvaged holders) if the
   purchased-box pockets don't suit.
+
+## Misc: capsule-filling funnel (`scad/misc/capsule_funnel.scad`)
+
+Mini funnel for hand-filling size 00 capsules with a powder that
+doesn't want to flow. Standalone file, unrelated to the lamp.
+
+- `capsule_funnel_00.stl` — the spout is a thin **socket that slips
+  over the capsule body** (Ø8.48 ID, 5 mm deep), so the hole is only
+  limited by the capsule's own bore: **Ø7.64 mm** for a 00. A tube
+  that inserts *into* the body (`spout="in"`) can't beat ~Ø6.5.
+  Steep 68° cone, Ø30 mouth, 0.8 mm cone wall, 0.6 mm socket wall,
+  34 mm tall. Prints mouth-down, no supports.
+- `capsule_tamper_00.stl` — Ø7.1 rod with a disc handle to break
+  bridges and pack the powder down.
+- Other sizes: `-D 'capsule="000"'` / `"0"` / `"1"` (body OD table in
+  the file). Loosen `socket_clr` if the socket is tight on your prints.

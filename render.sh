@@ -45,6 +45,9 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     stl ring_double_sided    matched/ring_ds.scad part ring_ds
     stl ring_ds_diffuser     matched/ring_ds.scad part diffuser_ds   # print x2
     stl chassis_jack         matched/chassis.scad part chassis_jack
+    # misc: capsule-filling funnel (size 00, socket-over-body spout) + tamper
+    stl capsule_funnel_00    misc/capsule_funnel.scad part funnel
+    stl capsule_tamper_00    misc/capsule_funnel.scad part tamper
     # bottom port window + front button (multi-flag variant)
     echo "== stl/shell_free_port_button.stl"
     openscad -o stl/shell_free_port_button.stl -D 'part="shell_free"' \

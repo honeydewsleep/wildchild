@@ -16,6 +16,8 @@ is workflow knowledge for agents working in the repo.
   `stem_locknut.scad`, `shapes_preview.scad` (mockups only).
 - `scad/*.scad` (root) — Series A generic design. Stable; rarely touched.
 - `scad/fit_check.scad` — boolean interference checks (see below).
+- `scad/misc/` — unrelated one-offs (capsule funnel). Self-contained; do
+  not pull `params.scad` into them.
 - `stl/` — exported binary STLs, committed. `render.sh` — batch pipeline.
 - `docs/` — handoff specs for planned work.
 
