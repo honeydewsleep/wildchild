@@ -52,6 +52,13 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     # misc: Katie Bakes cookie cutter + logo embosser
     stl katiebakes_cutter    misc/katiebakes_cutter.scad part cutter
     stl katiebakes_stamp     misc/katiebakes_cutter.scad part stamp
+    # misc: 3" round cutter with the two-line logo (ring + snap-in stamp insert)
+    stl katiebakes_round_ring     misc/katiebakes_round.scad part ring
+    stl katiebakes_round_insert   misc/katiebakes_round.scad part insert
+    stl katiebakes_round_onepiece misc/katiebakes_round.scad part onepiece
+    python3 scripts/stl2bin.py stl/katiebakes_round_*.stl >/dev/null
+    python3 scripts/make_3mf.py 3mf/katiebakes_round_set.3mf \
+        ring=stl/katiebakes_round_ring.stl insert=stl/katiebakes_round_insert.stl
     echo "== stl/capsule_funnel_00_insert.stl"
     openscad -o stl/capsule_funnel_00_insert.stl -D 'part="funnel"' -D 'spout="in"' \
         scad/misc/capsule_funnel.scad 2>&1 \

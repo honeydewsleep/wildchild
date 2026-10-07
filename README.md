@@ -290,3 +290,23 @@ into the dough as you cut. Tuned for 6 mm rolled dough → 1.5 mm imprint
   another SVG (black fill, letters only) to re-use the cutter for a
   different logo; `logo_w` sets the size.
 
+## Misc: 3" round Katie Bakes cutter (`scad/misc/katiebakes_round.scad`)
+
+Round cutter that cuts a Ø76.2 mm (3") cookie and stamps the two-line
+logo ("Katie" over "Bakes", `katiebakes_logo2.svg`) in the same push.
+Lettering is sized so its enclosing circle is Ø66 (5 mm dough border).
+A one-piece cutter+stamp+handle can't print without supports (the letters
+float above the blade), so it is two prints that click together:
+
+- `katiebakes_round_ring.stl` — cutting ring, Ø79.4 OD, 6.5 mm tall:
+  0.8 mm lip, 1.6 mm wall, snap groove under the rim. Print upright.
+- `katiebakes_round_insert.stl` — Ø83.4 plate + letters + 60 mm bar
+  handle, 25 mm tall. A 2 mm skirt with three nubs clicks into the ring;
+  the plate rests on the rim so the letters imprint 1.5 mm into 6 mm
+  dough when the blade bottoms out. Print face-down, handle up, no
+  supports (enable elephant-foot compensation). Pops out to clean or to
+  use as a plain stamp.
+- `3mf/katiebakes_round_set.3mf` — both on one plate.
+- `katiebakes_round_onepiece.stl` — everything fused, print upright with
+  slicer supports under the letters only (support scars on the faces).
+
