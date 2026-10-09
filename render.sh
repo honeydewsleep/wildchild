@@ -52,13 +52,21 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     # misc: Katie Bakes cookie cutter + logo embosser
     stl katiebakes_cutter    misc/katiebakes_cutter.scad part cutter
     stl katiebakes_stamp     misc/katiebakes_cutter.scad part stamp
-    # misc: 3" round cutter with the two-line logo (ring + snap-in stamp insert)
-    stl katiebakes_round_ring     misc/katiebakes_round.scad part ring
-    stl katiebakes_round_insert   misc/katiebakes_round.scad part insert
-    stl katiebakes_round_onepiece misc/katiebakes_round.scad part onepiece
+    # misc: 3" round set — face-up stamp, screw-in handles, cutter rings in 3 heights
+    stl katiebakes_round_stamp    misc/katiebakes_round.scad part stamp
+    stl katiebakes_round_knob     misc/katiebakes_round.scad part knob
+    stl katiebakes_round_bar      misc/katiebakes_round.scad part bar
+    for h in 9 13 18; do
+        echo "== stl/katiebakes_round_ring_$h.stl"
+        openscad -o stl/katiebakes_round_ring_$h.stl -D 'part="ring"' -D "ring_h=$h" \
+            scad/misc/katiebakes_round.scad 2>&1 \
+            | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
+    done
     python3 scripts/stl2bin.py stl/katiebakes_round_*.stl >/dev/null
-    python3 scripts/make_3mf.py 3mf/katiebakes_round_set.3mf \
-        ring=stl/katiebakes_round_ring.stl insert=stl/katiebakes_round_insert.stl
+    python3 scripts/make_3mf.py 3mf/katiebakes_round_stamp_kit.3mf --cols 2 --title "Katie Bakes stamp kit" \
+        stamp=stl/katiebakes_round_stamp.stl knob=stl/katiebakes_round_knob.stl bar=stl/katiebakes_round_bar.stl
+    python3 scripts/make_3mf.py 3mf/katiebakes_round_rings.3mf --cols 2 --title "Katie Bakes cutter rings" \
+        ring_9=stl/katiebakes_round_ring_9.stl ring_13=stl/katiebakes_round_ring_13.stl ring_18=stl/katiebakes_round_ring_18.stl
     echo "== stl/capsule_funnel_00_insert.stl"
     openscad -o stl/capsule_funnel_00_insert.stl -D 'part="funnel"' -D 'spout="in"' \
         scad/misc/capsule_funnel.scad 2>&1 \
@@ -79,6 +87,9 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
 fi
 
 if [[ "$mode" == "check" || "$mode" == "all" ]]; then
+    echo "== fit check: Katie Bakes stamp/handle thread clearance (must be EMPTY)"
+    openscad -o /tmp/fit_kb_thread.stl -D 'part="fit"' scad/misc/katiebakes_round.scad 2>&1 \
+        | grep -iE 'empty|warning|error' || true
     echo "== fit check: clearance (must be EMPTY)"
     openscad -o /tmp/fit_clearance.stl -D 'mode="clearance"' scad/fit_check.scad 2>&1 \
         | grep -iE 'empty|warning|error' || true

@@ -290,23 +290,28 @@ into the dough as you cut. Tuned for 6 mm rolled dough → 1.5 mm imprint
   another SVG (black fill, letters only) to re-use the cutter for a
   different logo; `logo_w` sets the size.
 
-## Misc: 3" round Katie Bakes cutter (`scad/misc/katiebakes_round.scad`)
+## Misc: 3" round Katie Bakes set (`scad/misc/katiebakes_round.scad`)
 
-Round cutter that cuts a Ø76.2 mm (3") cookie and stamps the two-line
-logo ("Katie" over "Bakes", `katiebakes_logo2.svg`) in the same push.
-Lettering is sized so its enclosing circle is Ø66 (5 mm dough border).
-A one-piece cutter+stamp+handle can't print without supports (the letters
-float above the blade), so it is two prints that click together:
+Etsy-style cutter + stamp set for the two-line logo ("Katie" over
+"Bakes", `katiebakes_logo2.svg`, enclosing circle Ø66). Separate cutting
+rings so different heights can be printed for different cookies; the
+stamp prints face up for crisp, tall lettering and takes a screw-in
+handle. All parts print as exported, no supports.
 
-- `katiebakes_round_ring.stl` — cutting ring, Ø79.4 OD, 6.5 mm tall:
-  0.8 mm lip, 1.6 mm wall, snap groove under the rim. Print upright.
-- `katiebakes_round_insert.stl` — Ø83.4 plate + letters + 60 mm bar
-  handle, 25 mm tall. A 2 mm skirt with three nubs clicks into the ring;
-  the plate rests on the rim so the letters imprint 1.5 mm into 6 mm
-  dough when the blade bottoms out. Print face-down, handle up, no
-  supports (enable elephant-foot compensation). Pops out to clean or to
-  use as a plain stamp.
-- `3mf/katiebakes_round_set.3mf` — both on one plate.
-- `katiebakes_round_onepiece.stl` — everything fused, print upright with
-  slicer supports under the letters only (support scars on the faces).
-
+- `katiebakes_round_stamp.stl` — Ø75.2 × 8.5 mm disc, lettering 3 mm
+  proud, female thread (root r7.0, depth 1.2, pitch 3, 6.5 deep,
+  clearance 0.30) opening in the base. Print face up; the thread cavity
+  sits on the bed with 45° flanks, its ceiling is a short bridge. Ø75.2
+  slides inside the cutter bore, so the ring doubles as a stamping guide.
+- `katiebakes_round_knob.stl` — Ø36 mushroom knob, flat top on the bed,
+  male thread up. `katiebakes_round_bar.stl` — 70 mm bar grip, same
+  thread. Pick one (or both).
+- `katiebakes_round_ring_9.stl`, `_13`, `_18` — Ø76.2 bore cutting rings,
+  0.8 mm lip, 1.6 mm wall, 3 mm thumb flange with 45° underside; height
+  9 / 13 / 18 mm for thin, standard and thick cookies. Print upright.
+  Any other height: `-D ring_h=…`.
+- `3mf/katiebakes_round_stamp_kit.3mf` — stamp + knob + bar on one plate
+  (119 × 113 mm, fits any bed). `3mf/katiebakes_round_rings.3mf` — the
+  three rings (179 × 179 mm; needs a 256 mm bed, else print the ring STLs
+  singly).
+- `./render.sh check` includes the thread clearance check (must be EMPTY).

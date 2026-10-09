@@ -1,116 +1,117 @@
-// Katie Bakes — 3" round cookie cutter with the two-line logo stamp.
-// Self-contained (does not use params.scad).
+// Katie Bakes — 3" round cookie set: separate cutter rings + face-up stamp
+// with a screw-in handle (Etsy-style cutter + stamp set).  Self-contained
+// apart from the thread library.
 //
-// A one-piece "cutter + stamp + handle" cannot print support-free: the
-// letters hang from the plate above the blade edge, so they float in every
-// orientation that keeps the handle up.  Hence two parts that click together
-// into one tool:
+//   part="stamp"   — Ø75.2 disc (slides inside the cutter bore as a guide),
+//                    8.5 mm thick, two-line "Katie / Bakes" lettering 3 mm
+//                    proud, female thread in the base.  Print FACE UP as
+//                    exported (plate on the bed, letters up): the thread
+//                    cavity opens downward onto the bed, its 45° flanks print
+//                    without supports, the flat ceiling is a short bridge.
+//   part="knob"    — mushroom knob, flat top; part="bar" — 70 mm bar grip.
+//                    Both carry the male thread.  Print as exported (grip
+//                    face on the bed, thread pointing up).
+//   part="ring"    — cutting ring, Ø76.2 bore, height ring_h (9 / 13 / 18 mm
+//                    exported) with a 45°-backed thumb flange.  Print upright.
+//   part="fit"     — thread clearance check: must render EMPTY.
 //
-//   part="ring"    — the cutting ring (print upright, blade on the bed).
-//                    Ø76.2 bore = the cookie; 0.8 mm lip, 1.6 mm wall, a shallow
-//                    snap groove just below the rim.
-//   part="insert"  — plate + lettering + bar handle (print face-down, handle
-//                    up).  A 2 mm skirt drops into the ring bore with 3 snap
-//                    nubs; the plate rests on the ring rim, so with the blade
-//                    on the board the letter faces sit `imprint` below the top
-//                    of `dough_t` dough.  Pops out for cleaning / solo stamping.
-//   part="onepiece" — everything fused, for printing upright WITH slicer
-//                    supports under the letters (letter faces will show
-//                    support scarring).  Provided for completeness.
+// Lettering: cream face layer of "Katie Bakes Logo (2 lines).png" traced to
+// katiebakes_logo2.svg; logo_w / logo_off put its enclosing circle at Ø66,
+// centred.  The stamp face points +z, so the letters are MIRRORED here and
+// the imprint reads correctly.
 //
-// Lettering: cream face layer of "Katie Bakes Logo (2 lines).png",
-// colour-masked and traced (potrace) → katiebakes_logo2.svg.  logo_w /
-// logo_off were computed so the letters' minimal enclosing circle is exactly
-// cookie_d - 2*margin and centred on the axis.
-//
-// Letters read correctly from +z (handle side) → mirrored on the face → the
-// imprint reads correctly.
+// Thread: root r7.0, depth 1.2, pitch 3, 6.5 long, clearance 0.30 (same
+// printable 45°-flank profile and clearance as the lamp's validated
+// threads).  Axis vertical on both parts as exported.
 
-part = "insert";          // "ring" | "insert" | "onepiece" | "letters2d"
+use <../lib/threads.scad>
 
-// ---- cookie ----------------------------------------------------------
-cookie_d  = 76.2;         // 3" — diameter of the cut cookie (blade bore)
-margin    = 5;            // letters stay this far inside the blade
-logo_w    = 61.46;        // SVG width in mm; 62.26 puts the enclosing circle at cookie_d - 2*margin,
-                          // trimmed so the traced+offset outline tops out at r = 33.15
-logo_off  = [0.245, 3.850]; // shifts the SVG bbox centre so the enclosing circle is centred
-bold      = 0.15;         // per-side stroke thickening (thinnest ≈ 1.0 → 1.3 mm)
+part   = "stamp";   // "stamp" | "knob" | "bar" | "ring" | "fit" | "letters2d"
+ring_h = 13;        // cutter ring height for part="ring"
 
-// ---- dough / imprint -------------------------------------------------
-dough_t   = 6;
-imprint   = 1.5;
-plate_gap = 0.5;          // plate underside above the dough top
+// ---- cookie / lettering ------------------------------------------------
+cookie_d  = 76.2;          // 3" — bore of the cutter = cookie diameter
+stamp_clr = 0.5;           // radial gap stamp ↔ bore (stamp Ø75.2)
+logo_w    = 61.46;         // see katiebakes_round history: enclosing circle Ø66.3
+logo_off  = [0.245, 3.850];
+bold      = 0.15;          // per-side stroke thickening
+letter_h  = 3;             // relief of the lettering (= imprint depth)
 
-// ---- ring ------------------------------------------------------------
-blade_t   = 0.8;  blade_h = 3;
-wall_t    = 1.6;
-groove_d  = 0.35; groove_h = 1.0; groove_z = 1.0;   // below the rim, centre
+// ---- stamp body -------------------------------------------------------
+plate_t   = 8.5;           // thread length + 2 mm ceiling
+edge_ch   = 0.6;           // chamfer on the bed edge
 
-// ---- insert ----------------------------------------------------------
-plate_t   = 3;
-plate_lip = 2;            // plate overhangs the ring wall by this much
-skirt_t   = 1.5;  skirt_clr = 0.15;
-nub_d     = 1.0;  nub_proud = 0.3;  nubs = 3;
-handle_l  = 60;   handle_w_base = 9;  handle_d_top = 7;  handle_h = 20;
+// ---- thread (stamp female / handle male) ------------------------------
+thr_r     = 7.0;  thr_depth = 1.2;  thr_pitch = 3;  thr_len = 6.5;  thr_clr = 0.30;
+
+// ---- handles ----------------------------------------------------------
+knob_cap_d = 36;  knob_cap_t = 5;  knob_stem_d = 20;  knob_base_d = 30;  knob_h = 24;
+bar_l = 70;  bar_w = 14;  bar_t = 6;  bar_h = 23;
+
+// ---- cutter ring ------------------------------------------------------
+blade_t = 0.8;  blade_h = 3;  wall_t = 1.6;  flange_w = 3;  flange_t = 2;
 
 EPS = 0.01;
 $fn = 96;
 
-R_bore   = cookie_d / 2;
-ring_h   = dough_t + plate_gap;                 // 6.5 — plate rests on the rim
-letter_h = ring_h - (dough_t - imprint);        // 2.0
-plate_d  = cookie_d + 2 * (wall_t + plate_lip); // 83.4
-R_skirt  = R_bore - skirt_clr;
+R_bore  = cookie_d / 2;
+stamp_d = cookie_d - 2 * stamp_clr;
 
 module letters_raw()
     translate(logo_off) resize([logo_w, 0], auto = true)
         import("katiebakes_logo2.svg", center = true);
 module letters() offset(r = bold) letters_raw();
 
-module handle(z0) hull() {
-    translate([0, 0, z0 - EPS]) linear_extrude(EPS) square([handle_l, handle_w_base], center = true);
-    for (sx = [-1, 1])
-        translate([sx * (handle_l - handle_d_top) / 2, 0, z0 + handle_h - handle_d_top / 2])
-            sphere(d = handle_d_top, $fn = 48);
+module female_thread() {              // cavity, opening at z=0
+    translate([0, 0, -EPS]) thread_female_cavity(thr_r, thr_depth, thr_pitch, thr_len + EPS, thr_clr);
+    thread_mouth_chamfer(thr_r, thr_depth, thr_clr);
+}
+module male_thread() intersection() {  // rod, z=0..thr_len
+    thread_male(thr_r, thr_depth, thr_pitch, thr_len);
+    thread_tip_taper(thr_r, thr_depth, thr_len);
 }
 
-// ring cross-section (r, z); 45° step from lip to wall; snap groove near the rim
-module ring_profile(top, groove = true) {
-    Ro = R_bore + wall_t;
-    g0 = ring_h - groove_z - groove_h / 2;  g1 = g0 + groove_h;
-    polygon(groove ?
-        [[R_bore, 0], [R_bore + blade_t, 0], [R_bore + blade_t, blade_h],
-         [Ro, blade_h + (wall_t - blade_t)], [Ro, top], [R_bore, top],
-         [R_bore, g1], [R_bore + groove_d, g1], [R_bore + groove_d, g0], [R_bore, g0]] :
-        [[R_bore, 0], [R_bore + blade_t, 0], [R_bore + blade_t, blade_h],
-         [Ro, blade_h + (wall_t - blade_t)], [Ro, top], [R_bore, top]]);
-}
-
-module ring() rotate_extrude() ring_profile(ring_h, true);
-
-// print orientation: letter faces and skirt bottom on z=0, handle up
-module insert() {
-    linear_extrude(letter_h + EPS) letters();
-    difference() {                                    // skirt
-        cylinder(r = R_skirt, h = letter_h + EPS);
-        translate([0, 0, -1]) cylinder(r = R_skirt - skirt_t, h = letter_h + 2);
+// print orientation: bed face at z=0, letters up
+module stamp() difference() {
+    union() {
+        rotate_extrude() polygon([[0, 0], [stamp_d/2 - edge_ch, 0], [stamp_d/2, edge_ch],
+                                  [stamp_d/2, plate_t], [0, plate_t]]);
+        translate([0, 0, plate_t - EPS]) linear_extrude(letter_h + EPS) mirror([1, 0, 0]) letters();
     }
-    for (i = [0 : nubs - 1]) rotate([0, 0, 90 + i * 360 / nubs])  // snap nubs
-        translate([R_skirt - nub_d / 2 + nub_proud, 0, letter_h - groove_z]) sphere(d = nub_d, $fn = 24);
-    translate([0, 0, letter_h]) cylinder(d = plate_d, h = plate_t);
-    handle(letter_h + plate_t);
+    female_thread();
 }
 
-// in-use orientation (blade on the board); needs supports under the letters
-module onepiece() {
-    top = ring_h + plate_t;
-    rotate_extrude() ring_profile(top, false);
-    translate([0, 0, ring_h]) cylinder(r = R_bore + wall_t, h = plate_t);
-    translate([0, 0, dough_t - imprint]) linear_extrude(letter_h + EPS) letters();
-    handle(top);
+// print orientation: flat cap on the bed, thread up
+module knob() {
+    rc = knob_cap_d/2; rs = knob_stem_d/2; rb = knob_base_d/2;
+    rotate_extrude() polygon([[0, 0], [rc - 1, 0], [rc, 1], [rc, knob_cap_t],
+                              [rs, knob_cap_t + 3], [rs, knob_h - 3 - (rb - rs)],
+                              [rb, knob_h - 3], [rb, knob_h], [0, knob_h]]);
+    translate([0, 0, knob_h - EPS]) male_thread();
 }
 
-if (part == "ring")      ring();
-if (part == "insert")    insert();
-if (part == "onepiece")  onepiece();
-if (part == "letters2d") letters();
+module bar() {
+    hull() {
+        linear_extrude(bar_t) hull() for (sx = [-1, 1]) translate([sx * (bar_l - bar_w)/2, 0]) circle(d = bar_w);
+        translate([0, 0, bar_h - 3]) cylinder(d = knob_base_d, h = 3);
+    }
+    translate([0, 0, bar_h - EPS]) male_thread();
+}
+
+module ring(h = ring_h) {
+    Ro = R_bore + wall_t; Rf = Ro + flange_w;
+    z_step = blade_h + (wall_t - blade_t);        // 45° lip→wall step
+    z_fl   = max(z_step, h - flange_t - flange_w); // 45° flange underside
+    rotate_extrude() polygon([[R_bore, 0], [R_bore + blade_t, 0], [R_bore + blade_t, blade_h],
+                              [Ro, z_step], [Ro, z_fl], [Rf, z_fl + flange_w], [Rf, h], [R_bore, h]]);
+}
+
+if (part == "stamp")     stamp();
+if (part == "knob")      knob();
+if (part == "bar")       bar();
+if (part == "ring")      ring(ring_h);
+if (part == "letters2d") mirror([1, 0, 0]) letters();
+// Both threads are measured from their own z=0 (knob base face / stamp bed
+// face), which meet when seated — so compare them at the same origin.  (An
+// axial shift would rotate the helix: 1 mm = 120° at pitch 3.)
+if (part == "fit")       difference() { male_thread(); translate([0, 0, -EPS]) thread_female_cavity(thr_r, thr_depth, thr_pitch, thr_len + 2 * EPS, thr_clr); }
