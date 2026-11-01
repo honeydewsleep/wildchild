@@ -315,3 +315,47 @@ handle. All parts print as exported, no supports.
   three rings (179 × 179 mm; needs a 256 mm bed, else print the ring STLs
   singly).
 - `./render.sh check` includes the thread clearance check (must be EMPTY).
+
+## Misc: iPad Pro 12.9" magnetic charging wall mount (`scad/misc/ipad129_mount.scad`)
+
+12.9" remix of the [iPad Air/Pro 11" magnetic wireless VESA wall mount](https://makerworld.com/models/3287446)
+(GHPM DESIGN): a plate the size of the iPad's back whose magnet pockets sit
+exactly over the iPad's **own** back magnets, so the iPad snaps on, aligned,
+with a pogo-pin Smart Connector charger meeting the three contacts. Fits
+**iPad Pro 12.9" 5th gen (M1) and 6th gen (M2)** and, per Apple's drawings,
+the **iPad Air 13" (M2/M3)** (same outline, identical magnet sheet). Not the
+13" M4/M5 Pro. Magnet positions and polarities are taken from Apple's
+Accessory Design Guidelines dimensional drawings — see
+`docs/ipad129-magnet-map.md` for the full transcription and the frame.
+
+- `ipad129_mount_4x3.stl` / `_4x4.stl` — one-piece plate 277.6 × 211.9 × 7
+  (needs a ≥ 280 mm bed), pockets for 25 Ø4×3 or Ø4×4 magnets (press fit,
+  Ø4.2, 0.2 sub-flush), open-corner camera notch, charger recess running out
+  through the connector edge with a cable exit and a glue window in its
+  floor, VESA 100 / VESA 75 / 60 mm wall-box countersunk M4 holes, a 13 × 7.5
+  centre slot for the USB-C plug and a 5 × 3.5 cable groove on the back.
+  Print as exported, back on the bed, no supports (the countersinks are 45°).
+- `ipad129_mount_bottom_*.stl` + `ipad129_mount_top_*.stl` — the same plate
+  split at Y = 140.3 for **256 mm beds**, joined by four jigsaw tabs
+  (Ø15 head, 10 neck, 0.15 clearance). Press together flat, glue, and give
+  each half two VESA screws.
+- `ipad129_template.stl` (+ `_bottom` / `_top`) — 2 mm tray with a 3 mm lip
+  that wraps the iPad's sides. Flip it onto the iPad's back, drop a magnet in
+  every hole (they self-orient on the iPad's magnets), lift each with a spare
+  magnet, flip the stack and press it into the **mirror-image** pocket of the
+  mount — the original's assembly trick, polarity comes out right by
+  construction. Also the drilling template: Ø3 marks for every screw hole
+  and the centre cable hole, Ø1.6 marks for the three contacts.
+- `ipad129_plug.stl` — cover for the unused countersunk holes.
+- `3mf/ipad129_plate1…4_*.3mf` — one 256-bed plate each (two mount halves,
+  two template halves), `3mf/ipad129_plugs.3mf` — eight plugs.
+- **Charger pocket** fits the LULULOOK Smart Connector pill the original
+  mount uses: 67 × 31 × 5 mm, contact row 9.9 mm from the pill's outer long
+  edge (5.7 off centre), centred lengthwise — measured from the listing
+  photos with a homography on the plate's VESA 100 screws (±0.5 mm), 0.4 mm
+  clearance per side, cable assumed out of the left end (face view). Check
+  with calipers; `chg_len/wid/thk/pin_off/cable_end` are the knobs. Use a charger sold for the 12.9"/13" so its own magnets
+  match the connector-edge clusters; `-D charger=false` makes a plain
+  magnetic mount with six more pockets instead.
+- `./render.sh check` includes `part="check"` (pockets ∩ back-side cutters,
+  must be EMPTY) for both magnet heights.
