@@ -349,10 +349,12 @@ Accessory Design Guidelines dimensional drawings — see
 - `ipad129_plug.stl` — cover for the unused countersunk holes.
 - `3mf/ipad129_plate1…4_*.3mf` — one 256-bed plate each (two mount halves,
   two template halves), `3mf/ipad129_plugs.3mf` — eight plugs.
-- **Charger pocket is parametric and estimated from photos** (LULULOOK-style
-  62 × 32 × 5 pill, contact row 6 mm off the pill's centre line, cable out
-  of the left end): measure yours and set `chg_len/wid/thk/pin_off/cable_end`
-  before printing. Use a charger sold for the 12.9"/13" so its own magnets
+- **Charger pocket** fits the LULULOOK Smart Connector pill the original
+  mount uses: 67 × 31 × 5 mm, contact row 9.9 mm from the pill's outer long
+  edge (5.7 off centre), centred lengthwise — measured from the listing
+  photos with a homography on the plate's VESA 100 screws (±0.5 mm), 0.4 mm
+  clearance per side, cable assumed out of the left end (face view). Check
+  with calipers; `chg_len/wid/thk/pin_off/cable_end` are the knobs. Use a charger sold for the 12.9"/13" so its own magnets
   match the connector-edge clusters; `-D charger=false` makes a plain
   magnetic mount with six more pockets instead.
 - `./render.sh check` includes `part="check"` (pockets ∩ back-side cutters,

@@ -63,12 +63,15 @@ mag_sink = 0.2;      // magnet face below the plate face
 pocket_d     = mag_d + mag_clr;
 pocket_depth = mag_h + mag_sink;
 
-// ---- charger (LULULOOK-style pogo-pin pill; MEASURE YOURS) --------------
-chg_len       = 62;    // pill length (along the device edge)
-chg_wid       = 32;    // pill width
+// ---- charger (LULULOOK Smart Connector pill as used by the original mount;
+// measured off the listing photos via a homography on its VESA 100 screws:
+// 67 x 31, contacts 9.9 mm from the pill's outer long edge, centred along
+// its length; 5 mm thick per the listings.  Check with calipers.) ---------
+chg_len       = 67;    // pill length (along the device edge)
+chg_wid       = 31;    // pill width
 chg_thk       = 5;     // pill thickness
-chg_pin_off   = 6;     // pill centre is this far INBOARD (+Y) of the pin row
-chg_clr       = 0.3;   // per side
+chg_pin_off   = 5.7;   // pill centre is this far INBOARD (+Y) of the pin row
+chg_clr       = 0.4;   // per side
 chg_proud     = 0.2;   // pill face stands this much above the plate face
 chg_floor_min = 1.6;   // never leave a thinner floor than this
 chg_cable_end = -1;    // -1: cable leaves the pill's left end (face view), +1 right
