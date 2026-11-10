@@ -27,6 +27,9 @@
 //                          self-orient.  Also the wall drilling template.
 //   part="template_bottom" / "template_top"   split template.
 //   part="plug"            cover for unused countersunk screw holes.
+//   part="chg_test"        90 x 46 chunk of the real plate around the charger
+//                          recess (+ one magnet pocket): print this first to
+//                          check the charger and magnet fit (~15 min).
 //   part="check"           pockets ∩ back-side cutters: must render EMPTY.
 //
 //   -D mag_h=4             pockets for 4×4 instead of 4×3 mm magnets.
@@ -63,17 +66,18 @@ mag_sink = 0.2;      // magnet face below the plate face
 pocket_d     = mag_d + mag_clr;
 pocket_depth = mag_h + mag_sink;
 
-// ---- charger (LULULOOK Smart Connector pill as used by the original mount;
-// measured off the listing photos via a homography on its VESA 100 screws:
-// 67 x 31, contacts 9.9 mm from the pill's outer long edge, centred along
-// its length; 5 mm thick per the listings.  Check with calipers.) ---------
-chg_len       = 67;    // pill length (along the device edge)
-chg_wid       = 31;    // pill width
-chg_thk       = 5;     // pill thickness
-chg_pin_off   = 5.7;   // pill centre is this far INBOARD (+Y) of the pin row
+// ---- charger: KOOVIVA 27W Smart Connector pill for iPad Pro 12.9 / Air 13
+// (Amazon B0H2SRH64Z; listing drawing: 68 x 32 x 6 mm, three contacts
+// centred along the length, ~8.6 mm from the outer long edge, cable out of
+// one end).  Check with calipers; the same numbers fit the LULULOOK 11" pill
+// the original mount used (67 x 31 x 5, contacts 9.9 from the edge). -------
+chg_len       = 68;    // pill length (along the device edge)
+chg_wid       = 32;    // pill width
+chg_thk       = 6;     // pill thickness
+chg_pin_off   = 7.4;   // pill centre is this far INBOARD (+Y) of the pin row
 chg_clr       = 0.4;   // per side
-chg_proud     = 0.2;   // pill face stands this much above the plate face
-chg_floor_min = 1.6;   // never leave a thinner floor than this
+chg_proud     = 0.4;   // pill face stands this much above the plate face
+chg_floor_min = 1.4;   // never leave a thinner floor than this
 chg_cable_end = -1;    // -1: cable leaves the pill's left end (face view), +1 right
 chg_open_edge = true;  // let the recess run out through the plate's bottom edge
 chg_c     = [0, chg_pin_off];
@@ -279,6 +283,13 @@ module check() intersection() {
     }
 }
 
+// chunk of the real plate around the charger: same recess, floor openings,
+// groove start, open edge and the BV2-44 magnet pocket.
+module chg_test() intersection() {
+    mount_body();
+    translate([-45, dev_c[1] - plate_h/2 - 1, -1]) cube([90, 46 + 1, plate_thk + 2]);
+}
+
 if      (part == "mount")           mount_body();
 else if (part == "mount_bottom")    mount_bottom();
 else if (part == "mount_top")       mount_top();
@@ -286,4 +297,5 @@ else if (part == "template")        template_body();
 else if (part == "template_bottom") template_half(false);
 else if (part == "template_top")    template_half(true);
 else if (part == "plug")            plug();
+else if (part == "chg_test")        chg_test();
 else if (part == "check")           check();

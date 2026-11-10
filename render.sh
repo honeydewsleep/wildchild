@@ -90,6 +90,7 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     stl ipad129_template_bottom   misc/ipad129_mount.scad part template_bottom
     stl ipad129_template_top      misc/ipad129_mount.scad part template_top
     stl ipad129_plug              misc/ipad129_mount.scad part plug
+    stl ipad129_chg_test          misc/ipad129_mount.scad part chg_test
     python3 scripts/stl2bin.py stl/ipad129_*.stl >/dev/null
     python3 scripts/make_3mf.py 3mf/ipad129_plate1_mount_bottom.3mf --center 128,128 --title "iPad 12.9 mount - plate 1 (connector half)" mount_bottom=stl/ipad129_mount_bottom_4x3.stl
     python3 scripts/make_3mf.py 3mf/ipad129_plate2_mount_top.3mf --center 128,128 --title "iPad 12.9 mount - plate 2 (camera half)" mount_top=stl/ipad129_mount_top_4x3.stl

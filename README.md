@@ -347,14 +347,21 @@ Accessory Design Guidelines dimensional drawings — see
   construction. Also the drilling template: Ø3 marks for every screw hole
   and the centre cable hole, Ø1.6 marks for the three contacts.
 - `ipad129_plug.stl` — cover for the unused countersunk holes.
+- `ipad129_chg_test.stl` — 90 × 46 chunk of the real plate around the
+  charger recess, with one magnet pocket: **print this first** (≈ 15 min)
+  to confirm the charger drops in, sits 0.4 mm proud, and the magnets
+  press-fit, before committing to the full plate.
 - `3mf/ipad129_plate1…4_*.3mf` — one 256-bed plate each (two mount halves,
   two template halves), `3mf/ipad129_plugs.3mf` — eight plugs.
-- **Charger pocket** fits the LULULOOK Smart Connector pill the original
-  mount uses: 67 × 31 × 5 mm, contact row 9.9 mm from the pill's outer long
-  edge (5.7 off centre), centred lengthwise — measured from the listing
-  photos with a homography on the plate's VESA 100 screws (±0.5 mm), 0.4 mm
-  clearance per side, cable assumed out of the left end (face view). Check
-  with calipers; `chg_len/wid/thk/pin_off/cable_end` are the knobs. Use a charger sold for the 12.9"/13" so its own magnets
+- **Charger pocket** is cut for the KOOVIVA 27W Smart Connector pill sold
+  for the 12.9"/13" (Amazon B0H2SRH64Z): 68 × 32 × 6 mm per its listing
+  drawing, contacts centred lengthwise and ≈ 8.6 mm from the outer long
+  edge, cable out of one end. Pocket 68.8 × 32.8, 5.6 deep (pill 0.4 proud,
+  1.4 mm floor with a cable exit and a glue window), open through the
+  connector edge. The pill is held by adhesive through the floor window
+  (hot glue / VHB) — its own magnets pull it onto the iPad, so set it
+  proud, never sub-flush. `chg_len/wid/thk/pin_off/cable_end` are the knobs
+  (the 11" LULULOOK pill is 67 × 31 × 5, contacts 9.9 from the edge). Use a charger sold for the 12.9"/13" so its own magnets
   match the connector-edge clusters; `-D charger=false` makes a plain
   magnetic mount with six more pockets instead.
 - `./render.sh check` includes `part="check"` (pockets ∩ back-side cutters,
