@@ -77,6 +77,28 @@ if [[ "$mode" == "stl" || "$mode" == "all" ]]; then
     python3 scripts/make_3mf.py 3mf/capsule_filler_kit.3mf \
         stand=stl/capsule_stand_00.stl funnel_socket=stl/capsule_funnel_00.stl \
         funnel_insert=stl/capsule_funnel_00_insert.stl tamper=stl/capsule_tamper_00.stl
+    # misc: iPad Pro 12.9" / Air 13" magnetic Smart-Connector charging wall mount
+    for mh in 3 4; do
+        for p in mount mount_bottom mount_top; do
+            echo "== stl/ipad129_${p}_4x$mh.stl"
+            openscad -o stl/ipad129_${p}_4x$mh.stl -D "part=\"$p\"" -D "mag_h=$mh" \
+                scad/misc/ipad129_mount.scad 2>&1 \
+                | grep -Ev '^(Geometries|Geometry|Compiling|Parsing|Saving|Total|Top|Simple|Vertices|Halfedges|Edges|Halffacets|Facets|Volumes|Rendering|WARNING: Can.t open lib|ECHO)' || true
+        done
+    done
+    stl ipad129_template          misc/ipad129_mount.scad part template
+    stl ipad129_template_bottom   misc/ipad129_mount.scad part template_bottom
+    stl ipad129_template_top      misc/ipad129_mount.scad part template_top
+    stl ipad129_plug              misc/ipad129_mount.scad part plug
+    stl ipad129_chg_test          misc/ipad129_mount.scad part chg_test
+    python3 scripts/stl2bin.py stl/ipad129_*.stl >/dev/null
+    python3 scripts/make_3mf.py 3mf/ipad129_plate1_mount_bottom.3mf --center 128,128 --title "iPad 12.9 mount - plate 1 (connector half)" mount_bottom=stl/ipad129_mount_bottom_4x3.stl
+    python3 scripts/make_3mf.py 3mf/ipad129_plate2_mount_top.3mf --center 128,128 --title "iPad 12.9 mount - plate 2 (camera half)" mount_top=stl/ipad129_mount_top_4x3.stl
+    python3 scripts/make_3mf.py 3mf/ipad129_plate3_template_bottom.3mf --center 128,128 --title "iPad 12.9 mount - plate 3 (template, connector half)" template_bottom=stl/ipad129_template_bottom.stl
+    python3 scripts/make_3mf.py 3mf/ipad129_plate4_template_top.3mf --center 128,128 --title "iPad 12.9 mount - plate 4 (template, camera half)" template_top=stl/ipad129_template_top.stl
+    python3 scripts/make_3mf.py 3mf/ipad129_plugs.3mf --cols 4 --title "iPad 12.9 mount - screw hole plugs" \
+        plug1=stl/ipad129_plug.stl plug2=stl/ipad129_plug.stl plug3=stl/ipad129_plug.stl plug4=stl/ipad129_plug.stl \
+        plug5=stl/ipad129_plug.stl plug6=stl/ipad129_plug.stl plug7=stl/ipad129_plug.stl plug8=stl/ipad129_plug.stl
     # bottom port window + front button (multi-flag variant)
     echo "== stl/shell_free_port_button.stl"
     openscad -o stl/shell_free_port_button.stl -D 'part="shell_free"' \
@@ -90,6 +112,11 @@ if [[ "$mode" == "check" || "$mode" == "all" ]]; then
     echo "== fit check: Katie Bakes stamp/handle thread clearance (must be EMPTY)"
     openscad -o /tmp/fit_kb_thread.stl -D 'part="fit"' scad/misc/katiebakes_round.scad 2>&1 \
         | grep -iE 'empty|warning|error' || true
+    echo "== fit check: iPad 12.9 mount pockets vs back cutters, 4x3 and 4x4 (must be EMPTY)"
+    for mh in 3 4; do
+        openscad -o /tmp/fit_ipad129_$mh.stl -D 'part="check"' -D "mag_h=$mh" scad/misc/ipad129_mount.scad 2>&1 \
+            | grep -iE 'empty|warning|error' || true
+    done
     echo "== fit check: clearance (must be EMPTY)"
     openscad -o /tmp/fit_clearance.stl -D 'mode="clearance"' scad/fit_check.scad 2>&1 \
         | grep -iE 'empty|warning|error' || true
