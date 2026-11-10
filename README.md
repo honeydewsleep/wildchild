@@ -354,14 +354,14 @@ Accessory Design Guidelines dimensional drawings — see
 - `3mf/ipad129_plate1…4_*.3mf` — one 256-bed plate each (two mount halves,
   two template halves), `3mf/ipad129_plugs.3mf` — eight plugs.
 - **Charger pocket** is cut for the KOOVIVA 27W Smart Connector pill sold
-  for the 12.9"/13" (Amazon B0H2SRH64Z): 68 × 32 × 6 mm per its listing
-  drawing, contacts centred lengthwise and ≈ 8.6 mm from the outer long
-  edge, cable out of one end. Pocket 68.8 × 32.8, 5.6 deep (pill 0.4 proud,
-  1.4 mm floor with a cable exit and a glue window), open through the
-  connector edge. The pill is held by adhesive through the floor window
-  (hot glue / VHB) — its own magnets pull it onto the iPad, so set it
-  proud, never sub-flush. `chg_len/wid/thk/pin_off/cable_end` are the knobs
-  (the 11" LULULOOK pill is 67 × 31 × 5, contacts 9.9 from the edge). Use a charger sold for the 12.9"/13" so its own magnets
+  for the 12.9"/13" (Amazon B0H2SRH64Z), caliper-measured at **72 × 33 ×
+  4.6 mm** (its listing drawing claims 68 × 32 × 6 — wrong). Contacts
+  centred lengthwise, assumed ≈ 8.9 mm from the outer long edge. Pocket
+  72.8 × 33.8, 4.2 deep (pill 0.4 proud, 2.8 mm floor with a cable exit
+  and a glue window), open through the connector edge. The pill is held by
+  adhesive through the floor window (hot glue / VHB) — its own magnets pull
+  it onto the iPad, so set it proud, never sub-flush. `chg_len/wid/thk/
+  pin_off/cable_end` are the knobs (the 11" LULULOOK pill is ≈ 67 × 31 × 5). Use a charger sold for the 12.9"/13" so its own magnets
   match the connector-edge clusters; `-D charger=false` makes a plain
   magnetic mount with six more pockets instead.
 - `./render.sh check` includes `part="check"` (pockets ∩ back-side cutters,

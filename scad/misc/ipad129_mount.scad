@@ -67,14 +67,15 @@ pocket_d     = mag_d + mag_clr;
 pocket_depth = mag_h + mag_sink;
 
 // ---- charger: KOOVIVA 27W Smart Connector pill for iPad Pro 12.9 / Air 13
-// (Amazon B0H2SRH64Z; listing drawing: 68 x 32 x 6 mm, three contacts
-// centred along the length, ~8.6 mm from the outer long edge, cable out of
-// one end).  Check with calipers; the same numbers fit the LULULOOK 11" pill
-// the original mount used (67 x 31 x 5, contacts 9.9 from the edge). -------
-chg_len       = 68;    // pill length (along the device edge)
-chg_wid       = 32;    // pill width
-chg_thk       = 6;     // pill thickness
-chg_pin_off   = 7.4;   // pill centre is this far INBOARD (+Y) of the pin row
+// (Amazon B0H2SRH64Z).  Caliper-measured 72 x 33 x 4.6 mm (the listing
+// drawing says 68 x 32 x 6 — do not trust it).  Three contacts centred along
+// the length; distance from the outer long edge scaled from the listing's
+// 8.6/32 to 8.9/33, i.e. 7.6 mm inboard of centre — adjust chg_pin_off if
+// the pins land off the iPad's contacts.  Cable out of one end. -----------
+chg_len       = 72;    // pill length (along the device edge)
+chg_wid       = 33;    // pill width
+chg_thk       = 4.6;   // pill thickness
+chg_pin_off   = 7.6;   // pill centre is this far INBOARD (+Y) of the pin row
 chg_clr       = 0.4;   // per side
 chg_proud     = 0.4;   // pill face stands this much above the plate face
 chg_floor_min = 1.4;   // never leave a thinner floor than this
